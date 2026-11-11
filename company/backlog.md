@@ -69,3 +69,11 @@
 | 4주 | 11/23~11/29 | 모델 학습·변환·연결, 디자인 적용 |
 | 5주 | 11/30~12/6 | QA 재검사, 실기기 2차, 시연·백업 영상 대본, 발표 자료 |
 | 6주 | 12/7~12/13 | 리허설, 최종 점검, **12/13 결선** |
+
+## 현재 상태 (2026-11-11 0시 전, 다음 세션은 여기서 시작)
+- 커밋 안 된 작업(작업 폴더에만 있음): 앱 1-3~1-5 코드(sueo42/, .gitignore, README.md, .claude/launch.json, tests/, docs/tech/norm-testcases.json), training/ 스크립트. 
+- 1-3~1-5: QA 불통과 1건 — store.js normalize 가 깨진 저장값 안쪽 항목을 안 걸러 앱이 멈춤(ranking:[null] 등), start.js onDone 을 try 밖으로. 그 밖 작은 것: quiz.js "최고 {s}점" 문구 번호, records.js badgeStage 빈칸, structure.md 에 ui.js 줄
+- 1-6 직접 해보기: 시작 직후 멈춤(main.js 가 아직 없는 screens/lab.js 를 불러옴 → 지금 앱이 404)
+- 3-0: Python 3.11.9·training/.venv 완료, VC++ 깔림, TensorFlow import 미확인
+- 3-2·3-3: 데이터 준비 완료(docs/data/aihub-counts.md), 시작 전
+- 토큰 절약: 직원은 이어서 깨우지 말고 새로 시작, 한 번에 한 명. 순서 = ml-engineer(3-2·3-3) → frontend-dev(QA 수정·1-6)
