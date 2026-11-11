@@ -1,0 +1,27 @@
+# [역할] 학습 환경 버전 고정(3-0, 2026-11-09). Python 3.11.9 (Windows 11, 사용자 범위 설치)
+#
+# 왜 이 버전인가
+# - tensorflow 2.15.1: Keras 2 가 들어 있는 마지막 줄(2.16 부터 Keras 3). tensorflowjs 의 LayersModel 변환은
+#   Keras 2(tf_keras) 모델을 기준으로 하므로 Keras 3 섞임을 피한다. Windows CPU + Python 3.11 휠이 있다.
+# - tensorflowjs 4.22.0: 앱의 tfjs 4.22.0 과 같은 판(변환한 model.json 의 generatedBy 가 같아진다).
+# - tf-keras 2.15.1: tensorflowjs 4.22 가 import 하는 tf_keras, TF 2.15 와 같은 판.
+# - numpy 1.26.4: TF 2.15 는 numpy 2 를 지원하지 않는다.
+# - packaging 23.2: tensorflowjs 가 packaging~=23.1 을 요구.
+#
+# ⚠️ 설치 순서가 있다(Windows): tensorflowjs 는 의존성 없이 따로 설치한다.
+#   tensorflowjs 4.22 는 flax·jax·tensorflow-decision-forests 를 요구하는데, decision-forests 는 Windows 용이 없고
+#   flax/jax 는 uvloop(Windows 미지원)을 끌고 와 설치가 실패한다. LayersModel 변환에는 셋 다 필요 없어서
+#   tfjs_compat.py 가 빈 모듈로 채운다. `pip check` 에 이 셋이 없다고 나오는 것은 정상이다.
+#
+#   python -m pip install -r training/requirements.txt
+#   python -m pip install --no-deps tensorflowjs==4.22.0
+#
+# ⚠️ TensorFlow 는 Microsoft Visual C++ 재배포 패키지(msvcp140.dll)가 있어야 import 된다.
+tensorflow==2.15.1
+tf-keras==2.15.1
+numpy==1.26.4
+tensorflow-hub==0.16.1
+importlib_resources==6.4.5
+packaging==23.2
+six==1.17.0
+h5py==3.16.0

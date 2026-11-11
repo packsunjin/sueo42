@@ -1,0 +1,34 @@
+# 수어42 저장소 .gitignore — AI-Hub 원본·중간 파일과 개발 도구 파일이 커밋되지 않게 막는다
+
+# AI-Hub「수어 영상」 원본·중간 파일 — 저장소에 넣지 않는다(약관)
+*.zip
+*.tar
+*.7z
+**/*_keypoint/
+**/*_morpheme/
+**/*real_word*
+**/*real_sen*
+**/*REAL[0-9][0-9]*
+**/aihub*/
+**/AIHub*/
+training/data/
+training/out/
+*.npy
+*.npz
+*.h5
+*.keras
+
+# 영상 원본
+*.mp4
+*.mov
+*.avi
+
+# Python 학습 환경
+training/.venv/
+__pycache__/
+*.pyc
+
+# 개발 도구
+node_modules/
+.DS_Store
+Thumbs.db
