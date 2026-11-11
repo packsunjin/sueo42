@@ -37,6 +37,9 @@ TensorFlow.js(LayersModel)로 바꾼다. 정규화 규칙은 `docs/tech/structur
 | 파일 | 하는 일 |
 |---|---|
 | `count_words.py` | (3-1) 형태소 라벨 JSON 에서 42개 단어 등장 횟수 표, 적은 단어 표시 |
+| `norm.py` | (3-2) 손 좌표 정규화 파이썬 판. 앱 `sueo42/js/ai/normalize.js` 와 같은 결과 |
+| `test_norm.py` | (3-2) `docs/tech/norm-testcases.json` 으로 norm.py 검사(인자 없이 실행) |
+| `prepare_data.py` | (3-2) 문장(SEN) 손 좌표에서 42개 단어 구간을 잘라 `training/data/` 에 X·y·화자 배열 저장 |
 | `smoke_test_tfjs.py` | (3-0) 무작위 숫자 GRU 모델(입력 [1,30,84] → 42)을 TF.js 로 변환해 보는 환경 시험 |
 | `tfjs_compat.py` | Windows 에서 tensorflowjs 를 import 하게 빈 모듈을 채움(다른 스크립트가 씀) |
 
@@ -58,3 +61,14 @@ training\.venv\Scripts\python.exe training\count_words.py D:\aihub\morpheme --fe
 training\.venv\Scripts\python.exe training\smoke_test_tfjs.py C:\temp\tfjs_smoke
 ```
 출력 폴더(저장소 밖)에 `model.json` + 가중치 `.bin` 이 생기면 통과. 뜻 없는 모델이라 저장소에 넣지 않는다.
+
+### prepare_data.py
+```powershell
+training\.venv\Scripts\python.exe training	est_norm.py
+training\.venv\Scripts\python.exe training\prepare_data.py --labels <문장 형태소 라벨 zip ...> --keypoints <문장 keypoint zip ...>
+```
+- zip 은 풀지 않고 읽기만 한다. 라벨 zip 과 keypoint zip 은 영상 이름(`NIA_SL_SEN0001_REAL01_F`)으로 짝을 맞춘다.
+- 출력(기본 `training/data/`, .gitignore 대상 — **커밋·업로드 금지**): `X.npy` [N,30,84], `y.npy`, `speakers.npy`(REAL 번호),
+  `angles.npy`, `sentences.npy`, `nframes.npy`, `labels.json`(42개 이름 배열), `meta.json`(표본 수·버린 수).
+- 시작할 때 정규화 검사를 돌리고, 앱과 다르면 데이터를 만들지 않고 멈춘다.
+- 구간: 프레임 k 시각 = k/30 초, `start ≤ k/30 ≤ end`. `--angles F` 처럼 각도를 고를 수 있다(기본 5개 전부).
