@@ -57,10 +57,16 @@ function badgeCell(b, s, words) {
   const c = BADGE_COPY[b.copy];
   const date = s.badges[b.id];
   if (date) {
+    // B-04 의 {n}: 받게 한 단계. 옛 기록·고친 기록이라 없으면 지금 다 해 본 첫 단계, 그것도 없으면 문구를 빼서 빈칸을 안 보인다
+    let got = c.got;
+    if (b.id === "stage") {
+      const n = s.badgeStage ?? stageNumbers().find((k) => stageDone(s, words, k)) ?? null;
+      got = n == null ? null : fill(c.got, { n });
+    }
     return h("li", { class: "badge on" },
       h("strong", {}, c.name),
       h("small", {}, date),
-      h("small", { class: "muted" }, fill(c.got, { n: s.badgeStage ?? "" })));
+      got ? h("small", { class: "muted" }, got) : null);
   }
   const p = badgeProgress(b.id, s, words);
   return h("li", { class: "badge off" },

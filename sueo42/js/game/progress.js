@@ -23,7 +23,7 @@ export function emptyState() {
     days: [],           // 학습한 날 YYYY-MM-DD
     badges: {},         // { 배지id: 받은 날 }
     badgeStage: null,   // 배지 4 를 받게 한 단계 번호(B-04 문구의 {n})
-    best: {},           // { 단계: 이 기기 최고 점수 } (S4 "최고 {s}점", Q-14)
+    best: {},           // { 단계: 이 기기 최고 점수 } (S4 단계 카드 copy.js "S4-최고", S6 Q-14 판단)
     ranking: [],        // [{ name, score, stage, date, at }]
     lastName: "",
     cameraIntroSeen: false,

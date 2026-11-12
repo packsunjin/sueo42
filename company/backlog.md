@@ -10,10 +10,10 @@
 | 1-2 | 1-1 사장 결재(결재 항목 5개 + 배지 3 변경, docs/spec/README.md 끝) | 사장 | 완료(11/9 승인) | 11/9 |
 | 1-0 | 시트에서 sueo42/data/words.csv 만들기(42줄, 영상 42개 접속 확인) | 비서실장 | 완료(QA 통과 11/6) | 11/6 |
 | 1-2b | 앱 구조 결재(docs/tech/structure.md: 빌드 없는 JS 모듈, vendor 보관, 버전 고정) | 사장 | 완료(11/9 승인) | 11/9 |
-| 1-3 | 앱 뼈대: 화면 이동, words.csv 읽기, 기록 저장(localStorage), 설정 파일(MODEL_URL) | frontend-dev | 진행 | 11/12 |
-| 1-4 | 검색·단어 상세(사전 영상·수형 설명·출처) | frontend-dev | 대기 | 11/14 |
-| 1-5 | 뜻 맞히기(4지선다·점수·정답 옆 출처·별명 랭킹) + 단계·레벨·배지 화면 | frontend-dev | 대기 | 11/16 |
-| 1-6 | 직접 해보기: 카메라·MediaPipe 손 좌표, 시험용 순위("시험용" 표시), 영상·손 좌표 나란히, 버튼 3개, 42개 목록 고르기 | frontend-dev | 대기 | 11/19 |
+| 1-3 | 앱 뼈대: 화면 이동, words.csv 읽기, 기록 저장(localStorage), 설정 파일(MODEL_URL) | frontend-dev | 검수(11/12 QA 불통과 수정, qa 재검사 전) | 11/12 |
+| 1-4 | 검색·단어 상세(사전 영상·수형 설명·출처) | frontend-dev | 검수(11/12 Node 시험·브라우저 한 바퀴 통과, qa 재검사 전) | 11/14 |
+| 1-5 | 뜻 맞히기(4지선다·점수·정답 옆 출처·별명 랭킹) + 단계·레벨·배지 화면 | frontend-dev | 검수(11/12 Node 시험·브라우저 한 바퀴 통과, qa 재검사 전) | 11/16 |
+| 1-6 | 직접 해보기: 카메라·MediaPipe 손 좌표, 시험용 순위("시험용" 표시), 영상·손 좌표 나란히, 버튼 3개, 42개 목록 고르기 | frontend-dev | 검수(11/12 가짜 카메라·MediaPipe 로 흐름 확인, 실제 카메라·실기기 미확인) | 11/19 |
 | 1-7 | 규칙 위반 검사(판정 표현·출처·데이터 약관)·동작 검사 | qa | 대기 | 11/20 |
 
 ## 2. AI-Hub 데이터 받기 (사장이 직접 — 신청·로그인 대신하지 않음)
@@ -72,8 +72,8 @@
 
 ## 현재 상태 (2026-11-11 0시 전, 다음 세션은 여기서 시작)
 - 11/11 브리핑 뒤 커밋함: 앱 1-3~1-5(·1-6 진행 중) 코드(sueo42/, vendor/, .gitignore, README.md, .claude/launch.json, tests/, docs/tech/norm-testcases.json), training/ 스크립트(.venv 제외). 
-- 1-3~1-5: QA 불통과 1건 — store.js normalize 가 깨진 저장값 안쪽 항목을 안 걸러 앱이 멈춤(ranking:[null] 등), start.js onDone 을 try 밖으로. 그 밖 작은 것: quiz.js "최고 {s}점" 문구 번호, records.js badgeStage 빈칸, structure.md 에 ui.js 줄
-- 1-6 직접 해보기: 시작 직후 멈춤(main.js 가 아직 없는 screens/lab.js 를 불러옴 → 지금 앱이 404)
+- 1-3~1-6 (11/12): QA 불통과 건(store.js 안쪽 항목 거르기, start.js onDone, quiz 최고 점수 문구, records badgeStage, structure.md ui.js) 수정. `tests/app-logic.test.mjs` 34/34 통과, 브라우저로 뜻 맞히기·검색·직접 해보기 한 바퀴 확인. 남은 것: qa 재검사(1-7), 실제 카메라·실기기, E-05·E-12 화면, copy.md 에 "최고 {s}점" 문구 번호 정하기(지금 copy.js 임시 키 S4-최고)
+- 디자인은 기능 다 된 뒤(4-2). 시안 선택(4-1)만 11/16
 - 3-0: Python 3.11.9·training/.venv 완료, VC++ 깔림. **TensorFlow import 실패 — 스마트 앱 컨트롤이 DLL 차단(11/11).** numpy 는 됨. 3-3 전에 사장 결정 필요(브라우저 TF.js 학습 / 스마트 앱 컨트롤 끄기)
 - 3-2: 11/11 만듦, QA 전. training/data/(gitignore)에 X·y·speakers·angles 등. 6명분(REAL01~04·17·18), 각도 5개 포함 40,763개, 단어별 30~6425개
 - 3-3 에서 정할 것: 단어 불균형(200배) 가중치·상한, 쉬는 손을 0 으로 바꾸는 증강(AI-Hub 는 두 손이 항상 있고 앱은 화면 밖 손이 0), 정면(F) 각도만 쓸지, 화자 단위 분할. AI-Hub 좌우 뒤집힘은 영상으로 확인 못 함

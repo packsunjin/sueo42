@@ -12,14 +12,16 @@ export function renderStart(el, onDone) {
       spinner(t("H-02"))));
     try {
       await loadWords();
-      onDone();
     } catch (e) {
-      console.error("단어 목록 읽기 실패:", e.message);
+      console.error("단어 목록 읽기 실패:", e && e.message);
       el.replaceChildren(h("section", { class: "start" },
         h("h1", { class: "app-name" }, t("C-01")),
         h("p", { class: "tagline" }, t("H-01")),
         errorBox("E-01", { [btn("C-11")]: attempt })));
+      return;
     }
+    // try 밖: 첫 화면을 그리다 난 오류를 "단어 목록 실패(E-01)"로 잘못 보이지 않게
+    onDone();
   }
   attempt();
 }

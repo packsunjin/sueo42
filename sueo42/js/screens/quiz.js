@@ -47,7 +47,7 @@ export function renderQuizHome(el) {
         h("p", { class: "stage-words" }, ws.map((w) => w.name).join(" · ")),
         h("div", { class: "row-between muted" },
           h("span", {}, t("C-15", { k: stageTried(s, words, n) })),
-          best !== undefined ? h("span", {}, `최고 ${best}점`) : null));
+          best !== undefined ? h("span", {}, t("S4-최고", { s: best })) : null));
     })),
     h("div", { class: "bottom-actions" }, button(btn("Q-03"), () => go("/ranking"), { kind: "secondary" }))));
 }

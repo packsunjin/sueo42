@@ -100,6 +100,8 @@ sueo42/
     router.js              해시 주소 → 화면 함수, 화면 나갈 때 정리 함수(카메라 끄기 등) 호출
     util.js                글자 안전하게 넣기(esc), 섞기, 날짜(로컬 기준 YYYY-MM-DD)
     copy.js                docs/spec/copy.md 문구를 번호로 그대로 옮긴 표(E-01 등). 화면 파일은 문장을 직접 쓰지 않고 번호로 가져온다
+                           (copy.md 번호가 없는 screens.md 본문 문구는 "S4-최고"처럼 화면 번호로 둠)
+    ui.js                  여러 화면이 같이 쓰는 부품: 머리([뒤로])·버튼·오류 상자(E-번호)·로딩·사전 영상 칸(E-02, 느리게 보기)·출처 줄(C-12/C-19)·레벨 막대·창(모달)·확인 창·E-11 안내·토스트(T-01~T-04)·"시험용" 표시
     data/csv.js            CSV 파싱(따옴표 안 쉼표·줄바꿈 처리)
     data/words.js          data/words.csv 읽기, 열 이름은 config.COLUMNS, 번호로 단어 찾기, 검색 거름(단어·사전 표제어)
     store.js               localStorage 읽기·쓰기(키 sueo42-v1, game.md), 형식 다르면 빈 기록, 쓰기 실패면 메모리 + E-11
