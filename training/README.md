@@ -40,6 +40,7 @@ TensorFlow.js(LayersModel)로 바꾼다. 정규화 규칙은 `docs/tech/structur
 | `norm.py` | (3-2) 손 좌표 정규화 파이썬 판. 앱 `sueo42/js/ai/normalize.js` 와 같은 결과 |
 | `test_norm.py` | (3-2) `docs/tech/norm-testcases.json` 으로 norm.py 검사(인자 없이 실행) |
 | `prepare_data.py` | (3-2) 문장(SEN) 손 좌표에서 42개 단어 구간을 잘라 `training/data/` 에 X·y·화자 배열 저장 |
+| `train.py` | (3-3·3-4) `training/data/` 로 Conv1D+GRU 학습(검증 = REAL17·18) → `sueo42/model/` TF.js 변환 + `docs/data/train-report.md` 지표 |
 | `smoke_test_tfjs.py` | (3-0) 무작위 숫자 GRU 모델(입력 [1,30,84] → 42)을 TF.js 로 변환해 보는 환경 시험 |
 | `tfjs_compat.py` | Windows 에서 tensorflowjs 를 import 하게 빈 모듈을 채움(다른 스크립트가 씀) |
 
@@ -61,6 +62,15 @@ training\.venv\Scripts\python.exe training\count_words.py D:\aihub\morpheme --fe
 training\.venv\Scripts\python.exe training\smoke_test_tfjs.py C:\temp\tfjs_smoke
 ```
 출력 폴더(저장소 밖)에 `model.json` + 가중치 `.bin` 이 생기면 통과. 뜻 없는 모델이라 저장소에 넣지 않는다.
+
+### train.py
+```powershell
+training\.venv\Scripts\python.exe training\train.py --data training\data --model-out sueo42\model --report docs\data\train-report.md --probe-out C:\temp\probe
+```
+- 사람 단위 분할(검증 REAL17·18), 클래스 가중치(최대 30), 증강(회전·크기·점 잡음, 쉬는 손 0, 프레임 놓침 — 위치 이동 없음).
+- 30에폭 약 18분(CPU). 정면(F) 검증 단어 평균 상위1 이 가장 높은 에폭을 남긴다.
+- GRU 는 `reset_after=False` — TF.js 4.22.0 GRUCell 이 `True` 를 못 읽는다.
+- `--probe-out` 은 재로딩 검사용 입력(AI-Hub 값)이라 저장소 밖에 쓴다.
 
 ### prepare_data.py
 ```powershell

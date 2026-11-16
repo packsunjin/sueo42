@@ -251,7 +251,9 @@ await check("단어 상세: 42개 모두 영상(mp4, https)·사전 페이지·�
 
 // ── 5. 직접 해보기(모델 없음 → 시험용) ──
 await check("MODEL_URL 비었음 → 시험용 순위: 서로 다른 2개, 42개 안의 이름, 확률 없음 (500번)", async () => {
-  assert.equal(CONFIG.MODEL_URL, "");
+  const saved = CONFIG.MODEL_URL;
+  CONFIG.MODEL_URL = ""; // 모델을 끈 경우(시험용) 경로를 본다
+  try {
   const names = new Set(words.map((w) => w.name));
   for (let i = 0; i < 500; i++) {
     const r = await M.rank([], words);
@@ -262,6 +264,7 @@ await check("MODEL_URL 비었음 → 시험용 순위: 서로 다른 2개, 42개
     r.names.forEach((n) => assert.ok(names.has(n)));
   }
   M.preload(); // 모델 없으면 아무것도 안 함(던지지 않음)
+  } finally { CONFIG.MODEL_URL = saved; }
 });
 
 // ── 6. 문구 ──

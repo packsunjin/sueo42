@@ -9,8 +9,8 @@ export const CONFIG = {
   // 출처 문구는 여기 두지 않고 js/copy.js 의 C-12·C-19·I-04 를 그대로 쓴다
 
   // ── AI 모델 (3-4 에서 채움). 비어 있으면 직접 해보기 순위는 "시험용"(무작위) ──
-  MODEL_URL: "",                          // 3-4 뒤 "model/model.json"
-  MODEL_LABELS_URL: "",                   // 3-4 뒤 "model/labels.json"
+  MODEL_URL: "model/model.json",          // 3-4(11/16) 연결. 비우면 "시험용"(무작위)
+  MODEL_LABELS_URL: "model/labels.json",
   TFJS_URL: "vendor/tfjs@4.22.0/tf.min.js",
   MEDIAPIPE_DIR: "vendor/mediapipe/tasks-vision@0.10.14",
   HAND_MODEL_URL: "vendor/mediapipe/hand_landmarker/float16-1/hand_landmarker.task",
