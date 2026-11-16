@@ -1,6 +1,6 @@
 # AI-Hub 라벨에서 42개 단어 등장 횟수 (backlog 3-1, 2026-11-10)
 
-`training/count_words.py` 로 셌다. 원본 라벨은 저장소 밖(`C:\Users\User\Downloads\수어 영상`)에만 있고, 여기에는 센 숫자만 적는다.
+`training/count_words.py` 로 셌다. 원본 라벨은 저장소 밖(`C:\Users\User\Downloads\수어 영상`, Validation 문장 라벨만 `C:\Users\User\Downloads\004.수어영상\2.Validation\라벨링데이터_231204_add\01_real_sen_morpheme.zip`)에만 있고, 여기에는 센 숫자만 적는다.
 횟수는 **각도 5개(D·F·L·R·U)를 따로 센 값**이다. 사람·문장 하나가 5번으로 잡힌다.
 
 ## 결론
