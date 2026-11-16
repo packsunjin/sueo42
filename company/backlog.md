@@ -28,12 +28,12 @@
 ## 3. 모델 학습 (데이터를 받은 뒤, 국내 PC에서만)
 | 번호 | 내용 | 담당 | 상태 | 마감 |
 |---|---|---|---|---|
-| 3-0 | Python·TensorFlow 환경 준비(이 PC에 Python 없음) | ml-engineer | 막힘: 스마트 앱 컨트롤이 TensorFlow DLL 차단(11/11 확인). 사장 결정 필요 — 브라우저 TF.js 학습 또는 스마트 앱 컨트롤 끄기 | 11/10 |
+| 3-0 | Python·TensorFlow 환경 준비(이 PC에 Python 없음) | ml-engineer | 완료(11/16 사장이 스마트 앱 컨트롤 끔, TF 2.15.1 import 확인) | 11/10 |
 | 3-1 | 42개 단어 라벨 등장 횟수 표(적은 단어 표시) | 비서실장 | 완료(docs/data/aihub-counts.md) | 2-2 다음 날 |
 | 3-2 | start·end로 구간 자르기, 정규화(손목 기준·손 크기·30프레임), 왼손·오른손 기준 맞추기 | ml-engineer | 검수(11/11 training/prepare_data.py, X [40763, 30, 84], 정규화 검사 62/62, QA 전) | 11/17 |
-| 3-3 | GRU 또는 1D-CNN 학습, 입력 [1, 30, 84], 단어별 상위 2위 안 비율 보고(개발용) | ml-engineer | 대기 | 11/23 |
-| 3-4 | TensorFlow.js 변환 → sueo42/model/model.json·labels.json, MODEL_URL 연결, "시험용" 표시 빼기 | ml-engineer + frontend-dev | 대기 | 11/26 |
-| 3-5 | 모델 연결 검수(확률이 화면에 안 나오는지 포함) | qa | 대기 | 11/27 |
+| 3-3 | GRU 또는 1D-CNN 학습, 입력 [1, 30, 84], 단어별 상위 2위 안 비율 보고(개발용) | ml-engineer | 완료(11/16 train.py, 검증 REAL17·18 정면 상위1 96.5%·상위2 98.3% — 개발용, AI-Hub 좌표 기준. docs/data/train-report.md) | 11/23 |
+| 3-4 | TensorFlow.js 변환 → sueo42/model/model.json·labels.json, MODEL_URL 연결, "시험용" 표시 빼기 | ml-engineer + frontend-dev | 완료(11/16 sueo42/model/ 0.6MB, MODEL_URL 연결, 시험용 표시 빠짐) | 11/26 |
+| 3-5 | 모델 연결 검수(확률이 화면에 안 나오는지 포함) | qa | 완료(11/16 qa 코드 검사 7/7 통과, 브라우저에서 모델 로드 확인. 실기기 미확인) | 11/27 |
 
 ## 4. 디자인 (사장이 시안 번호를 고른 뒤에만)
 | 번호 | 내용 | 담당 | 상태 | 마감 |
@@ -74,6 +74,7 @@
 - 11/11 브리핑 뒤 커밋함: 앱 1-3~1-5(·1-6 진행 중) 코드(sueo42/, vendor/, .gitignore, README.md, .claude/launch.json, tests/, docs/tech/norm-testcases.json), training/ 스크립트(.venv 제외). 
 - 1-3~1-6 (11/12): QA 불통과 건(store.js 안쪽 항목 거르기, start.js onDone, quiz 최고 점수 문구, records badgeStage, structure.md ui.js) 수정. `tests/app-logic.test.mjs` 34/34 통과, 브라우저로 뜻 맞히기·검색·직접 해보기 한 바퀴 확인. 11/13 qa 재검사 통과(1-3~1-5 완료). 남은 것: 실제 카메라·실기기, E-05·E-12 화면, copy.md 에 "최고 {s}점" 문구 번호 정하기(지금 copy.js 임시 키 S4-최고)
 - 디자인은 기능 다 된 뒤(4-2). 시안 선택(4-1)만 11/16
+- 11/16: 3-3~3-5 끝. 남은 위험 = 실제 카메라(MediaPipe) 입력에서의 정확도 미확인(5-3 실기기에서 확인), 표본 적은 단어(모르다·좋다·만족) 약함
 - 3-0: Python 3.11.9·training/.venv 완료, VC++ 깔림. **TensorFlow import 실패 — 스마트 앱 컨트롤이 DLL 차단(11/11).** numpy 는 됨. 3-3 전에 사장 결정 필요(브라우저 TF.js 학습 / 스마트 앱 컨트롤 끄기)
 - 3-2: 11/11 만듦, QA 전. training/data/(gitignore)에 X·y·speakers·angles 등. 6명분(REAL01~04·17·18), 각도 5개 포함 40,763개, 단어별 30~6425개
 - 3-3 에서 정할 것: 단어 불균형(200배) 가중치·상한, 쉬는 손을 0 으로 바꾸는 증강(AI-Hub 는 두 손이 항상 있고 앱은 화면 밖 손이 0), 정면(F) 각도만 쓸지, 화자 단위 분할. AI-Hub 좌우 뒤집힘은 영상으로 확인 못 함
