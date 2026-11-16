@@ -32,19 +32,31 @@ export function replay(canvas, frames, { mirror = true, durationMs = 2000 } = {}
     canvas.width = 320;
     canvas.height = Math.round(320 * frames[0].height / frames[0].width);
   }
-  let raf = 0, stopped = false;
+  // rAF 는 탭이 가려지거나 창이 작으면 멈춰 캔버스가 빈 채로 남는다 → 바로 한 번 그리고 타이머로 돈다
+  let stopped = false;
   const t0 = performance.now();
-  function tick(now) {
+  function tick(now = performance.now()) {
     if (stopped) return;
     const n = frames.length;
     ctx.fillStyle = "#11151c";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     if (n) {
       const i = Math.min(n - 1, Math.floor((((now - t0) % durationMs) / durationMs) * n));
-      drawHands(ctx, frames[i].hands, { mirror, clear: false });
+      if (frames[i].hands.length) drawHands(ctx, frames[i].hands, { mirror, clear: false });
+      else {   // 이 순간 손이 안 잡힘 — 빈 화면이 고장처럼 보이지 않게 글로 알린다
+        ctx.fillStyle = "#8a93a3";
+        ctx.font = `${Math.round(canvas.width / 18)}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText("이 순간엔 손이 안 잡혔어요", canvas.width / 2, canvas.height / 2);
+      }
+      const seen = frames.filter((f) => f.hands.length).length;   // 손이 잡힌 프레임 수
+      ctx.fillStyle = "#8a93a3";
+      ctx.font = `${Math.round(canvas.width / 24)}px sans-serif`;
+      ctx.textAlign = "left";
+      ctx.fillText(`손 잡힘 ${seen}/${n}`, 8, canvas.height - 8);
     }
-    raf = requestAnimationFrame(tick);
   }
-  raf = requestAnimationFrame(tick);
-  return () => { stopped = true; cancelAnimationFrame(raf); };
+  tick();
+  const timer = setInterval(tick, 33);
+  return () => { stopped = true; clearInterval(timer); };
 }
