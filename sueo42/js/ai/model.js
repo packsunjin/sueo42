@@ -1,4 +1,4 @@
-// [AI 순위] 정규화한 손 좌표 [30][84] → 비슷해 보이는 단어 이름 순위(①②)만 돌려준다. 확률 숫자는 정렬에만 쓰고 바로 버린다(화면·기록·콘솔에 남기지 않음).
+// [AI 순위] 정규화한 손 좌표 [30][90] → 비슷해 보이는 단어 이름 순위(①②)만 돌려준다. 확률 숫자는 정렬에만 쓰고 바로 버린다(화면·기록·콘솔에 남기지 않음).
 //   MODEL_URL 비었음 → 42개 중 무작위 2개 + trial:true ("시험용")
 //   모델 불러오기 실패 → { error: "E-08" } (무작위로 대신하지 않음)
 //   순위 계산 중 다른 오류 → { error: "E-10" }
@@ -18,6 +18,9 @@ function loadScript(src) {
   });
 }
 
+const BATCH = 12;   // 창 최대 개수(3초 녹화 ≈ 90프레임 → 창 9개). normalize.js windowSequences 와 맞춤
+const ZERO_SEQ = Array.from({ length: 30 }, () => new Array(90).fill(0));
+
 async function loadModel() {
   if (loadedFor !== CONFIG.MODEL_URL) { loaded = null; loading = null; loadedFor = CONFIG.MODEL_URL; }
   if (loaded) return loaded;
@@ -29,10 +32,12 @@ async function loadModel() {
       const res = await fetch(CONFIG.MODEL_LABELS_URL, { cache: "no-cache" });
       if (!res.ok) throw new Error("labels.json " + res.status);
       const labels = await res.json();
-      const inShape = model.inputs[0].shape;          // [null, 30, 84]
+      const inShape = model.inputs[0].shape;          // [null, 30, 90]
       const outUnits = model.outputs[0].shape[1];
-      if (!(inShape.length === 3 && inShape[1] === 30 && inShape[2] === 84)) throw new Error("입력 모양이 [null,30,84] 가 아님");
+      if (!(inShape.length === 3 && inShape[1] === 30 && inShape[2] === 90)) throw new Error("입력 모양이 [null,30,90] 가 아님");
       if (!Array.isArray(labels) || labels.length !== outUnits) throw new Error("labels 개수 ≠ 출력 개수");
+      // 미리 한 번 돌려 둔다: 브라우저(WebGL)는 처음 보는 입력 크기마다 계산 준비에 1~2초 걸린다(11/16 실측 1.7초)
+      tf.tidy(() => { model.predict(tf.zeros([BATCH, 30, 90])); });
       loaded = { tf, model, labels };
       return loaded;
     })().catch((e) => { loading = null; throw e; });
@@ -46,7 +51,7 @@ export function preload() {
   loadModel().catch(() => {});
 }
 
-// features: [30][84], words: 단어 목록. 돌려주는 값: { names: [①, ②], trial } 또는 { error }
+// features: [30][90] 또는 창 여러 개 [n][30][90], words: 단어 목록. 돌려주는 값: { names: [①, ②], trial } 또는 { error }
 export async function rank(features, words) {
   const size = CONFIG.LAB_RANK_SIZE;
   if (!CONFIG.MODEL_URL) {
@@ -58,7 +63,11 @@ export async function rank(features, words) {
   try {
     const { tf, model, labels } = m;
     const order = tf.tidy(() => {
-      const out = model.predict(tf.tensor3d([features], [1, 30, 84], "float32"));
+      // features 가 창 여러 개([n][30][90])면 창마다 낸 값을 더해 하나의 순위로(값은 정렬에만 쓰고 버림)
+      // 입력 크기를 늘 BATCH(12)로 고정해야 크기가 바뀔 때마다 1~2초씩 멈추지 않는다 → 모자라면 0 으로 채우고 앞 n 개만 더함
+      const seqs = (Array.isArray(features[0]?.[0]) ? features : [features]).slice(0, BATCH);
+      const pad = Array.from({ length: BATCH - seqs.length }, () => ZERO_SEQ);
+      const out = model.predict(tf.tensor3d(seqs.concat(pad), [BATCH, 30, 90], "float32")).slice([0, 0], [seqs.length, -1]).sum(0);
       return Array.from(tf.topk(out.reshape([-1]), labels.length).indices.dataSync()); // 번호만 꺼냄
     });
     const known = new Set(words.map((w) => w.name));

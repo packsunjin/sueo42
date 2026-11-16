@@ -7,7 +7,7 @@
 #   --out 폴더(기본 training/data, .gitignore 대상)   --angles DFLRU 중 쓸 각도(기본 전부)
 #
 # 만드는 파일(--out 안. AI-Hub 에서 뽑은 중간 파일이라 커밋·업로드 금지):
-#   X.npy         [표본 수, 30, 84] float32   정규화한 손 좌표(norm.py = 앱 normalize.js 와 같은 규칙)
+#   X.npy         [표본 수, 30, 90] float32   정규화한 손 좌표 84 + 몸 기준 위치 6(norm.py = 앱 normalize.js 와 같은 규칙)
 #   y.npy         [표본 수] int16             단어 번호(labels.json 의 순서, 0~41)
 #   speakers.npy  [표본 수] int16             화자 번호(REAL01 → 1). 사람 단위로 학습·검증을 나눌 때 쓴다
 #   angles.npy    [표본 수] int8              촬영 각도(meta.json 의 angles 글자 순서)
@@ -168,12 +168,14 @@ def hands_of(raw):
     if isinstance(people, list):          # 원래 OpenPose 형식(목록)도 받는다. 첫 사람만
         people = people[0] if people else {}
     out = np.zeros((2, 21, 3))
+    body = np.zeros((3, 3))                # 코·오른어깨·왼어깨(BODY_25 0·2·5번), 11/16 추가
     if isinstance(people, dict):
         for s, key in enumerate(("hand_right_keypoints_2d", "hand_left_keypoints_2d")):
             h = people.get(key)
             if isinstance(h, list) and len(h) == 63:
                 out[s] = np.asarray(h, dtype=np.float64).reshape(21, 3)
-    return out
+        body = norm.openpose_body([people])[0]
+    return out, body
 
 
 # ── 본 작업 ───────────────────────────────────────────────────────────────────
@@ -256,10 +258,10 @@ def main():
                     continue
                 done_vids.add(vid)
                 fr = entries[vid]
-                hands = {}
+                hands, bodies = {}, {}
                 for k in sorted(fr, key=lambda k: fr[k][2]):
                     try:
-                        hands[k] = hands_of(read_member(f, *fr[k]))
+                        hands[k], bodies[k] = hands_of(read_member(f, *fr[k]))
                     except (ValueError, zlib.error, json.JSONDecodeError, UnicodeDecodeError):
                         drop["프레임 JSON 깨짐(프레임 단위, 그 프레임만 뺌)"] += 1
                 m = VID_RE.fullmatch(vid)
@@ -275,6 +277,8 @@ def main():
                         continue
                     arr = np.stack([hands[k] for k in ks])          # [n, 2, 21, 3]
                     feat, present = norm.frame_features(arr[:, 0], arr[:, 1])
+                    bd = norm.body_features(arr[:, 0], arr[:, 1], np.stack([bodies[k] for k in ks]))
+                    feat = np.concatenate([feat, bd], axis=1)            # 84 + 6 = 90
                     seq, kept = norm.to_sequence(feat, present)
                     if seq is None:
                         drop["손 없음(구간 내내 두 손 모두 없음)"] += 1
@@ -346,7 +350,7 @@ def main():
         "warning": "AI-Hub 에서 뽑은 중간 파일. 저장소·공개 장소·해외 서버에 올리지 않는다",
         "shape": list(X.shape), "angles": args.angles, "fps": FPS,
         "segment_rule": "start <= k/30 <= end",
-        "slots": "84 = [hand_right 42, hand_left 42]",
+        "slots": "90 = [hand_right 42, hand_left 42, 몸 기준 위치 6(오른손목 x,y, 왼손목 x,y, 코 x,y)]",
         "label_files": [os.path.basename(p) for p in args.labels],
         "keypoint_files": [os.path.basename(p) for p in args.keypoints],
         "per_word": {labels[i]: int(per_word[i]) for i in range(len(labels))},

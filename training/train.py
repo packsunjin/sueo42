@@ -1,4 +1,4 @@
-# [역할] 3-3·3-4: training/data/ 의 정규화 손 좌표 X[N,30,84] 로 42개 단어 분류 모델(Conv1D + GRU)을 학습하고
+# [역할] 3-3·3-4: training/data/ 의 정규화 손 좌표 X[N,30,90] 로 42개 단어 분류 모델(Conv1D + GRU)을 학습하고
 #        TF.js LayersModel(model.json + .bin)과 labels.json 으로 바꾼다. 지표는 개발용(앱 화면에 넣지 않음).
 #
 # 쓰는 법:
@@ -13,7 +13,9 @@
 #   손마다 손목 중심 회전(±12°)·크기(×N(1,0.06))·점 잡음(σ 0.02, 있는 점만),
 #   확률 0.3 으로 두 손 중 모양 변화가 적은 손(쉬는 손) 42칸을 0 으로(앱에서 화면 밖 손),
 #   확률 0.2 로 한 손의 일부 프레임(약 10%)을 0 으로(검출 놓침).
-# - 위치 이동은 하지 않는다: 정규화가 손목을 원점으로 옮기므로 이동하면 앱 입력과 달라진다.
+# - 손 모양 칸의 위치 이동은 하지 않는다: 정규화가 손목을 원점으로 옮기므로 이동하면 앱 입력과 달라진다.
+# - (11/16) 몸 기준 위치 6칸: 전체 이동(σ 0.08)·크기(×N(1,0.08))·잡음(σ 0.02), 확률 0.05 로 6칸 모두 0, 지운 손의 손목 칸도 0.
+# - (11/16) 시간 어긋남: 확률 0.5 로 앞뒤 0~20% 잘라 30프레임으로 다시 고름(앱의 33프레임 창 나누기 대비).
 # - --probe-out: 재로딩 검사용 입력·출력 순위를 저장소 밖에 쓴다(AI-Hub 에서 뽑은 값이라 저장소에 넣지 않는다).
 import argparse
 import csv
@@ -35,7 +37,8 @@ import tensorflowjs as tfjs  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORDS_CSV = os.path.join(HERE, "..", "sueo42", "data", "words.csv")
 VAL_SPEAKERS = (17, 18)
-FRAMES, FEATURES, CLASSES = 30, 84, 42
+FRAMES, FEATURES, CLASSES = 30, 90, 42   # 90 = 손 모양 84 + 몸 기준 위치 6(11/16)
+HANDS = 84
 
 
 def load(data_dir):
@@ -63,10 +66,33 @@ def class_weights(y):
     return (sw / sw.mean()).astype(np.float32)
 
 
-def augment(X, rng):
-    """X [N,30,84] → 증강본. 손 자리: [오른손 42, 왼손 42], 손 42 = x,y 번갈아 21점."""
+def time_jitter(X, rng):
+    """앱은 3초 녹화를 33프레임 창으로 잘라 넣으므로 단어 경계가 어긋난다.
+    확률 0.5 로 앞·뒤를 각각 0~20% 잘라내고 다시 30프레임으로 고른다(가까운 프레임, 보간 없음)."""
     n = X.shape[0]
-    h = X.reshape(n, FRAMES, 2, 21, 2).copy()
+    out = X.copy()
+    pick = rng.random(n) < 0.5
+    a = rng.uniform(0, 0.2, n) * (FRAMES - 1)
+    b = (FRAMES - 1) - rng.uniform(0, 0.2, n) * (FRAMES - 1)
+    t = np.linspace(0, 1, FRAMES)
+    idx = np.rint(a[:, None] + (b - a)[:, None] * t[None, :]).astype(int)
+    rows = np.flatnonzero(pick)
+    out[rows] = X[rows[:, None], idx[rows]]
+    return out
+
+
+def augment(X, rng):
+    """X [N,30,90] → 증강본. 손 자리: [오른손 42, 왼손 42], 손 42 = x,y 번갈아 21점, 뒤 6 = 몸 기준 위치."""
+    X = time_jitter(X, rng)
+    n = X.shape[0]
+    body = X[:, :, HANDS:].reshape(n, FRAMES, 3, 2).copy()          # [오른손목, 왼손목, 코] × (x, y)
+    body_on = np.any(body != 0, axis=-1, keepdims=True)
+    # 몸 위치: 사람마다 다른 자세·카메라 각도 → 전체 이동(σ 0.08)·크기(×N(1,0.08)), 확률 0.05 로 몸 6칸 전부 0(어깨 못 잡음)
+    body = body * rng.normal(1.0, 0.08, size=(n, 1, 1, 1)) + rng.normal(0, 0.08, size=(n, 1, 1, 2))
+    body = body + rng.normal(0, 0.02, size=body.shape)
+    body[rng.random(n) < 0.05] = 0
+    body[~np.broadcast_to(body_on, body.shape)] = 0
+    h = X[:, :, :HANDS].reshape(n, FRAMES, 2, 21, 2).copy()
     present_pt = np.any(h != 0, axis=-1, keepdims=True)              # [n,30,2,21,1]
     # 회전·크기(손목 원점 기준 → 손목 0 유지, 0 인 점은 0 유지)
     th = np.deg2rad(rng.uniform(-12, 12, size=(n, 1, 2, 1)))
@@ -86,14 +112,16 @@ def augment(X, rng):
     rest = np.argmin(motion, axis=1)
     idx = np.flatnonzero(pick)
     h[idx, :, rest[idx]] = 0
+    body[idx, :, rest[idx]] = 0                                      # 지운 손의 손목 위치도 0
     # 일부 프레임 놓침
     drop = rng.random(n) < 0.2
     which = rng.integers(0, 2, size=n)
     fmask = rng.random((n, FRAMES)) < 0.1
     for i in np.flatnonzero(drop):
         h[i, fmask[i], which[i]] = 0
+        body[i, fmask[i], which[i]] = 0
     h[~np.broadcast_to(present_pt, h.shape)] = 0  # 없는 점은 끝까지 0
-    return h.reshape(n, FRAMES, FEATURES).astype(np.float32)
+    return np.concatenate([h.reshape(n, FRAMES, HANDS), body.reshape(n, FRAMES, 6)], axis=2).astype(np.float32)
 
 
 def build_model():
@@ -140,7 +168,7 @@ def write_report(path, labels, rows_f, rows_all, info):
     L.append("> 출처: 한국지능정보사회진흥원 AI 허브(aihub.or.kr)「수어 영상」 문장 keypoint·morpheme. "
              "검증 = REAL17·18(학습에 안 쓴 사람), 학습 = REAL01~04. 비율은 단어마다 따로 내고 42개를 단순 평균.\n")
     L.append("## 요약\n")
-    L.append(f"- 모델: Conv1D(96)×2 + GRU(128) + Dense(42), 파라미터 {info['params']:,}개, 입력 [1,30,84]. "
+    L.append(f"- 모델: Conv1D(96)×2 + GRU(128) + Dense(42), 파라미터 {info['params']:,}개, 입력 [1,30,90](손 모양 84 + 몸 기준 위치 6). "
              f"학습 {info['epochs']}에폭(가장 좋은 에폭 {info['best_epoch']}), {info['minutes']:.1f}분(CPU).")
     L.append(f"- 정면(F) 검증 단어 평균: 상위1 {f1:.1%}, 상위2 {f2:.1%} (표본 {info['n_val_f']}개).")
     L.append(f"- 5개 각도 전부 검증 단어 평균: 상위1 {a1:.1%}, 상위2 {a2:.1%} (표본 {info['n_val_all']}개).")

@@ -26,7 +26,8 @@ export function drawHands(ctx, hands, { mirror = false, clear = true } = {}) {
 }
 
 // 기록한 프레임을 같은 길이만큼 반복 재생. 돌려주는 함수를 부르면 멈춘다
-export function replay(canvas, frames, { mirror = true, durationMs = 2000 } = {}) {
+// clock: 재생 시각(ms)을 주는 함수(영상 위에 겹쳐 그릴 때 영상 시각에 맞춤), bg=false 면 배경을 칠하지 않음(투명)
+export function replay(canvas, frames, { mirror = true, durationMs = 2000, clock = null, bg = true } = {}) {
   const ctx = canvas.getContext("2d");
   if (frames.length && frames[0].width) {
     canvas.width = 320;
@@ -35,21 +36,22 @@ export function replay(canvas, frames, { mirror = true, durationMs = 2000 } = {}
   // rAF 는 탭이 가려지거나 창이 작으면 멈춰 캔버스가 빈 채로 남는다 → 바로 한 번 그리고 타이머로 돈다
   let stopped = false;
   const t0 = performance.now();
+  const seen = frames.filter((f) => f.hands.length).length;   // 손이 잡힌 프레임 수(한 번만 셈)
   function tick(now = performance.now()) {
     if (stopped) return;
     const n = frames.length;
-    ctx.fillStyle = "#11151c";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (bg) { ctx.fillStyle = "#11151c"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (n) {
-      const i = Math.min(n - 1, Math.floor((((now - t0) % durationMs) / durationMs) * n));
+      const ms = clock ? clock() : now - t0;
+      const i = Math.min(n - 1, Math.max(0, Math.floor(((ms % durationMs) / durationMs) * n)));
       if (frames[i].hands.length) drawHands(ctx, frames[i].hands, { mirror, clear: false });
-      else {   // 이 순간 손이 안 잡힘 — 빈 화면이 고장처럼 보이지 않게 글로 알린다
+      else if (bg) {   // 이 순간 손이 안 잡힘 — 빈 화면이 고장처럼 보이지 않게 글로 알린다
         ctx.fillStyle = "#8a93a3";
         ctx.font = `${Math.round(canvas.width / 18)}px sans-serif`;
         ctx.textAlign = "center";
         ctx.fillText("이 순간엔 손이 안 잡혔어요", canvas.width / 2, canvas.height / 2);
       }
-      const seen = frames.filter((f) => f.hands.length).length;   // 손이 잡힌 프레임 수
       ctx.fillStyle = "#8a93a3";
       ctx.font = `${Math.round(canvas.width / 24)}px sans-serif`;
       ctx.textAlign = "left";
@@ -57,6 +59,6 @@ export function replay(canvas, frames, { mirror = true, durationMs = 2000 } = {}
     }
   }
   tick();
-  const timer = setInterval(tick, 33);
+  const timer = setInterval(() => { if (!canvas.isConnected) { stopped = true; clearInterval(timer); } else tick(); }, 33); // 화면에서 빠지면 저절로 멈춤
   return () => { stopped = true; clearInterval(timer); };
 }

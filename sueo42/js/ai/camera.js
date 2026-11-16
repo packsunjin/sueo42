@@ -1,4 +1,4 @@
-// [카메라] 앞 카메라 켜기·끄기. 브라우저 오류를 copy.md 오류 번호(E-03~E-06)로 바꾼다. 영상은 저장하거나 보내지 않는다.
+// [카메라] 앞 카메라 켜기·끄기. 브라우저 오류를 copy.md 오류 번호(E-03~E-06)로 바꾼다. 영상은 서버로 보내거나 저장하지 않는다(직접 해보기의 '내 동작'은 lab.js 가 메모리에서만 잠깐 녹화).
 
 let stream = null;
 
@@ -46,6 +46,9 @@ export async function startCamera(video) {
   }
   return null;
 }
+
+// 직접 해보기 결과 화면의 '내 동작' 다시 보기용(lab.js 가 이 기기 메모리에서만 녹화)
+export const getStream = () => stream;
 
 export function stopCamera() {
   if (stream) stream.getTracks().forEach((t) => t.stop());

@@ -212,6 +212,10 @@ button.card { cursor: pointer; }
 .hand-state.on { color: var(--ok); }
 .replay { display: block; width: 100%; aspect-ratio: 4 / 3; background: #11151c; border-radius: 12px; }
 .replay.mini { max-width: 220px; margin: 8px auto 16px; }
+/* 11/16 내 동작 다시 보기: 기기 안에서만 녹화한 영상(거울처럼 뒤집음) 위에 손 좌표를 겹쳐 그림 */
+.clip-wrap { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #11151c; }
+.clip { display: block; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.replay.over { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; background: transparent; border-radius: 0; }
 .analyze-body { margin-top: 8px; }
 .rank-line { font-size: 17px; }
 .rank-switch { display: flex; gap: 8px; margin: 8px 0; }

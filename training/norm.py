@@ -39,6 +39,61 @@ def frame_features(right_pts, left_pts):
     return np.concatenate([r, l], axis=1), (rp | lp)
 
 
+# ── 몸 기준 위치(11/16 추가) ─────────────────────────────────────────────────────
+# 손 모양 84칸은 손목 기준이라 손이 얼굴 앞인지 가슴 앞인지를 모른다. 그래서 6칸을 덧붙인다.
+# 6 = [실제 오른손 손목 x,y, 실제 왼손 손목 x,y, 코 x,y], 모두 (점 − 양어깨 가운데) / 어깨 너비(픽셀).
+# 어깨가 안 잡히면(신뢰도 0 또는 너비 < 1e-6) 6칸 모두 0. 손이 없으면 그 손 2칸 0, 코가 없으면 코 2칸 0.
+BODY_LEN = 6
+FULL_LEN = FEAT_LEN + BODY_LEN
+
+
+def body_features(right_pts, left_pts, body):
+    """right/left: [n,21,3] 손 픽셀, body: [n,3,3] (코, 오른어깨, 왼어깨) 픽셀+신뢰도 → [n,6] float64"""
+    body = np.asarray(body, dtype=np.float64).reshape(-1, 3, 3)
+    n = body.shape[0]
+    out = np.zeros((n, BODY_LEN))
+    rs, ls = body[:, 1], body[:, 2]
+    center = (rs[:, :2] + ls[:, :2]) / 2
+    d = rs[:, :2] - ls[:, :2]
+    width = np.sqrt(d[:, 0] ** 2 + d[:, 1] ** 2)
+    ok = (rs[:, 2] > 0) & (ls[:, 2] > 0) & (width >= EPS)
+    safe = np.where(ok, width, 1.0)
+    for slot, pts in ((0, right_pts), (1, left_pts)):
+        _, present = normalize_hands(pts)
+        wrist = np.asarray(pts, dtype=np.float64).reshape(-1, 21, 3)[:, 0, :2]
+        v = (wrist - center) / safe[:, None]
+        v[~(ok & present)] = 0.0
+        out[:, 2 * slot:2 * slot + 2] = v
+    nose = (body[:, 0, :2] - center) / safe[:, None]
+    nose[~(ok & (body[:, 0, 2] > 0))] = 0.0
+    out[:, 4:6] = nose
+    return out
+
+
+def openpose_body(frames):
+    """OpenPose 프레임 목록 → [n,3,3] (코 0번, 오른어깨 2번, 왼어깨 5번). pose 값이 75개가 아니면 0."""
+    out = np.zeros((len(frames), 3, 3))
+    for k, fr in enumerate(frames):
+        p = fr.get("pose_keypoints_2d")
+        if p is not None and len(p) == 75:
+            a = np.asarray(p, dtype=np.float64).reshape(25, 3)
+            out[k] = a[[0, 2, 5]]
+    return out
+
+
+def mediapipe_body(frames):
+    """앱 프레임의 body = {"nose":[x,y], "rs":[x,y], "ls":[x,y]} (0~1 비율, rs = 사람의 오른어깨) → [n,3,3] 픽셀"""
+    out = np.zeros((len(frames), 3, 3))
+    for k, fr in enumerate(frames):
+        b = fr.get("body")
+        if not b:
+            continue
+        for j, key in enumerate(("nose", "rs", "ls")):
+            if b.get(key) is not None:
+                out[k, j] = [b[key][0] * fr["width"], b[key][1] * fr["height"], 1.0]
+    return out
+
+
 def sample_index(i, n):
     """출력 i 번째(0..29)가 고를 원본 프레임 번호 = i·(n−1)/29 반올림(0.5 는 올림). JS 와 같은 정수식."""
     if n == 1:

@@ -57,6 +57,18 @@ def run(path=DEFAULT_CASES, verbose=True):
             if kind == "mediapipe":  # 앱만 하는 단계(E-09). 학습 쪽에는 없지만 같은 값이 나오는지만 본다
                 app = "E-09" if ratio < case["min_hand_ratio"] or seq is None else "ok"
                 check(tag + " 앱 결과", app == exp["app_result"], f"got {app}")
+    # 3) 몸 기준 위치 6칸(docs/tech/body-testcases.json, 손으로 검산한 값)
+    with open(os.path.join(os.path.dirname(path), "body-testcases.json"), encoding="utf-8") as f:
+        bdoc = json.load(f)
+    for case in bdoc["cases"]:
+        want = np.asarray(case["expected"], dtype=np.float64)
+        mp = [case["mediapipe"]]
+        r, l = norm.mediapipe_to_points(mp, True)
+        r2, l2 = norm.openpose_to_points([case["openpose"]])
+        for kind, got in (("mediapipe", norm.body_features(r, l, norm.mediapipe_body(mp))[0]),
+                          ("openpose", norm.body_features(r2, l2, norm.openpose_body([case["openpose"]]))[0])):
+            diff = float(np.max(np.abs(got - want)))
+            check(f"몸 위치 {case['name']} [{kind}]", diff <= bdoc["tolerance"], f"got {got.tolist()}")
     return total - len(fails), total, fails
 
 

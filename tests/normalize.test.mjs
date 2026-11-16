@@ -87,4 +87,13 @@ assert.equal(TC.cases.find((c) => c.name === "low_hand_ratio").expected.app_resu
 const raw = fs.readFileSync(path.join(ROOT, "docs/tech/norm-testcases.json"), "utf8");
 assert.ok(!/REAL\d\d|real_word|real_sen|aihub\.or\.kr\/.*\.zip/i.test(raw), "AI-Hub 파일 이름 흔적");
 
+// 6) 몸 기준 위치 6칸(docs/tech/body-testcases.json — 파이썬 training/test_norm.py 도 같은 파일로 검사)
+const BT = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/tech/body-testcases.json"), "utf8"));
+for (const c of BT.cases) {
+  const got = N.bodyFeatures(c.mediapipe, true);
+  got.forEach((v, i) => assert.ok(Math.abs(v - c.expected[i]) <= BT.tolerance, `몸 위치 ${c.name} ${i}: ${v}`));
+}
+const full = N.prepareFeatures([BT.cases[0].mediapipe], { flip: true, minRatio: 0.5 }).features;
+assert.equal(full[0].length, N.FULL_LEN, "한 프레임 90칸");
+
 console.log(`정규화 시험 통과: 사례 ${TC.cases.length}개, 비교 ${checks}번`);

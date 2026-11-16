@@ -14,7 +14,8 @@ export const CONFIG = {
   TFJS_URL: "vendor/tfjs@4.22.0/tf.min.js",
   MEDIAPIPE_DIR: "vendor/mediapipe/tasks-vision@0.10.14",
   HAND_MODEL_URL: "vendor/mediapipe/hand_landmarker/float16-1/hand_landmarker.task",
-  LAB_RECORD_SECONDS: 2,                  // 명세 S11 초안 2초. 최종 값은 ml-engineer 가 정함
+  POSE_MODEL_URL: "vendor/mediapipe/pose_landmarker/lite-float16-1/pose_landmarker_lite.task", // 11/16 몸 기준 위치(코·양어깨)
+  LAB_RECORD_SECONDS: 3,                  // 11/16 2→3초(사장 지시). 학습 구간은 약 1.1초라 normalize.js 창 나누기로 맞춤
   LAB_MIN_HAND_RATIO: 0.5,                // 명세 S12 초안. 최종 기준은 ml-engineer 가 정함
   LAB_RANK_SIZE: 2,
   HANDEDNESS_FLIP: true,                  // structure.md 4-3. 1-6 시험 결과로 확정

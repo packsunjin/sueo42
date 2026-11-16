@@ -8,7 +8,7 @@ import { setLeaveGuard } from "../router.js";
 import { allWords, wordByNo, wordsOfStage, stageNumbers, matchWord, isLowData } from "../data/words.js";
 import { getState, recordLabChoice, recordLabRetry, setCameraIntroSeen } from "../store.js";
 import { levelInfo } from "../game/progress.js";
-import { startCamera, stopCamera, isOn as cameraOn } from "../ai/camera.js";
+import { startCamera, stopCamera, getStream, isOn as cameraOn } from "../ai/camera.js";
 import { handTracker } from "../ai/hands.js";
 import { drawHands, replay } from "../ai/draw.js";
 import { prepareFeatures } from "../ai/normalize.js";
@@ -35,12 +35,52 @@ export function nextWordOf(word, words = allWords()) {
 document.addEventListener("visibilitychange", () => {
   if (!ctx) return;
   if (document.hidden) {
+    if (ctx.mode === "countdown" || ctx.mode === "recording") { dropClip(ctx); showPractice(); } // 기록을 버리고 처음으로
     stopCamera();
-    if (ctx.mode === "countdown" || ctx.mode === "recording") showPractice(); // 기록을 버리고 처음으로
   } else if (ctx.mode === "practice") {
     initCamera();
   }
 });
+
+// ── 내 동작 다시 보기(11/16): 기록하는 동안 카메라 영상을 이 기기 메모리(Blob)에만 녹화한다.
+// 서버로 보내거나 기록(localStorage)에 넣지 않는다. 다시 해보기·화면 나가기·탭 숨김 때 바로 버린다(revokeObjectURL).
+const CLIP_TYPES = ["video/webm;codecs=vp8", "video/webm", "video/mp4"];   // vp9 는 인코딩이 무거워 녹화 중 렉 → vp8 먼저
+function startClip(c) {
+  dropClip(c);
+  const stream = getStream();
+  if (!stream || typeof MediaRecorder === "undefined") return;
+  const type = CLIP_TYPES.find((t) => MediaRecorder.isTypeSupported?.(t));
+  try {
+    const rec = new MediaRecorder(stream, { ...(type ? { mimeType: type } : {}), videoBitsPerSecond: 800_000 });
+    const parts = [];
+    const token = {};          // 녹화마다 표시 — 버린 앞 녹화가 늦게 끝나도 새 시도에 섞이지 않게
+    c.clipToken = token;
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) parts.push(e.data); };
+    c.clipDone = new Promise((res) => {
+      rec.onstop = () => {
+        if (parts.length && c.clipToken === token) c.clipUrl = URL.createObjectURL(new Blob(parts, { type: rec.mimeType || type || "video/webm" }));
+        res();
+      };
+    });
+    rec.start();
+    c.clipRec = rec;
+  } catch (e) { console.warn("내 동작 녹화 안 됨(손 좌표만 보여 줌):", e && e.name); c.clipRec = null; }
+}
+function stopClip(c) {
+  const rec = c.clipRec;
+  c.clipRec = null;
+  if (rec && rec.state !== "inactive") { try { rec.stop(); } catch { /* 이미 멈춤 */ } }
+  return c.clipDone || Promise.resolve();
+}
+function dropClip(c) {
+  if (!c) return;
+  c.clipToken = null;
+  if (c.clipRec && c.clipRec.state !== "inactive") { try { c.clipRec.stop(); } catch { /* 이미 멈춤 */ } }
+  c.clipRec = null;
+  if (c.clipUrl) URL.revokeObjectURL(c.clipUrl);
+  c.clipUrl = null;
+  c.clipDone = null;
+}
 
 // #/lab/word/:no
 export function renderLabWord(el, { no }) {
@@ -54,6 +94,7 @@ export function renderLabWord(el, { no }) {
   const mine = ctx;
   return () => {                        // 이 주소를 떠날 때
     teardown(mine);
+    dropClip(mine);
     if (ctx === mine) ctx = null;
     clearTimeout(stopTimer);
     stopTimer = setTimeout(() => { if (!ctx) { stopCamera(); camVideo.srcObject = null; } }, 0); // 다음 화면도 연습이면 안 끔
@@ -201,7 +242,12 @@ function startLoop() {
     c.handState.textContent = hands.length ? t("L-19") : t("L-20");
     c.handState.classList.toggle("on", hands.length > 0);
     if (c.mode === "recording" && now - lastStored >= MIN_FRAME_MS) {
-      c.frames.push({ width: camVideo.videoWidth, height: camVideo.videoHeight, hands });
+      // 몸 모델은 기록할 때만, 그것도 3프레임에 한 번(약 10 fps)만 돌리고 사이에는 직전 값을 쓴다(어깨·코는 천천히 움직임)
+      if (c.frames.length % 3 === 0) {
+        try { c.lastBody = handTracker.detectBody(camVideo, now); } catch (e) { c.lastBody = null; }
+      }
+      const body = c.lastBody || null;
+      c.frames.push({ width: camVideo.videoWidth, height: camVideo.videoHeight, hands, body });
       lastStored = now;
     }
   }
@@ -217,17 +263,21 @@ function begin() {
   c.dict.pause();
   c.mode = "countdown";
   c.frames = [];
+  c.lastBody = null;
+  dropClip(c);
   const later = (ms, fn) => c.timers.push(setTimeout(fn, ms));
   const show = (...kids) => { c.cue.hidden = false; c.cue.replaceChildren(...kids); };
   [3, 2, 1].forEach((n, i) => later(i * 1000, () => show(h("span", { class: "count" }, t("L-16", { "3/2/1": n })))));
   later(3000, () => {
     c.mode = "recording";
+    startClip(c);
     const bar = h("span", { class: "rec-bar-fill" });
     show(h("strong", {}, t("L-17")), h("small", {}, t("L-18")), h("span", { class: "rec-bar" }, bar));
     requestAnimationFrame(() => { bar.style.transitionDuration = `${CONFIG.LAB_RECORD_SECONDS}s`; bar.style.width = "0%"; });
   });
   later(3000 + CONFIG.LAB_RECORD_SECONDS * 1000, () => {
     c.mode = "analyzing";
+    stopClip(c);
     analyze(c.frames.slice());
   });
 }
@@ -248,7 +298,7 @@ async function analyze(frames) {
   }
   const runRank = async () => {
     body.replaceChildren(spinner(t("L-21")));
-    const r = await rank(prep.features, allWords());
+    const r = await rank(prep.windows.length ? prep.windows : prep.features, allWords());
     if (ctx !== c) return;
     if (r.error === "E-08") {
       body.replaceChildren(errorBox("E-08", { [btn("C-11")]: runRank, [btn("L-38")]: () => go("/lab") }));
@@ -256,6 +306,8 @@ async function analyze(frames) {
       body.replaceChildren(errorBox("E-10", { [btn("L-31")]: () => showPractice() }));
     } else {
       c.ranked = r;
+      await Promise.race([c.clipDone || null, new Promise((res) => setTimeout(res, 1500))]);  // 녹화 마무리(보통 수십 ms)
+      if (ctx !== c) return;
       showResult(0);
     }
   };
@@ -270,7 +322,9 @@ function showResult(selected) {
   const full = t("L-22", { "단어1": n1, "단어2": n2 });
   const seg = `① ${n1}`;
   const at = full.indexOf(seg);
-  const replayCanvas = h("canvas", { class: "replay" });
+  const replayCanvas = h("canvas", { class: c.clipUrl ? "replay over" : "replay" });
+  const clip = c.clipUrl ? h("video", { class: "clip", src: c.clipUrl, muted: true, autoplay: true, loop: true, playsInline: true }) : null;
+  const mine = clip ? h("div", { class: "clip-wrap" }, clip, replayCanvas) : replayCanvas;
 
   screen("result", [
     header(t("L-01"), { onBack: () => go("/lab") }),
@@ -282,7 +336,7 @@ function showResult(selected) {
           onclick: () => { if (i !== selected) showResult(i); } }, label))),
     h("div", { class: "side-by-side" },
       h("div", { class: "pane" }, h("h3", { class: "pane-label" }, t("L-25", { "선택한 순위 단어": sel.name })), dictVideo(sel)),
-      h("div", { class: "pane" }, h("h3", { class: "pane-label" }, t("L-26")), replayCanvas)),
+      h("div", { class: "pane" }, h("h3", { class: "pane-label" }, t("L-26")), mine)),
     h("p", { class: "muted" }, t("L-27")),
     h("p", { class: "ask-line" }, t("L-28", { "단어1": n1 })),
     h("div", { class: "choice-row" },
@@ -290,7 +344,10 @@ function showResult(selected) {
       button(btn("L-30"), () => openPicker(), { kind: "secondary" }),
       button(btn("L-31"), () => { recordLabRetry(); c.retried = true; showPractice(); }, { kind: "secondary" })),
   ]);
-  c.stopReplay = replay(replayCanvas, c.frames, { durationMs: CONFIG.LAB_RECORD_SECONDS * 1000 });
+  c.stopReplay = clip
+    ? replay(replayCanvas, c.frames, { durationMs: CONFIG.LAB_RECORD_SECONDS * 1000, bg: false,
+        clock: () => (clip.currentTime / (clip.duration > 0 && isFinite(clip.duration) ? clip.duration : CONFIG.LAB_RECORD_SECONDS)) * CONFIG.LAB_RECORD_SECONDS * 1000 })
+    : replay(replayCanvas, c.frames, { durationMs: CONFIG.LAB_RECORD_SECONDS * 1000 });
   // [뒤로]·탭으로 나가려 하면 L-40 확인
   setLeaveGuard((proceed) => {
     confirmModal(t("L-40"), btn("L-41"), btn("L-42"), proceed);
