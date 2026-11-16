@@ -78,6 +78,7 @@ export function dictVideo(word, opts = {}) {
 
   wrap.append(box, h("div", { class: "video-tools" }, speedBtn), opts.source || sourceLine(word));
   wrap.pause = () => video && video.pause();
+  wrap.duration = () => (video ? video.duration : NaN);   // 직접 해보기 녹화 길이용(초, 모르면 NaN)
   return wrap;
 }
 

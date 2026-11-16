@@ -15,8 +15,11 @@ export const CONFIG = {
   MEDIAPIPE_DIR: "vendor/mediapipe/tasks-vision@0.10.14",
   HAND_MODEL_URL: "vendor/mediapipe/hand_landmarker/float16-1/hand_landmarker.task",
   POSE_MODEL_URL: "vendor/mediapipe/pose_landmarker/lite-float16-1/pose_landmarker_lite.task", // 11/16 몸 기준 위치(코·양어깨)
-  LAB_RECORD_SECONDS: 3,                  // 11/16 2→3초(사장 지시). 학습 구간은 약 1.1초라 normalize.js 창 나누기로 맞춤
-  LAB_MIN_HAND_RATIO: 0.5,                // 명세 S12 초안. 최종 기준은 ml-engineer 가 정함
+  LAB_RECORD_SECONDS: 3,                  // 사전 영상 길이를 모를 때만 쓰는 값. 11/16 부터 녹화 = 사전 영상 길이(LAB_RECORD_MIN~MAX 로 자름)
+  LAB_RECORD_MIN: 2,
+  LAB_RECORD_MAX: 8,
+  LAB_MIN_HAND_RATIO: 0.5,                // (11/16 부터 앱은 안 씀 — 동작 뒤 손을 내리면 비율이 떨어져 E-09 가 났음. 시험 파일용으로 남김)
+  LAB_MIN_HAND_FRAMES: 10,               // 손이 잡힌 프레임이 이보다 적으면 E-09(약 0.3초)
   LAB_RANK_SIZE: 2,
   HANDEDNESS_FLIP: true,                  // structure.md 4-3. 1-6 시험 결과로 확정
   LAB_LOW_DATA_MAX: 3,                    // 결재 4: AI-Hub 문장 수가 이 값 이하면 L-13 안내(3-1 뒤 다시 정함)

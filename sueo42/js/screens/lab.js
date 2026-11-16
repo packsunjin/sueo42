@@ -186,7 +186,7 @@ function showPractice() {
     box,
     handState,
     notice,
-    h("p", { class: "muted" }, t("L-14", { t: CONFIG.LAB_RECORD_SECONDS })),
+    h("p", { class: "muted" }, t("L-14")),
     h("div", { class: "bottom-actions" }, startBtn),
   ]);
   ctx.retried = false;
@@ -255,7 +255,14 @@ function startLoop() {
   c.raf = requestAnimationFrame(tick);
 }
 
-// [동작 시작] → 사전 영상 멈춤 → 3·2·1 → 기록(2초) → 분석
+// 녹화 길이 = 사전 영상 길이(사장 지시 11/16). 영상 정보를 아직 모르면 CONFIG.LAB_RECORD_SECONDS
+function recordSeconds(c) {
+  const d = c.dict && c.dict.duration ? c.dict.duration() : NaN;
+  if (!(d > 0) || !isFinite(d)) return CONFIG.LAB_RECORD_SECONDS;
+  return Math.min(CONFIG.LAB_RECORD_MAX, Math.max(CONFIG.LAB_RECORD_MIN, Math.round(d * 10) / 10));
+}
+
+// [동작 시작] → 사전 영상 멈춤 → 3·2·1 → 기록(사전 영상 길이) → 분석
 function begin() {
   const c = ctx;
   if (!c.ready || landscape()) return;
@@ -264,21 +271,23 @@ function begin() {
   c.mode = "countdown";
   c.frames = [];
   c.lastBody = null;
+  c.recSec = recordSeconds(c);   // 카운트다운 동안 영상 정보가 오면 녹화 시작 때 다시 정한다
   dropClip(c);
   const later = (ms, fn) => c.timers.push(setTimeout(fn, ms));
   const show = (...kids) => { c.cue.hidden = false; c.cue.replaceChildren(...kids); };
   [3, 2, 1].forEach((n, i) => later(i * 1000, () => show(h("span", { class: "count" }, t("L-16", { "3/2/1": n })))));
   later(3000, () => {
+    c.recSec = recordSeconds(c);
     c.mode = "recording";
     startClip(c);
+    later(c.recSec * 1000, () => {
+      c.mode = "analyzing";
+      stopClip(c);
+      analyze(c.frames.slice());
+    });
     const bar = h("span", { class: "rec-bar-fill" });
     show(h("strong", {}, t("L-17")), h("small", {}, t("L-18")), h("span", { class: "rec-bar" }, bar));
-    requestAnimationFrame(() => { bar.style.transitionDuration = `${CONFIG.LAB_RECORD_SECONDS}s`; bar.style.width = "0%"; });
-  });
-  later(3000 + CONFIG.LAB_RECORD_SECONDS * 1000, () => {
-    c.mode = "analyzing";
-    stopClip(c);
-    analyze(c.frames.slice());
+    requestAnimationFrame(() => { bar.style.transitionDuration = `${c.recSec}s`; bar.style.width = "0%"; });
   });
 }
 
@@ -289,9 +298,9 @@ async function analyze(frames) {
   const mini = h("canvas", { class: "replay mini" });
   const body = h("div", { class: "analyze-body" }, spinner(t("L-21")));
   screen("analyzing", [header(t("L-09", { "단어": c.word.name })), mini, body]);
-  c.stopReplay = replay(mini, frames, { durationMs: CONFIG.LAB_RECORD_SECONDS * 1000 });
+  c.stopReplay = replay(mini, frames, { durationMs: c.recSec * 1000 });
 
-  const prep = prepareFeatures(frames, { flip: CONFIG.HANDEDNESS_FLIP, minRatio: CONFIG.LAB_MIN_HAND_RATIO });
+  const prep = prepareFeatures(frames, { flip: CONFIG.HANDEDNESS_FLIP, minFrames: CONFIG.LAB_MIN_HAND_FRAMES });
   if (prep.error) {        // E-09: 순위를 찾지 않음. [다시 해보기]는 시도 횟수에 넣지 않음
     body.replaceChildren(errorBox("E-09", { [btn("L-31")]: () => showPractice() }));
     return;
@@ -345,9 +354,9 @@ function showResult(selected) {
       button(btn("L-31"), () => { recordLabRetry(); c.retried = true; showPractice(); }, { kind: "secondary" })),
   ]);
   c.stopReplay = clip
-    ? replay(replayCanvas, c.frames, { durationMs: CONFIG.LAB_RECORD_SECONDS * 1000, bg: false,
-        clock: () => (clip.currentTime / (clip.duration > 0 && isFinite(clip.duration) ? clip.duration : CONFIG.LAB_RECORD_SECONDS)) * CONFIG.LAB_RECORD_SECONDS * 1000 })
-    : replay(replayCanvas, c.frames, { durationMs: CONFIG.LAB_RECORD_SECONDS * 1000 });
+    ? replay(replayCanvas, c.frames, { durationMs: c.recSec * 1000, bg: false,
+        clock: () => (clip.currentTime / (clip.duration > 0 && isFinite(clip.duration) ? clip.duration : c.recSec)) * c.recSec * 1000 })
+    : replay(replayCanvas, c.frames, { durationMs: c.recSec * 1000 });
   // [뒤로]·탭으로 나가려 하면 L-40 확인
   setLeaveGuard((proceed) => {
     confirmModal(t("L-40"), btn("L-41"), btn("L-42"), proceed);

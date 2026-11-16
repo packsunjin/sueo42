@@ -106,13 +106,15 @@ export function handRatio(featFrames) {
   return featFrames.filter((f) => f.present).length / featFrames.length;
 }
 
-// 앱에서 부르는 한 번에 하기: 비율이 minRatio 미만이면 { error: "E-09" }, 아니면 { features: [30][90] }
-export function prepareFeatures(frames, { flip, minRatio }) {
+// 앱에서 부르는 한 번에 하기: 비율이 minRatio 미만이거나 손 잡힌 프레임이 minFrames 개 미만이면 { error: "E-09" }
+// 아니면 { features: [30][90], windows }. (11/16) 동작 뒤 손을 내리면 비율이 떨어지므로 앱은 minRatio 0 + minFrames 로 판단
+export function prepareFeatures(frames, { flip, minRatio = 0, minFrames = 0 }) {
   const ff = frames.map((f) => {          // 한 프레임 = 손 모양 84 + 몸 기준 위치 6 = 90
     const r = frameFeatures(f, flip);
     return { feat: r.feat.concat(bodyFeatures(f, flip)), present: r.present };
   });
   if (handRatio(ff) < minRatio) return { error: "E-09" };
+  if (ff.filter((f) => f.present).length < minFrames) return { error: "E-09" };
   const features = toSequence(ff);
   if (!features) return { error: "E-09" };
   return { features, windows: windowSequences(ff) };
@@ -129,7 +131,9 @@ export function windowSequences(featFrames) {
   const kept = featFrames.slice(first, last + 1);
   const out = [toSequence(kept)];
   if (kept.length > 40) {
-    for (let s = 0; s + WIN_LEN <= kept.length; s += WIN_STEP) {
+    // 녹화가 사전 영상 길이만큼 길어져도 창이 12개(model.js BATCH)를 넘지 않게 간격을 넓힌다
+    const step = Math.max(WIN_STEP, Math.ceil((kept.length - WIN_LEN) / 10));
+    for (let s = 0; s + WIN_LEN <= kept.length; s += step) {
       const seq = toSequence(kept.slice(s, s + WIN_LEN));
       if (seq) out.push(seq);
     }
