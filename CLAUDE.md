@@ -54,6 +54,7 @@
 - 앱 코드: `sueo42/` 폴더 (HTML·CSS·JS만, 프레임워크 없음, 서버 없음)
 - **코드는 GitHub(packsunjin/sueo42, main 브랜치)에 백업, 배포는 Render** (2026-10-31 사용자 결정, 2026-11-05 새 저장소로 옮김. 이전 기록·앱 1차 코드·디자인 후보는 packsunjin/Graph의 sueo42·sueo42-app 브랜치에 남아 있음)
   - 저장소 맨 위 `render.yaml`: Render 정적 사이트(Static Site), 공개 폴더 `sueo42/`, 빌드 명령 없음
+  - **배포 주소: https://sueo42.onrender.com** (2026-11-18 사장이 Blueprint 연결, main에 푸시하면 자동 배포)
   - Render 연결(계정·저장소 선택)은 사용자가 직접. Render 서버도 해외라 AI-Hub 원본 데이터는 올리지 않음. 학습된 모델은 올려도 됨(2차 저작물, 출처 표기)
   - 고친 내용은 그때그때 커밋·푸시해서 GitHub에 항상 백업
 - 데이터: 구글 시트 → CSV 게시 → `sueo42/config.js`의 `SHEET_CSV_URL` 한 곳만 바꾸면 됨
