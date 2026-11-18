@@ -174,7 +174,7 @@ export const CONFIG = {
   LAB_RECORD_SECONDS: 2,                  // 명세 S11 초안 2초. 최종 값은 ml-engineer가 모델 입력(30프레임)에 맞춰 정함
   LAB_MIN_HAND_RATIO: 0.5,                // 명세 S12 초안: 손 잡힌 프레임이 절반 미만이면 E-09. 최종 기준은 ml-engineer가 정함
   LAB_RANK_SIZE: 2,
-  HANDEDNESS_FLIP: true,                  // 4-3: MediaPipe 라벨을 뒤집어 읽음. 1-6 시험 결과로 확정
+  HANDEDNESS_FLIP: false,                 // 4-3: 11/18 실제 사람 영상으로 확인 — MediaPipe 라벨 그대로 읽음
   // 게임 숫자(점수·보기 수·랭킹 수·단계당 단어 수)는 1-1 명세 결재 뒤 채움
 };
 ```
@@ -213,6 +213,7 @@ out = [ (px_0−px_0)/size, (py_0−py_0)/size, (px_1−px_0)/size, (py_1−py_0
 
 - **학습(OpenPose)**: `hand_right_keypoints_2d` → 앞 42, `hand_left_keypoints_2d` → 뒤 42. OpenPose의 left/right는 사람 기준이다.
 - **앱(MediaPipe)**: tasks-vision 문서는 handedness를 "입력 영상이 거울처럼 뒤집혀 있다고 가정하고" 정한다고 설명한다. 앱은 뒤집지 않은 원래 카메라 프레임을 넣으므로 **라벨이 반대로 나온다**: `"Left"` = 실제 오른손, `"Right"` = 실제 왼손.
+  - **11/18 확인 결과: 추론이 틀렸다. 라벨을 그대로 읽어야 한다(`HANDEDNESS_FLIP: false`).** 국립국어원 사전 영상 42개(실제 사람, 오른손 주 손, 뒤집지 않은 영상)를 앱과 같은 순서(MediaPipe → normalize.js → 모델)로 돌림: false 이면 상위1 38/42·상위2 38/42, true 이면 상위1 5/42·상위2 8/42. tasks-vision 0.10.14 의 라벨은 뒤집지 않은 영상에서 이미 실제 손 기준이다. (아래 줄은 처음 추론 기록)
   - 이건 문서 설명에서 나온 추론이고 **실제로 확인 못 함**. 1-6에서 오른손만 들고 라벨을 보는 시험을 반드시 한다. 결과에 따라 `config.HANDEDNESS_FLIP`(true/false) 한 곳만 바꾸게 짠다.
   - 두 손이 **같은 라벨**로 나오면(가끔 생김): 원래 프레임에서 손목 x가 작은(화면 왼쪽) 손 = 실제 오른손으로 나눈다(뒤집지 않은 셀카 영상에서 사람의 오른손은 영상 왼쪽에 보임).
   - 손이 3개 이상은 없음(numHands: 2).
