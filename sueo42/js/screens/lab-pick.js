@@ -19,8 +19,8 @@ export function renderLabPick(el, { query = {} } = {}) {
     stageNumbers().map((n) => h("details", { class: "card stage-fold", open: n === open },
       h("summary", { class: "row-between" },
         h("strong", {}, t("C-14", { n })),
-        h("span", { class: "muted small" }, t("C-15", { k: stageTried(s, words, n) }),
-          stageDone(s, words, n) ? [" ", h("span", { class: "tag-done" }, t("C-16"))] : null)),
+        stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16"))
+          : h("span", { class: "muted small" }, t("C-15", { k: stageTried(s, words, n) }))),
       h("div", { class: "word-grid" }, wordsOfStage(n).map((w) =>
         h("button", { class: "word-card", onclick: () => go(`/lab/word/${w.no}`) },
           h("span", {}, w.name),

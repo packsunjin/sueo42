@@ -39,7 +39,7 @@ export function renderHome(el) {
             "aria-label": `${t("C-14", { n })}, ${t("C-15", { k })}${done ? `, ${t("C-16")}` : ""}` },
             done ? icon("check", { stroke: 3.2 }) : String(n))),
         h("span", { class: "node-label", "aria-hidden": "true" },
-          h("strong", {}, t("C-14", { n })), h("span", {}, t("C-15", { k }))));
+          h("strong", {}, t("C-14", { n })), h("span", {}, done ? t("C-16") : t("C-15", { k }))));
     })),
 
     h("div", { class: "card-pair" },
@@ -58,7 +58,7 @@ function openStageSheet(n) {
     h("div", { class: "row-between" },
       h("h2", {}, t("C-14", { n })),
       stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16")) : null),
-    h("p", { class: "muted" }, t("C-15", { k: stageTried(s, words, n) })),
+    stageDone(s, words, n) ? null : h("p", { class: "muted" }, t("C-15", { k: stageTried(s, words, n) })),
     h("ul", { class: "stage-sheet-words" }, wordsOfStage(n).map((w) =>
       isTried(s, w.no) ? h("li", { class: "tried" }, icon("check", { stroke: 3 }), w.name) : h("li", {}, w.name))),
     h("div", { class: "btn-col" },

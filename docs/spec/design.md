@@ -91,3 +91,13 @@ CLAUDE.md 가 정한 디자인 기준 **taste-skill**(github.com/Leonxlnx/taste-
 - 사이트용 규칙(한 화면 한 구역, 사진, 히어로 등장 등)은 앱이라 적용 안 함
 - 직접 해보기 결과는 그대로 강조색 하나 + 회색(판정처럼 보이지 않게), 버튼 3개 같은 모양
 - 글꼴 출처: vendor/SOURCES.md (Pretendard OFL, Geist OFL)
+
+## 9. 11/18 4차: 너무 단색·어색한 말투 (사장 지시 "다 해봄·따라 해보 이런 말 하지 마, 너무 단색")
+- **색: 3차에서 팔레트를 잘못 씀.** taste-skill `library/palettes.json` 의 card-pastels 원문 메모: "Neutral paper ground and black type, with each card or tile given its own flat pastel (sky, lime, amber or cyan), never two alike side by side. Magenta is reserved for the logo, the email address and text links." 그대로 고침
+  - 카드·타일·단계 번호 = 파스텔 4색(#97cef6 하늘, #bbf697 라임, #fed878 호박, #6ef8fb 청록)을 차례로, 나란히 같은 색 없음
+  - 주 버튼·진행 막대·다 한 단계 = 검정, 분홍 = 로고·글자 링크·선택 탭·초점에만
+  - 직접 해보기 결과 화면은 파스텔 없이 검정·흰색·회색(판정처럼 보이지 않게, 버튼 3개 같은 모양)
+- **문구: 토스 라이팅 원칙 8개**(toss.tech/article/8-writing-principles-of-toss, 2022.11.15)로 고침 — 소리 내어 읽기(Easy to speak), 잡초 뽑기, 같은 말 반복 안 하기, 핵심만, 취소 대신 [닫기]
+  - "해 본 단어 k/6"→"6개 중 k개 했어요", "다 해 봄"→"다 했어요", "따라 할 동작: ○○"→"○○", "따라 해 볼 단어를 고르세요"→"연습할 단어를 골라 주세요", "한 판 끝"→"다 풀었어요", "건너뜀 (…)"→"영상을 못 불러와서 건너뛰었어요" 등 43곳(copy.md 와 copy.js 같이)
+  - 다 한 단계는 "6개 중 6개 했어요"와 "다 했어요"를 같이 쓰지 않고 "다 했어요"만
+  - 강의가 정한 문구(L-22 AI 결과, L-28 "맞나요?", 버튼 3개)는 그대로

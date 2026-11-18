@@ -1,7 +1,8 @@
 /* 수어42 화면 스타일(모바일 세로 우선, 320~520px).
    11/18 3차: taste-skill(design-taste-frontend 2.5.1, MIT, github.com/Leonxlnx/taste-skill) 규칙으로 다시 씀.
    - 색·글꼴은 그 스킬의 start.mjs 가 정해 준 것(software, palette card-pastels, type geist, radius round)을 그대로 씀
-   - 화면은 90~95% 무채색, 강조색은 분홍 하나(주 버튼·링크·초점·선택 탭·진행 막대·상태 표시)
+   - 팔레트 메모 그대로: "카드·타일마다 파스텔 하나(하늘·라임·호박·청록), 나란히 같은 색 없음. 분홍은 로고·글자 링크에만"
+     → 카드·타일·단계 번호는 파스텔, 주 버튼·진행 막대는 검정, 분홍은 링크·선택 탭·초점에만
    - 버튼은 알약 하나(그림자·그라데이션 없음), 카드는 1px 선 + 24px 둥글기 하나, 제목 굵기 600 이하, 13px 아래 글자 없음
    - 움직임은 누를 때·마우스 올릴 때만(화면마다 떠오르기·깜빡임·통통 튀기 없음). 움직임 줄이기 설정이면 모두 끔
    직접 해보기 결과는 강조색 하나와 회색만(판정처럼 보이는 초록·빨강·금색·축하 없음). 글꼴: Pretendard(한글), Geist(숫자·영문). */
@@ -15,6 +16,8 @@
   /* taste-skill start.mjs 가 찍어 준 값 그대로(card-pastels · geist) */
   --p-bg: #f7f7f5; --p-surface: #ebebe8; --p-ink: #000000; --p-muted: #666662;
   --p-accent: #d0106f; --p-accent-ink: #ffffff;
+  /* 팔레트의 fields(카드마다 하나씩, 글자는 검정) */
+  --f1: #97cef6; --f2: #bbf697; --f3: #fed878; --f4: #6ef8fb;
   /* 앱이 쓰는 이름 */
   --bg: var(--p-bg);
   --surface: var(--p-surface);
@@ -78,7 +81,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .chip-stat { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px;
   background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 600; color: var(--muted); }
 .chip-stat svg { width: 16px; height: 16px; flex: none; }
-.chip-stat.streak.lit { color: var(--accent); }
+.chip-stat.streak.lit { color: var(--ink); background: var(--f3); border-color: transparent; }
 .chip-stat.level { color: var(--ink); }
 #app { max-width: 520px; margin: 0 auto; padding: 20px 16px calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom)); }
 .tab-bar {
@@ -127,9 +130,8 @@ button.card:active { transform: scale(.99); }
   transition: background var(--m-in) var(--ease), border-color var(--m-in) var(--ease), transform var(--m-press) var(--ease); }
 .btn:active:not(:disabled) { transform: scale(.98); }
 .btn:disabled { opacity: .4; cursor: default; }
-.btn-primary { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 86%, var(--ink)); }
-.btn-ok { background: var(--accent); color: var(--accent-ink); }
+.btn-primary, .btn-ok { background: var(--ink); color: var(--bg); }
+.btn-primary:hover:not(:disabled), .btn-ok:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 82%, var(--bg)); }
 .btn-secondary, .btn-danger { background: var(--card); color: var(--ink); border-color: var(--line-strong); }
 .btn-secondary:hover:not(:disabled), .btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--card) 94%, var(--ink)); }
 .btn-chip { min-height: 40px; padding: 6px 16px; font-size: 14px; background: var(--card); color: var(--ink); border-color: var(--line-strong); }
@@ -143,12 +145,12 @@ button.card:active { transform: scale(.99); }
 /* ── 꼬리표: 회색 알약 하나 ── */
 .tag-trial, .tag-done, .pill { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px;
   font-size: 13px; font-weight: 600; white-space: nowrap; background: var(--surface); color: var(--ink); }
-.pill-gold { background: var(--accent-soft); color: var(--accent); }
+.pill-gold { background: var(--f3); color: var(--ink); }
 
 /* ── 홈 ── */
 .today { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; }
 .today-icon { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--muted); }
-.today.lit .today-icon { color: var(--accent); }
+.today.lit .today-icon { background: var(--f3); color: var(--ink); }
 .today-icon svg { width: 18px; height: 18px; }
 .today-status { font-size: 15px; margin: 0; line-height: 1.45; color: var(--muted); }
 
@@ -157,7 +159,7 @@ button.card:active { transform: scale(.99); }
   background: var(--surface); color: var(--ink); }
 .stage-badge.big { width: 44px; height: 44px; border-radius: 14px; font-size: 18px; }
 .mini-bar { display: block; height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; }
-.mini-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width var(--m-slide) var(--ease); }
+.mini-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--ink); transition: width var(--m-slide) var(--ease); }
 .stage-tag { display: inline-flex; margin: 0 0 12px; height: 26px; align-items: center; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 600;
   background: var(--surface); color: var(--ink); }
 
@@ -173,7 +175,7 @@ button.card:active { transform: scale(.99); }
 .path-step:nth-child(7n+5) { --x: -32px; }
 .path-step:nth-child(7n+6) { --x: -72px; }
 .path-step:nth-child(7n+7) { --x: -42px; }
-.node-ring { display: grid; place-items: center; padding: 4px; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p, 0) * 1turn), var(--line) 0); }
+.node-ring { display: grid; place-items: center; padding: 4px; border-radius: 50%; background: conic-gradient(var(--ink) calc(var(--p, 0) * 1turn), var(--line) 0); }
 .node { width: 64px; height: 64px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
   font-size: 22px; font-weight: 600; background: var(--card); color: var(--ink); border: 3px solid var(--bg);
   transition: transform var(--m-in) var(--ease); }
@@ -218,7 +220,7 @@ button.card:active { transform: scale(.99); }
 .word-row:hover { background: color-mix(in oklab, var(--card) 96%, var(--ink)); }
 .word-name { flex: 1; font-weight: 600; font-size: 17px; min-width: 0; }
 .stage-text { font-size: 13px; color: var(--muted); }
-.tried-mark { width: 22px; height: 22px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+.tried-mark { width: 22px; height: 22px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); }
 .tried-mark svg { width: 13px; height: 13px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
 .empty { padding: 20px 16px; color: var(--muted); }
@@ -266,7 +268,7 @@ button.card:active { transform: scale(.99); }
 .progress-text { font-weight: 600; color: var(--muted); font-size: 14px; }
 .score { flex: none; }
 .bar { height: 8px; background: var(--surface); border-radius: 999px; overflow: hidden; margin: 8px 0; }
-.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width var(--m-slide) var(--ease); }
+.bar > span { display: block; height: 100%; background: var(--ink); border-radius: 999px; transition: width var(--m-slide) var(--ease); }
 .bar-thick { height: 10px; }
 .question { margin-top: 8px; font-size: 21px; }
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
@@ -277,7 +279,7 @@ button.card:active { transform: scale(.99); }
 .option:active:not(:disabled) { transform: scale(.98); }
 .option:disabled { cursor: default; color: inherit; }
 .loading-dim { opacity: .45; }
-.option.is-answer { border: 2px solid var(--accent); color: var(--accent); }
+.option.is-answer { border: 2px solid var(--ink); background: var(--f2); }
 .option.is-chosen { background: var(--surface); color: var(--muted); border-color: transparent; }
 
 /* 아래에서 올라오는 결과 판: 정답이든 아니든 같은 바탕. 정답은 강조색 체크 하나로만 표시(빨강·흔들림·X 없음) */
@@ -286,7 +288,7 @@ button.card:active { transform: scale(.99); }
   background: var(--bg); animation: slide-up var(--m-slide) var(--ease); }
 .answer-panel-inner { max-width: 488px; margin: 0 auto; }
 .answer-msg { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; letter-spacing: -.03em; margin-bottom: 14px; }
-.answer-msg .msg-icon { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+.answer-msg .msg-icon { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--f2); color: var(--ink); }
 .answer-msg .msg-icon svg { width: 18px; height: 18px; }
 .answer-panel .bottom-actions { margin-top: 16px; }
 .answer-panel .bottom-actions .btn { width: 100%; }
@@ -299,11 +301,11 @@ button.card:active { transform: scale(.99); }
 .result-card h2 { font-size: 22px; }
 .result-score { font-size: 28px; font-weight: 600; letter-spacing: -.04em; margin: 4px 0 12px; }
 .best { margin: 0; }
-.mark-right { color: var(--accent); font-weight: 600; }
+.mark-right { color: var(--ink); font-weight: 600; }
 .rank-list { padding-left: 0; list-style: none; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
 .rank-list li { padding: 14px 16px; }
 .rank-list li + li { border-top: 1px solid var(--line); }
-.rank-list li.hl { background: var(--accent-soft); font-weight: 600; }
+.rank-list li.hl { background: var(--f3); font-weight: 600; }
 .nick-input { width: 100%; height: 52px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 999px; font: inherit; margin: 8px 0; background: var(--card); }
 .nick-input:focus { outline: none; border-color: var(--ink); }
 
@@ -313,12 +315,12 @@ button.card:active { transform: scale(.99); }
 .level-bar .bar { flex: 1 1 140px; margin: 4px 0; }
 .bar-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .streak-tile h2 { display: flex; align-items: center; gap: 10px; font-size: 22px; }
-.streak-flame { width: 36px; height: 36px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.streak-flame { width: 36px; height: 36px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--card); color: var(--ink); }
 .streak-flame svg { width: 20px; height: 20px; }
 .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; list-style: none; padding: 0; margin: 8px 0 0; text-align: center; }
 .week li { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .day-dot { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center; }
-.week li.on .day-dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.week li.on .day-dot { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .day-dot svg { width: 16px; height: 16px; }
 .week small { font-size: 13px; color: var(--muted); }
 .stage-progress { list-style: none; padding: 0; margin: 8px 0 0; }
@@ -333,7 +335,8 @@ button.card:active { transform: scale(.99); }
 .badge small { font-size: 13px; }
 .medal { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 6px; }
 .medal svg { width: 26px; height: 26px; }
-.badge.on .medal { background: var(--ink); color: var(--bg); }
+.badge.on .medal { background: var(--f3); color: var(--ink); }
+.badge.on:nth-child(4n+2) .medal { background: var(--f1); } .badge.on:nth-child(4n+3) .medal { background: var(--f4); } .badge.on:nth-child(4n+4) .medal { background: var(--f2); }
 .badge.off .medal { background: var(--bg); color: var(--line-strong); border: 1px dashed var(--line-strong); }
 .badge.off strong { color: var(--muted); }
 .info-list { list-style: none; padding: 4px 20px; }
@@ -355,7 +358,7 @@ button.card:active { transform: scale(.99); }
   display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--bg);
   padding: 8px 16px 8px 8px; border-radius: 999px; font-size: 14px; font-weight: 600; width: max-content; max-width: calc(100% - 32px); cursor: pointer; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
-.toast-icon { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+.toast-icon { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--f3); color: var(--ink); }
 .toast-icon svg { width: 16px; height: 16px; }
 
 /* ── 직접 해보기 S9~S15: 강조색 하나와 회색만 ── */
@@ -416,3 +419,48 @@ button.card:active { transform: scale(.99); }
   .btn:active:not(:disabled), .option:active:not(:disabled), .node:active, .node:hover, .chip:active, .word-card:active,
   button.card:hover, button.card:active, .btn-back:active { transform: none; }
 }
+
+/* ── 파스텔 면(팔레트 card-pastels 의 fields): 카드·타일마다 하나, 나란히 같은 색 없음. 글자는 검정 ── */
+.card-hero { background: var(--f1); }
+.card-pair .card-small { border-color: transparent; }
+.card-pair .card-small:nth-child(1) { background: var(--f2); }
+.card-pair .card-small:nth-child(2) { background: var(--f3); }
+.card-small .card-icon { background: rgba(255, 255, 255, .55); }
+/* 단계 번호: 단계마다 차례로(1 하늘 · 2 라임 · 3 호박 · 4 청록 · 5 하늘 …) */
+[data-stage] { --sf: var(--f1); }
+[data-stage="2"], [data-stage="6"] { --sf: var(--f2); }
+[data-stage="3"], [data-stage="7"] { --sf: var(--f3); }
+[data-stage="4"] { --sf: var(--f4); }
+.stage-badge { background: var(--sf, var(--surface)); }
+.stage-badge.big { background: var(--sf, var(--surface)); color: var(--ink); }
+.stage-tag { background: var(--sf, var(--surface)); }
+/* 학습 길: 아직 = 그 단계 파스텔, 다 했음 = 검정 + 체크, 지금 할 단계 = 파스텔 + 검정 테두리 */
+.path-step .node { background: var(--sf); }
+.path-step .node.done { background: var(--ink); color: var(--bg); }
+.path-step .node.next { background: var(--sf); color: var(--ink); border-color: var(--ink); }
+.stage-sheet { --sf: var(--f1); }
+.stage-sheet h2 { display: inline-block; background: var(--sf); padding: 2px 12px; border-radius: 999px; }
+/* 뜻 맞히기 단계 카드·직접 해보기 단계 카드·내 기록 카드: 차례로 다른 파스텔 */
+.stage-list .stage-card { border-color: transparent; }
+.stage-list .stage-card:nth-child(4n+1) { background: var(--f1); }
+.stage-list .stage-card:nth-child(4n+2) { background: var(--f2); }
+.stage-list .stage-card:nth-child(4n+3) { background: var(--f3); }
+.stage-list .stage-card:nth-child(4n+4) { background: var(--f4); }
+.stage-list .stage-badge.big { background: var(--card); }
+.stage-list .mini-bar { background: rgba(255, 255, 255, .6); }
+.stage-list .tag-done { background: var(--card); }
+.lab-pick .stage-fold { border-color: transparent; }
+.lab-pick .stage-fold:nth-of-type(4n+1) { background: var(--f1); }
+.lab-pick .stage-fold:nth-of-type(4n+2) { background: var(--f2); }
+.lab-pick .stage-fold:nth-of-type(4n+3) { background: var(--f3); }
+.lab-pick .stage-fold:nth-of-type(4n+4) { background: var(--f4); }
+.lab-pick .tag-done { background: var(--card); }
+.records .level-card { background: var(--f1); border-color: transparent; }
+.records .streak-tile { background: var(--f3); border-color: transparent; }
+.records .level-card .bar, .records .streak-tile .day-dot { background: rgba(255, 255, 255, .6); }
+.records .streak-tile .muted, .records .level-card .muted { color: #2b2b28; }
+.result-card { background: var(--f2); border-color: transparent; }
+.result-card.is-best { background: var(--f3); }
+.result-card .pill-gold { background: var(--card); }
+.start::before { background: var(--f1); color: var(--ink); }
+.brand-mark { background: var(--accent); color: var(--accent-ink); }

@@ -51,7 +51,7 @@ export function renderQuizHome(el) {
           h("span", { class: "stage-words" }, ws.map((w) => w.name).join(" · ")),
           h("span", { class: "mini-bar", "aria-hidden": "true" }, h("span", { style: { width: `${(k / 6) * 100}%` } })),
           h("span", { class: "row-between muted small" },
-            h("span", {}, t("C-15", { k })),
+            stageDone(s, words, n) ? h("span", {}) : h("span", {}, t("C-15", { k })),
             best !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: best })) : null)));
     })),
     h("div", { class: "bottom-actions" }, button(btn("Q-03"), () => go("/ranking"), { kind: "secondary" }))));

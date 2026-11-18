@@ -38,8 +38,7 @@ export function renderRecords(el) {
             h("span", { class: "stage-badge", "aria-hidden": "true" }, String(n)),
             h("span", { class: "sp-name" }, t("C-14", { n })),
             h("span", { class: "mini-bar", "aria-hidden": "true" }, h("span", { style: { width: `${(k / 6) * 100}%` } })),
-            h("span", { class: "sp-count muted" }, t("C-15", { k }),
-              stageDone(s, words, n) ? [" ", h("span", { class: "tag-done" }, t("C-16"))] : null)));
+            stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16")) : h("span", { class: "sp-count muted" }, t("C-15", { k }))));
       }))),
 
     h("div", { class: "card" },
