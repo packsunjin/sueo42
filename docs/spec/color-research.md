@@ -41,3 +41,5 @@
 - https://theses.lib.polyu.edu.hk/bitstream/200/3321/1/b21458911.pdf (Gao 학위논문, Ou & Luo·Ou et al. 인용 부분)
 - https://pmc.ncbi.nlm.nih.gov/articles/PMC2889342 (Palmer & Schloss 2010)
 - https://artemis.ms.mff.cuni.cz/main/papers/emodesign_manuscript_1rev_180928_FINAL_norev.pdf (Brom et al. 2018 원고), https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2024.1393113/full (수치 인용)
+
+- (11/18 8차) 바탕은 사장 선택으로 **순백 #ffffff**. 흰 카드는 1px 선(#e2e6ed)으로 구분, 연한 면 #f2f4f6.

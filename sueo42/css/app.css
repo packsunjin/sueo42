@@ -1,7 +1,7 @@
 /* 수어42 화면 스타일(모바일 세로 우선, 320~520px).
    11/18 5차(사장 결정): Meta Astryx 디자인 시스템의「Butter」테마 값을 그대로 씀(색·글꼴·둥글기·그림자·움직임).
    출처: @astryxdesign/theme-butter 0.7.16 dist/theme.css (MIT, Meta Platforms) — vendor/SOURCES.md. React 컴포넌트는 안 씀(값만).
-   - 바탕 #f6f8fb(11/18 7차, 크림에서 바꿈), 카드 흰색, 글자 #171b24, 강조 파랑 #225bff(주 버튼·링크·선택)
+   - 바탕 순백 #ffffff(11/18 8차, 사장 선택), 카드 흰색(1px 선으로 구분), 글자 #171b24, 강조 파랑 #225bff(주 버튼·링크·선택)
    - 11/18 6차: 색 조합은 논문 근거로(docs/spec/color-research.md) — 색상은 파랑·청록·주황 3개만(O'Donovan 외 2011: 2~3 hue),
      카드 글자는 바탕과 같은 색상의 진한 색(Schloss & Palmer 2011), 세 바탕 채도 비슷하게(Ou & Luo 2006)
    - 둥글기: 버튼·입력 8px, 카드 12px, 아래에서 올라오는 창 24px / 움직임 125ms·300ms
@@ -16,9 +16,9 @@
 
 :root {
   /* Astryx Butter(밝은 모드) 값 그대로 */
-  --color-background-body: #f6f8fb;   /* 11/18 7차: 크림 → 차갑고 밝은 흰 바탕(Schloss & Palmer 2011 Exp 4: 차가운 배경에서 색이 더 선호됨) */
+  --color-background-body: #ffffff;   /* 11/18 8차: 사장 선택 순백(크림 → #f6f8fb → 순백) */
   --color-background-surface: #ffffff;
-  --color-background-muted: #edf0f5;
+  --color-background-muted: #f2f4f6;
   --color-text-primary: #171b24;
   --color-text-secondary: #586070;
   --color-accent: #225bff;
