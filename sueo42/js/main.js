@@ -30,9 +30,13 @@ const tabbarEl = document.getElementById("tabbar");
 function drawStatus() {
   const s = getState(), today = localDate();
   const lit = learnedToday(s, today);
+  const lv = levelInfo(s).level, d = streak(s, today);
+  // C-07 "레벨 n · d일 연속"을 칩 두 개로 나눠 보여 준다(읽기 프로그램에는 C-07 전체를 읽어 줌)
   statusEl.replaceChildren(
-    h("span", { class: "brand" }, t("C-01")),
-    h("span", { class: `streak ${lit ? "lit" : ""}` }, flame(lit), t("C-07", { n: levelInfo(s).level, d: streak(s, today) })));
+    h("span", { class: "brand" }, h("span", { class: "brand-mark", "aria-hidden": "true" }, "42"), t("C-01")),
+    h("span", { class: "status-chips", role: "img", "aria-label": t("C-07", { n: lv, d }) },
+      h("span", { class: `chip-stat streak ${lit ? "lit" : ""}`, "aria-hidden": "true" }, flame(lit), String(d)),
+      h("span", { class: "chip-stat level", "aria-hidden": "true" }, icon("up", { stroke: 2.6 }), String(lv))));
 }
 
 function flame(filled) {

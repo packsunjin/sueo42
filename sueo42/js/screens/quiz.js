@@ -41,14 +41,18 @@ export function renderQuizHome(el) {
     h("div", { class: "stage-list" }, stageNumbers().map((n) => {
       const ws = wordsOfStage(n);
       const best = s.best[n];
-      return h("button", { class: "card stage-card", onclick: () => startQuiz(n) },
-        h("div", { class: "row-between" },
-          h("strong", {}, t("C-14", { n })),
-          stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16")) : null),
-        h("p", { class: "stage-words" }, ws.map((w) => w.name).join(" · ")),
-        h("div", { class: "row-between muted" },
-          h("span", {}, t("C-15", { k: stageTried(s, words, n) })),
-          best !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: best })) : null));
+      const k = stageTried(s, words, n);
+      return h("button", { class: "card stage-card", "data-stage": n, onclick: () => startQuiz(n) },
+        h("span", { class: "stage-badge big", "aria-hidden": "true" }, String(n)),
+        h("span", { class: "stage-body" },
+          h("span", { class: "row-between" },
+            h("strong", {}, t("C-14", { n })),
+            stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16")) : null),
+          h("span", { class: "stage-words" }, ws.map((w) => w.name).join(" · ")),
+          h("span", { class: "mini-bar", "aria-hidden": "true" }, h("span", { style: { width: `${(k / 6) * 100}%` } })),
+          h("span", { class: "row-between muted small" },
+            h("span", {}, t("C-15", { k })),
+            best !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: best })) : null)));
     })),
     h("div", { class: "bottom-actions" }, button(btn("Q-03"), () => go("/ranking"), { kind: "secondary" }))));
 }
@@ -204,7 +208,7 @@ export function renderRanking(el, { query }) {
     list.length
       ? h("ol", { class: "rank-list" }, list.map((r, i) => h("li", { class: r.at === hl ? "hl" : "" },
           t("Q-25", { "순위": i + 1, "별명": r.name, s: r.score, n: r.stage, "날짜": r.date }))))
-      : h("p", { class: "empty" }, t("Q-26")),
+      : h("div", { class: "empty-state" }, h("span", { class: "empty-icon", "aria-hidden": "true" }, icon("medal", { stroke: 1.8 })), h("p", {}, t("Q-26"))),
     h("p", { class: "muted small" }, deviceOnly)));
 }
 

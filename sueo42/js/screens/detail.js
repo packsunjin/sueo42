@@ -10,7 +10,7 @@ export function renderDetail(el, { no }) {
   if (!w) { go("/search"); return; }
   el.append(h("section", { class: "detail" },
     header(w.name, { backTo: "/search" }),
-    h("p", { class: "muted" }, t("C-14", { n: w.stage })),
+    h("p", { class: "stage-tag", "data-stage": w.stage }, t("C-14", { n: w.stage })),
     dictVideo(w),
     h("p", { class: "hint" }, t("S-11")),
     h("dl", { class: "facts" },

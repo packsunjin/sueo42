@@ -41,7 +41,7 @@
 | 회색 판(오답 아님 표시) | #F1F2F6 | | 뜻 맞히기 "정답은 ○○예요" 판 |
 
 ## 4. 모양
-- 글꼴: 기기 기본 한글 글꼴(외부 글꼴 안 받음 → 출처 표기 불필요). 제목 800, 버튼 800
+- 글꼴: **Pretendard 1.3.9**(11/18 2차, SIL OFL 1.1, 저작자 길형진) — sueo42/vendor/pretendard@1.3.9/ 에 넣어 둠(인터넷 없어도 됨), 출처 vendor/SOURCES.md. 제목 800, 버튼 800
 - 둥글기: 카드 18px, 버튼 16px, 보기 16px, 알약 999px
 - 입체: `box-shadow: 0 4px 0 <그림자색>`, `:active { transform: translateY(4px); box-shadow: none }`. 흰 버튼은 테두리 2px #E3E6EE + 그림자 #D3D7E2
 - 단계 동그라미: 72px. 상태 3가지 — 다 해 봄(초록 + 체크), 이어서 할 단계(주색 + 위에 말풍선 H-06 "단계 n 이어서" + 천천히 맥박), 나머지(흰색 + 회색 테두리 + 숫자). 모두 누를 수 있음
@@ -67,3 +67,12 @@
 - https://blakecrosley.com/guides/design/duolingo
 - https://blog.duolingo.com/streak-milestone-design-animation
 - https://uxdesign.cc/3-reframing-streaks-on-duolingo-5-ideas-for-a-more-healthy-and-flexible-approach-to-language-8fd89545771e
+
+## 7. 11/18 2차 개선 (사장 지시 "UI 100배 개선")
+- 글꼴 Pretendard(위 4절). 윈도우 기본 글꼴(맑은 고딕)보다 또렷함
+- **단계 색 7개**(1 남색 · 2 청록 · 3 분홍 · 4 보라 · 5 파랑 · 6 갈색 · 7 회청): 홈 학습 길·단계 창·검색·뜻 맞히기 단계 카드·내 기록 단계 줄에만. 직접 해보기 화면에는 안 씀(2절 그대로)
+- 학습 길 동그라미 둘레 고리 = 해 본 단어 k/6, 점선으로 단계 연결, 말풍선 살짝 움직임
+- 홈 맨 위: 오늘 상태 + 참여 숫자 3칸(R-06 연속·R-02 레벨·R-08 해 본 단어) — 모두 기존 문구
+- 상태 줄: "42" 로고 + 불꽃 칩(연속 일수)·레벨 칩(읽기 프로그램에는 C-07 전체를 읽어 줌)
+- 검색: 돋보기 달린 입력칸, 단계 색 번호, 해 본 단어 체크
+- 토스트를 화면 위로(아래 버튼·결과 판을 가리지 않게), 화면 들어올 때 살짝 올라오는 움직임, 빈 랭킹 안내 칸

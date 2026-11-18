@@ -15,6 +15,11 @@
 | tfjs@4.22.0/tf.min.js | https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js | 1,469,843 | 300dfae273d20b4046f46a06d735688f03675a807561e9bcb5f664eb2f3d2831 |
 | LICENSE-mediapipe.txt | https://raw.githubusercontent.com/google-ai-edge/mediapipe/master/LICENSE | 12,331 | 8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8 |
 | LICENSE-tfjs.txt | https://raw.githubusercontent.com/tensorflow/tfjs/master/LICENSE | 11,358 | cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30 |
+| (11/18 추가, 글꼴) pretendard@1.3.9/LICENSE.txt | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/LICENSE.txt | 4,419 | b04538c9abec39a3db75108cf0af0fd9c77032fe8aa2cf38345b4d250e98e38e |
+| pretendard@1.3.9/Pretendard-Bold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-Bold.subset.woff2 | 270,784 | 78eb71c33101ee7d4f8d1b777d193a12d00f8a296e712a8c417cf27abe946397 |
+| pretendard@1.3.9/Pretendard-ExtraBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-ExtraBold.subset.woff2 | 271,796 | abb0933bd492a56403d2b288394923fdc4c210aaa827c9e44714fcac8ff70c7c |
+| pretendard@1.3.9/Pretendard-Regular.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-Regular.subset.woff2 | 267,096 | 01dd73155fdfab7ce9b25224523e85a96927e21aef97f21957d41f1bfa7e3878 |
+| pretendard@1.3.9/Pretendard-SemiBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-SemiBold.subset.woff2 | 268,752 | 4247dc5e260b92640c2cbd0e75091154647b71e1d5884116655e2903468c54cc |
 
 ## 라이선스
 - @mediapipe/tasks-vision 0.10.14: Apache-2.0 (패키지 package.json `"license": "Apache-2.0"`, 원문 LICENSE-mediapipe.txt)
@@ -22,3 +27,4 @@
 - npm 패키지 안에는 LICENSE 파일이 없어 원 저장소(github.com/google-ai-edge/mediapipe, github.com/tensorflow/tfjs) 의 LICENSE 를 받아 두었다.
 - hand_landmarker.task·pose_landmarker_lite.task 모델 파일의 라이선스: **확인 못 함**(공식 페이지의 모델 카드에서 확인 필요).
 - 크기 7개는 docs/tech/structure.md 2절(2026-11-05 확인 값)과 모두 같다.
+- Pretendard 1.3.9 (11/18 추가, 앱 글꼴): SIL Open Font License 1.1, 원문 pretendard@1.3.9/LICENSE.txt. 저작자 길형진(orioncactus). 한국어 자주 쓰는 글자만 담은 subset 4굵기.

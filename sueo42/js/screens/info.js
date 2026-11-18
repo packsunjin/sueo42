@@ -7,7 +7,7 @@ import { isTrialModel } from "../../config.js";
 export function renderInfo(el) {
   el.append(h("section", { class: "info" },
     header(t("I-01"), { backTo: "/records" }),
-    h("ul", { class: "info-list" },
+    h("ul", { class: "card info-list" },
       h("li", {}, t("I-02")),
       h("li", {}, t("I-03")),
       isTrialModel() ? null : h("li", {}, t("I-04")),

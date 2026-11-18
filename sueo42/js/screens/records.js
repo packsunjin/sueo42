@@ -21,7 +21,7 @@ export function renderRecords(el) {
       h("p", { class: "muted small" }, t("R-05"))),
 
     h("div", { class: "card streak-tile" },
-      h("h2", {}, flameIcon(), t("R-06", { d: streak(s, today) })),
+      h("h2", {}, h("span", { class: "streak-flame", "aria-hidden": "true" }, flameIcon()), t("R-06", { d: streak(s, today) })),
       h("p", { class: "muted small" }, t("R-07")),
       h("ol", { class: "week" }, last7(s, today).map((d) => h("li", { title: d.date, class: d.done ? "on" : "" },
         h("span", { class: "day-dot", "aria-hidden": "true" }, d.done ? icon("check", { stroke: 3.2 }) : null),
@@ -31,11 +31,16 @@ export function renderRecords(el) {
     h("div", { class: "card" },
       h("h2", {}, t("R-08", { k: triedCount(s, words) })),
       h("p", { class: "muted small" }, t("R-09", { a: lab, b: s.labTries, r: s.quizRounds })),
-      h("ul", { class: "stage-progress" }, stageNumbers().map((n) => h("li", {},
-        h("button", { class: "row-between", onclick: () => go(`/lab?stage=${n}`) },
-          h("span", {}, t("C-14", { n })),
-          h("span", { class: "muted" }, t("C-15", { k: stageTried(s, words, n) }),
-            stageDone(s, words, n) ? [" ", h("span", { class: "tag-done" }, t("C-16"))] : null)))))),
+      h("ul", { class: "stage-progress" }, stageNumbers().map((n) => {
+        const k = stageTried(s, words, n);
+        return h("li", { "data-stage": n },
+          h("button", { onclick: () => go(`/lab?stage=${n}`) },
+            h("span", { class: "stage-badge", "aria-hidden": "true" }, String(n)),
+            h("span", { class: "sp-name" }, t("C-14", { n })),
+            h("span", { class: "mini-bar", "aria-hidden": "true" }, h("span", { style: { width: `${(k / 6) * 100}%` } })),
+            h("span", { class: "sp-count muted" }, t("C-15", { k }),
+              stageDone(s, words, n) ? [" ", h("span", { class: "tag-done" }, t("C-16"))] : null)));
+      }))),
 
     h("div", { class: "card" },
       h("h2", {}, t("R-10", { k: got })),
