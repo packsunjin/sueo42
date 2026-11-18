@@ -1,7 +1,8 @@
-// [뜻 맞히기] S4 단계 고르기, S5·S5' 문제·정답 보기(정답 옆 사전 근거·출처), S6 한 판 결과, S7 별명 창, S8 랭킹. 점수·정답·랭킹은 이 기능에만 있다.
+// [뜻 맞히기] S4 단계 고르기, S5·S5' 문제(2×2 보기)·아래에서 올라오는 결과 판(정답 초록 / 아니면 회색, 정답 옆 사전 근거·출처), S6 한 판 결과, S7 별명 창, S8 랭킹.
+// 점수·정답·랭킹은 이 기능에만 있다. 한 판 중에는 탭 바를 숨긴다(main.js HIDE_TABBAR).
 import { h, shuffle, sample, charLen } from "../util.js";
 import { t, btn, COPY } from "../copy.js";
-import { header, button, dictVideo, sourceLine, dictLink, go, openModal, confirmModal } from "../ui.js";
+import { header, button, dictVideo, sourceLine, dictLink, go, openModal, confirmModal, icon } from "../ui.js";
 import { CONFIG } from "../../config.js";
 import { allWords, wordsOfStage, stageNumbers } from "../data/words.js";
 import { getState, recordQuizAnswer, recordQuizRound, addRanking } from "../store.js";
@@ -47,7 +48,7 @@ export function renderQuizHome(el) {
         h("p", { class: "stage-words" }, ws.map((w) => w.name).join(" · ")),
         h("div", { class: "row-between muted" },
           h("span", {}, t("C-15", { k: stageTried(s, words, n) })),
-          best !== undefined ? h("span", {}, t("S4-최고", { s: best })) : null));
+          best !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: best })) : null));
     })),
     h("div", { class: "bottom-actions" }, button(btn("Q-03"), () => go("/ranking"), { kind: "secondary" }))));
 }
@@ -63,9 +64,10 @@ export function renderQuizPlay(el, { stage }) {
 function renderQuestion(el, round) {
   const q = round.items[round.index];
   const total = round.items.length;
-  const scoreEl = h("span", { class: "score" }, t("Q-06", { s: round.score }));
+  const scoreEl = h("span", { class: "pill score" }, t("Q-06", { s: round.score }));
   const sourceSlot = h("div", {}, sourceLine(q.word, { hideHeadword: true }));
   const answerArea = h("div", { class: "answer-area" });
+  const section = h("section", { class: "quiz-play" });
   const optionBtns = q.options.map((w) => h("button", { class: "option", disabled: true,
     onclick: () => choose(w) }, w.name));
   const optionsBox = h("div", { class: "options loading-dim" }, optionBtns);
@@ -90,13 +92,20 @@ function renderQuestion(el, round) {
       else if (o.no === w.no) b.classList.add("is-chosen");
     });
     sourceSlot.replaceChildren(sourceLine(q.word, { link: false }));
-    answerArea.replaceChildren(
-      h("p", { class: `answer-msg ${right ? "right" : ""}` }, right ? t("Q-07") : t("Q-08", { "단어": q.word.name })),
-      evidenceBox(q.word),
-      h("div", { class: "bottom-actions" }, round.index + 1 < total
-        ? button(btn("Q-10"), () => next(), { kind: "primary" })
-        : button(btn("Q-11"), () => finish(), { kind: "primary" })));
-    answerArea.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // 화면 아래에 고정된 결과 판: 정답이면 초록(Q-07), 아니면 회색(Q-08). 빨강·흔들림·X 표시 없음
+    const kind = right ? "ok" : "primary";  // 정답 판은 초록 버튼, 회색 판은 주색 버튼
+    const panel = h("div", { class: `answer-panel ${right ? "ok" : "neutral"}`, role: "status", "aria-live": "polite" },
+      h("div", { class: "answer-panel-inner" },
+        h("p", { class: "answer-msg" },
+          right ? h("span", { class: "msg-icon" }, icon("check", { stroke: 3 })) : null,
+          h("span", {}, right ? t("Q-07") : t("Q-08", { "단어": q.word.name }))),
+        evidenceBox(q.word),
+        h("div", { class: "bottom-actions" }, round.index + 1 < total
+          ? button(btn("Q-10"), () => next(), { kind })
+          : button(btn("Q-11"), () => finish(), { kind }))));
+    answerArea.replaceChildren(panel);
+    // 판이 가린 만큼 아래 여백을 줘서 위 내용(영상·보기)을 끝까지 볼 수 있게
+    requestAnimationFrame(() => { section.style.paddingBottom = `${panel.offsetHeight + 16}px`; });
   }
 
   function skip() {                          // 영상을 못 불러온 문제: 점수·기록 없이 넘어감
@@ -112,14 +121,19 @@ function renderQuestion(el, round) {
     rerender(el);
   }
 
-  el.append(h("section", { class: "quiz-play" },
-    header(t("Q-01"), { onBack: () => confirmModal(t("Q-27"), btn("Q-28"), btn("Q-29"), () => { current = null; go("/quiz"); }) }),
-    h("div", { class: "row-between" }, h("span", { class: "progress-text" }, t("Q-04", { i: round.index + 1 })), scoreEl),
-    h("div", { class: "bar" }, h("span", { style: { width: `${((round.index + 1) / total) * 100}%` } })),
+  const onBack = () => confirmModal(t("Q-27"), btn("Q-28"), btn("Q-29"), () => { current = null; go("/quiz"); });
+  section.append(
+    h("div", { class: "quiz-top" },
+      h("button", { class: "btn-back", onclick: onBack }, btn("C-09")),
+      h("div", { class: "bar bar-thick", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": total, "aria-valuenow": round.index + 1 },
+        h("span", { style: { width: `${((round.index + 1) / total) * 100}%` } })),
+      scoreEl),
+    h("p", { class: "progress-text" }, t("Q-04", { i: round.index + 1 })),
     h("h2", { class: "question" }, t("Q-05")),
     video,
     optionsBox,
-    answerArea));
+    answerArea);
+  el.append(section);
 }
 
 // 정답 옆 근거 상자 Q-09: 사전 표제어·수형 설명·출처·[사전에서 보기]
@@ -138,9 +152,12 @@ function renderResult(el, round) {
   const uploadBtn = button(btn("Q-15"), () => openNicknameSheet(round), { kind: "primary", disabled: !!round.uploadedAt });
   el.append(h("section", { class: "quiz-result" },
     header(t("Q-01"), { onBack: () => go("/quiz") }),
-    h("h2", {}, t("Q-12")),
-    h("p", { class: "result-score" }, t("Q-13", { c, s: round.score })),
-    round.isBest ? h("p", { class: "best" }, t("Q-14")) : null,
+    h("div", { class: `card result-card ${round.isBest ? "is-best" : ""}` },
+      // 최고 점수(Q-14)일 때만 금색 + 작은 반짝임
+      round.isBest ? ["s1", "s2", "s3", "s4"].map((k) => h("span", { class: `sparkle ${k}`, "aria-hidden": "true" })) : null,
+      h("h2", {}, t("Q-12")),
+      h("p", { class: "result-score" }, t("Q-13", { c, s: round.score })),
+      round.isBest ? h("p", { class: "best" }, h("span", { class: "pill pill-gold" }, t("Q-14"))) : null),
     h("p", { class: "muted" }, t("Q-18")),
     h("ul", { class: "word-list" }, round.items.map((q) => h("li", {},
       h("button", { class: "word-row", onclick: () => go(`/word/${q.word.no}`) },

@@ -1,9 +1,35 @@
-// [공통 화면 부품] 상태 줄·탭 바·토스트·창(모달)·오류 상자·사전 영상 칸·레벨 막대처럼 여러 화면이 같이 쓰는 것.
+// [공통 화면 부품] 선 아이콘(인라인 SVG)·토스트(아이콘 알약)·창(모달)·오류 상자·사전 영상 칸·레벨 막대처럼 여러 화면이 같이 쓰는 것.
 import { h } from "./util.js";
 import { t, btn, ERROR_COPY, BADGE_COPY, unbracket } from "./copy.js";
 import { CONFIG } from "../config.js";
 import { go, back } from "./router.js";
 import { BADGES } from "./game/progress.js";
+
+// ── 선 아이콘(직접 그린 단순한 SVG, 외부 이미지 없음) ──
+const ICONS = {
+  home: '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>',
+  quiz: '<path d="M4 4.5h16v11.5H10l-5 4v-4H4z"/><path d="M9.8 8.6a2.3 2.3 0 1 1 3.3 2c-.7.4-1.1.8-1.1 1.6"/><path d="M12 14.3v.1"/>',
+  camera: '<path d="M3.5 8h3.5l1.8-2.6h6.4L17 8h3.5v11.5h-17z"/><circle cx="12" cy="13.5" r="3.6"/>',
+  chart: '<path d="M4 20h16"/><path d="M6.5 20v-7"/><path d="M12 20V5.5"/><path d="M17.5 20v-10"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  medal: '<circle cx="12" cy="14" r="5.5"/><path d="M8.5 3.5 10.5 9M15.5 3.5 13.5 9"/><path d="m12 11.8.9 1.6 1.7.3-1.2 1.2.3 1.7-1.7-.8-1.7.8.3-1.7-1.2-1.2 1.7-.3z"/>',
+  up: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/>',
+  flame: '<path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-4 2-5 0 2 1 3 2 3 0-4-1-6 1-9z"/>',
+};
+export function icon(name, { stroke = 2, fill = "none" } = {}) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("fill", fill);
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", String(stroke));
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.innerHTML = ICONS[name] || "";
+  return svg;
+}
 
 // ── 머리(제목 + [뒤로]) ──
 export function header(title, { backTo, onBack } = {}) {
@@ -96,7 +122,7 @@ export function dictLink(word) {
 // ── 레벨 막대 ──
 export function levelBar(info) {
   return h("div", { class: "level-bar" },
-    h("div", { class: "bar" }, h("span", { style: { width: `${Math.round(info.ratio * 100)}%` } })),
+    h("div", { class: "bar bar-thick" }, h("span", { style: { width: `${Math.round(info.ratio * 100)}%` } })),
     h("span", { class: "bar-label" }, info.toNext == null ? t("R-04") : t("R-03", { k: info.toNext })));
 }
 
@@ -134,15 +160,17 @@ export function showStorageWarning() {
 // ── 토스트(2.5초, 차례로) ──
 const toastQueue = [];
 let toastBusy = false;
-export function toast(text, onClick) {
-  toastQueue.push({ text, onClick });
+export function toast(text, onClick, kind = "info") {
+  toastQueue.push({ text, onClick, kind });
   if (!toastBusy) nextToast();
 }
 function nextToast() {
   const item = toastQueue.shift();
   if (!item) { toastBusy = false; return; }
   toastBusy = true;
-  const el = h("div", { class: "toast", role: "status", onclick: () => { item.onClick && item.onClick(); } }, item.text);
+  const el = h("div", { class: "toast", role: "status", onclick: () => { item.onClick && item.onClick(); } },
+    h("span", { class: `toast-icon ${item.kind}` }, icon(TOAST_ICON[item.kind] || "info", { stroke: 2.4 })),
+    h("span", {}, item.text));
   document.body.append(el);
   requestAnimationFrame(() => el.classList.add("show"));
   setTimeout(() => {
@@ -159,6 +187,9 @@ export function eventToastText(ev) {
   if (ev.type === "stage") return t("T-04", { n: ev.stage });
   return "";
 }
+// 기록 이벤트 → 토스트 아이콘 종류(배지 금색 메달, 연속 학습 주황 불꽃, 레벨 주색 화살표, 단계 초록 체크)
+export const eventToastKind = (ev) => ({ badge: "badge", day: "day", level: "level", stage: "stage" }[ev.type] || "info");
+const TOAST_ICON = { badge: "medal", day: "flame", level: "up", stage: "check", info: "info" };
 export const badgeCopyId = (id) => BADGES.find((b) => b.id === id).copy;
 
 // "시험용" 표시

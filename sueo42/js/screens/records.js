@@ -1,7 +1,7 @@
-// [S16 내 기록 · S18 기록 지우기] 레벨·연속 학습·최근 7일·해 본 단어·단계별 진행·배지 8개(참여 기준)와 랭킹 바로가기, 기록 지우기 창.
+// [S16 내 기록 · S18 기록 지우기] 레벨(큰 숫자 + 두꺼운 막대)·연속 학습(주황 타일, 최근 7일 동그라미)·해 본 단어·단계별 진행·배지 8개 메달(참여 기준)과 랭킹 바로가기, 기록 지우기 창.
 import { h, localDate } from "../util.js";
 import { t, btn, BADGE_COPY, fill } from "../copy.js";
-import { header, button, go, levelBar, confirmModal, toast } from "../ui.js";
+import { header, button, go, levelBar, confirmModal, toast, icon } from "../ui.js";
 import { getState, clearAll } from "../store.js";
 import { allWords, stageNumbers } from "../data/words.js";
 import { levelInfo, streak, last7, triedCount, totals, stageTried, stageDone, BADGES, badgeProgress } from "../game/progress.js";
@@ -15,16 +15,18 @@ export function renderRecords(el) {
   el.append(h("section", { class: "records" },
     header(t("R-01")),
 
-    h("div", { class: "card" },
-      h("h2", {}, t("R-02", { n: lv.level })),
+    h("div", { class: "card level-card" },
+      h("h2", { class: "level-num" }, t("R-02", { n: lv.level })),
       levelBar(lv),
       h("p", { class: "muted small" }, t("R-05"))),
 
-    h("div", { class: "card" },
-      h("h2", {}, t("R-06", { d: streak(s, today) })),
+    h("div", { class: "card streak-tile" },
+      h("h2", {}, flameIcon(), t("R-06", { d: streak(s, today) })),
       h("p", { class: "muted small" }, t("R-07")),
       h("ol", { class: "week" }, last7(s, today).map((d) => h("li", { title: d.date, class: d.done ? "on" : "" },
-        h("span", { "aria-hidden": "true" }, d.done ? "●" : "○"), h("small", {}, d.date.slice(8)))))),
+        h("span", { class: "day-dot", "aria-hidden": "true" }, d.done ? icon("check", { stroke: 3.2 }) : null),
+        h("span", { class: "sr-only" }, d.done ? "●" : "○"),
+        h("small", {}, d.date.slice(8)))))),
 
     h("div", { class: "card" },
       h("h2", {}, t("R-08", { k: triedCount(s, words) })),
@@ -64,13 +66,18 @@ function badgeCell(b, s, words) {
       got = n == null ? null : fill(c.got, { n });
     }
     return h("li", { class: "badge on" },
+      h("span", { class: "medal", "aria-hidden": "true" }, icon("medal", { stroke: 2.2 })),
       h("strong", {}, c.name),
       h("small", {}, date),
       got ? h("small", { class: "muted" }, got) : null);
   }
   const p = badgeProgress(b.id, s, words);
   return h("li", { class: "badge off" },
+    h("span", { class: "medal", "aria-hidden": "true" }, icon("medal", { stroke: 2.2 })),
     h("strong", {}, c.name),
     h("small", { class: "muted" }, c.how),
     p ? h("small", { class: "muted" }, fill(BADGE_COPY["B-09"].name, p)) : null);
 }
+
+// 연속 학습 타일의 불꽃(채운 모양)
+const flameIcon = () => icon("flame", { stroke: 1.6, fill: "currentColor" });

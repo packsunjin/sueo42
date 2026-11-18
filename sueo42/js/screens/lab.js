@@ -154,7 +154,7 @@ function poseFigure() {
     <circle cx="100" cy="52" r="20" fill="#c9d3e3"/>
     <path d="M52 142 Q56 86 100 82 Q144 86 148 142 Z" fill="#c9d3e3"/>
     <path d="M140 118 L150 66" stroke="#c9d3e3" stroke-width="12" stroke-linecap="round"/>
-    <g fill="#2f6fed"><rect x="140" y="40" width="20" height="26" rx="8"/></g>`;
+    <g fill="#4F5BD5"><rect x="140" y="40" width="20" height="26" rx="8"/></g>`;
   return svg;
 }
 
