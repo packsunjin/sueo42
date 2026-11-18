@@ -149,12 +149,16 @@ function poseFigure() {
   svg.setAttribute("viewBox", "0 0 200 150");
   svg.setAttribute("class", "pose-figure");
   svg.setAttribute("aria-hidden", "true");
+  // 화면 안에 얼굴·양어깨·손이 들어오게 서는 법(틀 모서리 + 사람 윤곽 + 손이 들어올 자리). 손 모양은 그리지 않음(수어로 오해되지 않게)
   svg.innerHTML = `
-    <rect x="20" y="8" width="160" height="134" rx="10" fill="#f1f4f9" stroke="#9aa4b2" stroke-width="2" stroke-dasharray="6 5"/>
-    <circle cx="100" cy="52" r="20" fill="#c9d3e3"/>
-    <path d="M52 142 Q56 86 100 82 Q144 86 148 142 Z" fill="#c9d3e3"/>
-    <path d="M140 118 L150 66" stroke="#c9d3e3" stroke-width="12" stroke-linecap="round"/>
-    <g fill="#4F5BD5"><rect x="140" y="40" width="20" height="26" rx="8"/></g>`;
+    <rect x="14" y="6" width="172" height="138" rx="18" fill="#e2f4f4"/>
+    <g fill="none" stroke="#0b7c7d" stroke-width="4" stroke-linecap="round">
+      <path d="M28 30V22a8 8 0 0 1 8-8h8"/><path d="M156 14h8a8 8 0 0 1 8 8v8"/>
+      <path d="M172 120v8a8 8 0 0 1-8 8h-8"/><path d="M44 136h-8a8 8 0 0 1-8-8v-8"/></g>
+    <circle cx="100" cy="54" r="19" fill="#11314f"/>
+    <path d="M56 136 Q58 88 100 84 Q142 88 144 136 Z" fill="#11314f"/>
+    <g fill="#ffb627" fill-opacity=".35" stroke="#ffb627" stroke-width="2.5" stroke-dasharray="5 4">
+      <circle cx="58" cy="76" r="15"/><circle cx="142" cy="76" r="15"/></g>`;
   return svg;
 }
 
@@ -398,8 +402,9 @@ function showSaved(w) {
   const next = nextWordOf(c.word);
   screen("saved", [
     header(t("L-01")),
-    h("h2", { class: "saved-title" }, t("L-35", { "단어": w.name })),
-    h("p", { class: "muted" }, t("L-36")),
+    h("div", { class: "saved-hero" },
+      h("h2", { class: "saved-title" }, t("L-35", { "단어": w.name })),
+      h("p", { class: "muted" }, t("L-36"))),
     levelBar(levelInfo(getState())),
     h("div", { class: "btn-col bottom-actions" },
       button(btn("L-37", { "단어": next.name }), () => go(`/lab/word/${next.no}`), { kind: "primary" }),

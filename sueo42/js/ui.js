@@ -17,6 +17,12 @@ const ICONS = {
   up: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
   info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/>',
   flame: '<path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-4 2-5 0 2 1 3 2 3 0-4-1-6 1-9z"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  arrow: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
+  book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20"/>',
+  hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-7a1.5 1.5 0 0 1 3 0V12"/><path d="M14 11.5V6a1.5 1.5 0 0 1 3 0v8.5a6.5 6.5 0 0 1-11.4 4.3L3.8 16a1.6 1.6 0 0 1 2.4-2.1L8 15.5"/>',
+  shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+  cpu: '<rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>',
 };
 export function icon(name, { stroke = 2, fill = "none" } = {}) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -35,7 +41,7 @@ export function icon(name, { stroke = 2, fill = "none" } = {}) {
 export function header(title, { backTo, onBack } = {}) {
   const fn = onBack || (backTo !== undefined ? () => back(backTo) : null);
   return h("header", { class: "screen-head" },
-    fn ? h("button", { class: "btn-back", onclick: fn }, btn("C-09")) : null,
+    fn ? h("button", { class: "btn-back", onclick: fn, "aria-label": btn("C-09") }, icon("back", { stroke: 2.4 }), h("span", { class: "sr-only" }, btn("C-09"))) : null,
     h("h1", {}, title));
 }
 

@@ -2,7 +2,7 @@
 import { h } from "../util.js";
 import { t } from "../copy.js";
 import { header, go, icon } from "../ui.js";
-import { allWords, filterWords, stageNumbers } from "../data/words.js";
+import { allWords, filterWords, stageNumbers, thumbOf } from "../data/words.js";
 import { getState } from "../store.js";
 import { isTried } from "../game/progress.js";
 
@@ -29,8 +29,10 @@ export function renderSearch(el) {
     list.replaceChildren(...(found.length
       ? found.map((w) => h("li", {},
           h("button", { class: "word-row", "data-stage": w.stage, onclick: () => go(`/word/${w.no}`) },
-            h("span", { class: "stage-badge", "aria-hidden": "true" }, String(w.stage)),
-            h("span", { class: "word-name" }, w.name),
+            rowThumb(w),
+            h("span", { class: "word-meta" },
+              h("span", { class: "word-name" }, w.name),
+              h("small", { "aria-hidden": "true" }, t("C-14", { n: w.stage }))),
             h("span", { class: "sr-only" }, t("C-14", { n: w.stage })),
             isTried(s, w.no) ? h("span", { class: "tried-mark", "aria-hidden": "true" }, icon("check", { stroke: 3 })) : null)))
       : [h("li", { class: "empty" }, t("S-04"))]));
@@ -44,4 +46,13 @@ export function renderSearch(el) {
 
 function chip(label, on, onclick, stage) {
   return h("button", { class: `chip ${on ? "on" : ""}`, "aria-pressed": on ? "true" : "false", onclick, "data-stage": stage ?? undefined }, label);
+}
+
+// 사전 영상의 작은 그림(사전 사이트가 주는 그대로). 못 불러오면 자리만 남김
+function rowThumb(w) {
+  const src = thumbOf(w);
+  if (!src) return null;
+  const img = h("img", { class: "row-thumb", src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+  img.addEventListener("error", () => img.classList.add("broken"), { once: true });
+  return img;
 }

@@ -128,7 +128,7 @@ function renderQuestion(el, round) {
   const onBack = () => confirmModal(t("Q-27"), btn("Q-28"), btn("Q-29"), () => { current = null; go("/quiz"); });
   section.append(
     h("div", { class: "quiz-top" },
-      h("button", { class: "btn-back", onclick: onBack }, btn("C-09")),
+      h("button", { class: "btn-back", onclick: onBack, "aria-label": btn("C-09") }, icon("back", { stroke: 2.4 }), h("span", { class: "sr-only" }, btn("C-09"))),
       h("div", { class: "bar bar-thick", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": total, "aria-valuenow": round.index + 1 },
         h("span", { style: { width: `${((round.index + 1) / total) * 100}%` } })),
       scoreEl),
