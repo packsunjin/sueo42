@@ -1,0 +1,7 @@
+<!-- 수어42 로고(11/18 사장 선택 B): 마주 보는 두 말풍선이 겹친 '사이'에 42 — "지역과 지역, 청인과 농인 사이". 손 모양은 수어로 오해될 수 있어 넣지 않음. 팀이 만든 그림 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" role="img" aria-label="수어42">
+  <path d="M10 14h52a10 10 0 0 1 10 10v24a10 10 0 0 1-10 10H30l-12 12v-12h-8A10 10 0 0 1 0 48V24A10 10 0 0 1 10 14z" fill="#0FA3A3"/>
+  <path d="M110 22H58a10 10 0 0 0-10 10v24a10 10 0 0 0 10 10h32l12 12V66h8a10 10 0 0 0 10-10V32a10 10 0 0 0-10-10z" fill="#FFB627"/>
+  <path d="M48 32a10 10 0 0 1 10-10h14v26a10 10 0 0 1-10 10H48z" fill="#11314F"/>
+  <text x="60" y="47" text-anchor="middle" font-family="Outfit, Arial, sans-serif" font-weight="700" font-size="17" fill="#fff">42</text>
+</svg>

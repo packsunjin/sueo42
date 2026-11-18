@@ -2,6 +2,7 @@
    11/18 5차(사장 결정): Meta Astryx 디자인 시스템의「Butter」테마 값을 그대로 씀(색·글꼴·둥글기·그림자·움직임).
    출처: @astryxdesign/theme-butter 0.7.16 dist/theme.css (MIT, Meta Platforms) — vendor/SOURCES.md. React 컴포넌트는 안 씀(값만).
    - 바탕 순백 #ffffff(11/18 8차, 사장 선택), 카드 흰색(1px 선으로 구분), 글자 #171b24, 강조 파랑 #225bff(주 버튼·링크·선택)
+   - 11/18 9차: 색은 로고(마주 보는 두 말풍선: 청록·노랑·남색)에서 가져옴. 홈 레이아웃을 2칸 격자·사전 그림으로 채움
    - 11/18 6차: 색 조합은 논문 근거로(docs/spec/color-research.md) — 색상은 파랑·청록·주황 3개만(O'Donovan 외 2011: 2~3 hue),
      카드 글자는 바탕과 같은 색상의 진한 색(Schloss & Palmer 2011), 세 바탕 채도 비슷하게(Ou & Luo 2006)
    - 둥글기: 버튼·입력 8px, 카드 12px, 아래에서 올라오는 창 24px / 움직임 125ms·300ms
@@ -19,11 +20,11 @@
   --color-background-body: #ffffff;   /* 11/18 8차: 사장 선택 순백(크림 → #f6f8fb → 순백) */
   --color-background-surface: #ffffff;
   --color-background-muted: #f2f4f6;
-  --color-text-primary: #171b24;
+  --color-text-primary: #11314f;    /* 로고 남색 */
   --color-text-secondary: #586070;
-  --color-accent: #225bff;
+  --color-accent: #0b7c7d;          /* 11/18 9차: 로고 청록 #0FA3A3 의 진한 쪽(흰 글자 대비 5.0) */
   --color-on-accent: #ffffff;
-  --color-accent-muted: #225bff33;
+  --color-accent-muted: #0b7c7d33;
   --color-border: #e2e6ed;
   --color-border-emphasized: #c5ccd8;
   --color-overlay: #171b2480;
@@ -31,12 +32,13 @@
   --shadow-low: 0 2px 4px #171b240d, 0 4px 8px #171b2414;
   --shadow-high: 0 4px 6px #171b2414, 0 12px 24px #171b241f;
   /* Butter 분류색(배경 / 글자). 화면에는 파랑·청록·주황 세 가지만 씀(논문 근거: docs/spec/color-research.md) */
-  --cat-blue: #dbe1ff;   --cat-blue-ink: #203a6c;
+  --cat-blue: #e2f4f4;   --cat-blue-ink: #074949;     /* 로고 청록 면 */
   --cat-yellow: #f0df72; --cat-yellow-ink: #443c00;
   --cat-teal: #b0f0d7;   --cat-teal-ink: #00482d;
-  --cat-orange: #ffdcb6; --cat-orange-ink: #622e00;
+  --cat-orange: #fff4df; --cat-orange-ink: #664910;   /* 로고 노랑 면 */
   --cat-pink: #ffd5fb;   --cat-pink-ink: #6c0a68;
-  --cat-cyan: #a9eff0;   --cat-cyan-ink: #004649;
+  --cat-cyan: #e8edf3;   --cat-cyan-ink: #11314f;     /* 로고 남색 면 */
+  --logo-teal: #0fa3a3; --logo-yellow: #ffb627; --logo-navy: #11314f;
   --cat-purple: #f2daff; --cat-purple-ink: #52237b;
   /* 앱이 쓰는 이름 */
   --bg: var(--color-background-body);
@@ -48,7 +50,7 @@
   --muted: var(--color-text-secondary);
   --accent: var(--color-accent);
   --accent-ink: var(--color-on-accent);
-  --accent-soft: #dbe1ff;
+  --accent-soft: #e2f4f4;
   --line: var(--color-border);
   --line-strong: var(--color-border-emphasized);
   --danger: var(--ink);
@@ -103,7 +105,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .chip-stat { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px;
   background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 600; color: var(--muted); }
 .chip-stat svg { width: 16px; height: 16px; flex: none; }
-.chip-stat.streak.lit { color: var(--cat-orange-ink); background: var(--cat-orange); border-color: transparent; }
+.chip-stat.streak.lit { color: var(--logo-navy); background: var(--logo-yellow); border-color: transparent; }
 .chip-stat.level { color: var(--ink); }
 #app { max-width: 520px; margin: 0 auto; padding: 20px 16px calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom)); }
 .tab-bar {
@@ -484,3 +486,63 @@ button.card:active { transform: scale(.99); }
 .brand-mark, .start::before { font-family: "Sarina", var(--font); background: var(--accent); color: var(--accent-ink); letter-spacing: 0; }
 .start::before { font-size: 34px; }
 .brand-mark { font-size: 14px; }
+
+/* ── 로고 ── */
+.brand-logo { width: 42px; height: 28px; display: block; }
+.start::before { content: none; }
+.start-logo { width: 132px; height: 88px; margin-bottom: 4px; }
+
+/* ── 홈 (11/18 레이아웃) ── */
+.hero-split { display: grid; grid-template-columns: 1fr 120px; gap: 14px; align-items: stretch; background: var(--cat-orange); }
+.hero-split .hero-text { display: flex; flex-direction: column; min-width: 0; }
+.hero-split .hero-text p { flex: 1; font-size: 15px; }
+.hero-word { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; align-self: center;
+  transition: transform var(--m-in) var(--ease); }
+.hero-word:hover { transform: translateY(-2px); }
+.hero-thumb { width: 120px; aspect-ratio: 215 / 161; object-fit: cover; border-radius: var(--r-md); background: var(--card); box-shadow: var(--shadow-low); }
+.hero-word-name { font-size: 13px; font-weight: 600; color: var(--cat-orange-ink); }
+@media (max-width: 360px) { .hero-split { grid-template-columns: 1fr; } .hero-word { flex-direction: row; align-items: center; } .hero-thumb { width: 96px; } }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 8px 0 12px; }
+.section-head h2 { font-size: 18px; margin: 0; }
+.stage-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stage-tile { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid transparent; border-radius: var(--r-lg);
+  background: var(--sf); color: var(--sf-ink); text-align: left; cursor: pointer; transition: transform var(--m-in) var(--ease), box-shadow var(--m-in) var(--ease); }
+.stage-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-low); }
+.stage-tile:active { transform: scale(.98); }
+.stage-tile.is-next { border-color: var(--sf-ink); }
+.tile-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tile-top strong { font-size: 16px; color: var(--sf-ink); }
+.tile-next { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--sf-ink); color: var(--card); white-space: nowrap; }
+.tile-done { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--sf-ink); color: var(--card); }
+.tile-done svg { width: 13px; height: 13px; }
+.tile-thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.thumb { width: 100%; aspect-ratio: 215 / 161; object-fit: cover; border-radius: 6px; background: rgba(255, 255, 255, .6); display: block; }
+.thumb.broken { visibility: hidden; }
+.tile-words { font-size: 13px; line-height: 1.4; color: var(--sf-ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.stage-tile .mini-bar { background: rgba(255, 255, 255, .7); }
+.stage-tile .mini-bar > span { background: var(--sf-ink); }
+.tile-count { font-size: 13px; font-weight: 600; color: var(--sf-ink); }
+.home > .source { margin: 8px 0 20px; }
+.quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quick { display: flex; flex-direction: column; gap: 2px; padding: 14px; min-height: 104px; border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--card); text-align: left; cursor: pointer; transition: transform var(--m-in) var(--ease), border-color var(--m-in) var(--ease); }
+.quick:hover { transform: translateY(-2px); border-color: var(--line-strong); }
+.quick strong { font-size: 16px; }
+.quick-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 6px; }
+.quick:nth-child(2) .quick-icon { background: var(--cat-orange); color: var(--cat-orange-ink); }
+.quick:nth-child(3) .quick-icon { background: var(--cat-cyan); color: var(--cat-cyan-ink); }
+.quick:nth-child(4) .quick-icon { background: var(--cat-orange); color: var(--cat-orange-ink); }
+.quick-icon svg { width: 20px; height: 20px; }
+/* 단계 창 단어: 사전 그림 + 이름 3칸 */
+.sheet-words { list-style: none; padding: 0; margin: 14px 0 6px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sheet-words button { width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 6px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--card); cursor: pointer; font-weight: 600; font-size: 14px; }
+.sheet-words li.tried button { border-color: var(--sf-ink); background: var(--sf); color: var(--sf-ink); }
+.sheet-words span { display: inline-flex; align-items: center; gap: 3px; }
+.sheet-words svg { width: 13px; height: 13px; }
+@media (prefers-reduced-motion: reduce) { .stage-tile:hover, .stage-tile:active, .quick:hover, .hero-word:hover { transform: none; } }
+/* 단계 수가 홀수면 마지막 칸은 한 줄을 다 씀(빈자리 없이) */
+.stage-grid > li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.stage-grid > li:last-child:nth-child(odd) .tile-thumbs { grid-template-columns: repeat(6, 1fr); }
+.tile-thumbs .thumb.more { display: none; }
+.stage-grid > li:last-child:nth-child(odd) .tile-thumbs .thumb.more { display: block; }

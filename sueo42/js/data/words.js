@@ -35,6 +35,8 @@ export async function loadWords(fetchFn = fetch) {
 
 export function setWords(list) { WORDS = list; } // 시험용
 export const allWords = () => WORDS;
+// 사전 영상의 작은 그림(사전 사이트가 주는 215×161 그대로). 주소 모양이 다르면 null
+export const thumbOf = (w) => (w && /_700X466\.mp4$/.test(w.video) ? w.video.replace(/_700X466\.mp4$/, "_215X161.jpg") : null);
 export const wordByNo = (no) => WORDS.find((w) => w.no === Number(no));
 export const wordsOfStage = (n) => WORDS.filter((w) => w.stage === Number(n));
 export const stageNumbers = () => [...new Set(WORDS.map((w) => w.stage))].sort((a, b) => a - b);

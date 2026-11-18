@@ -7,6 +7,7 @@ import { loadWords } from "../data/words.js";
 export function renderStart(el, onDone) {
   async function attempt() {
     el.replaceChildren(h("section", { class: "start" },
+      h("img", { class: "start-logo", src: "img/logo.svg", alt: "" }),
       h("h1", { class: "app-name" }, t("C-01")),
       h("p", { class: "tagline" }, t("H-01")),
       spinner(t("H-02"))));
@@ -15,7 +16,8 @@ export function renderStart(el, onDone) {
     } catch (e) {
       console.error("단어 목록 읽기 실패:", e && e.message);
       el.replaceChildren(h("section", { class: "start" },
-        h("h1", { class: "app-name" }, t("C-01")),
+        h("img", { class: "start-logo", src: "img/logo.svg", alt: "" }),
+      h("h1", { class: "app-name" }, t("C-01")),
         h("p", { class: "tagline" }, t("H-01")),
         errorBox("E-01", { [btn("C-11")]: attempt })));
       return;
