@@ -109,3 +109,7 @@ CLAUDE.md 가 정한 디자인 기준 **taste-skill**(github.com/Leonxlnx/taste-
 - 단계 1~7 = Butter 분류색(파랑·노랑·청록·주황·분홍·하늘·보라), 모든 화면에서 같은 단계 같은 색. 빨강·초록은 판정처럼 보여 안 씀
 - 직접 해보기 결과 화면은 그대로 강조색 하나 + 회색, 버튼 3개 같은 모양
 - 4차(taste-skill card-pastels·Geist) 색은 이 값으로 바뀜. 문구(토스 원칙)는 그대로
+
+## 11. 11/18 6차: 색 조합을 논문 근거로 (사장 지시 "색조합에 관해 논문 찾아보고 해")
+- 근거·잰 값·한계: **docs/spec/color-research.md** (O'Donovan 외 2011, Schloss & Palmer 2011, Ou & Luo 2006, Ou 외 2004, Brom 외 2018, Palmer & Schloss 2010)
+- 색상 7개 이상 → 파랑·청록·주황 3개(2~3 hue), 단계는 이 셋을 차례로. 카드 글자는 같은 색상의 진한 색, 세 바탕 채도 비슷하게, 밝은 바탕 유지

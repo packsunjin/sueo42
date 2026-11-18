@@ -1,7 +1,9 @@
 /* 수어42 화면 스타일(모바일 세로 우선, 320~520px).
    11/18 5차(사장 결정): Meta Astryx 디자인 시스템의「Butter」테마 값을 그대로 씀(색·글꼴·둥글기·그림자·움직임).
    출처: @astryxdesign/theme-butter 0.7.16 dist/theme.css (MIT, Meta Platforms) — vendor/SOURCES.md. React 컴포넌트는 안 씀(값만).
-   - 바탕 크림 #fdfbe4, 카드 흰색, 글자 #1d1c11, 강조 파랑 #225bff(주 버튼·링크·선택), 단계마다 Butter 분류색 하나(파스텔 면 + 진한 글자)
+   - 바탕 크림 #fdfbe4, 카드 흰색, 글자 #1d1c11, 강조 파랑 #225bff(주 버튼·링크·선택)
+   - 11/18 6차: 색 조합은 논문 근거로(docs/spec/color-research.md) — 색상은 파랑·청록·주황 3개만(O'Donovan 외 2011: 2~3 hue),
+     카드 글자는 바탕과 같은 색상의 진한 색(Schloss & Palmer 2011), 세 바탕 채도 비슷하게(Ou & Luo 2006)
    - 둥글기: 버튼·입력 8px, 카드 12px, 아래에서 올라오는 창 24px / 움직임 125ms·300ms
    - 글꼴: Outfit(영문·숫자), Sarina(로고 42), 한글 Pretendard
    - 직접 해보기 결과는 강조색 하나 + 회색만(판정처럼 보이는 초록·빨강·축하 없음), 버튼 3개 같은 모양 */
@@ -28,7 +30,7 @@
   --butter-yellow: #fdee8c;
   --shadow-low: 0 2px 4px #1d1c110d, 0 4px 8px #1d1c111a;
   --shadow-high: 0 4px 6px #1d1c111a, 0 12px 24px #1d1c1126;
-  /* Butter 분류색(배경 / 글자) — 단계 1~7 에 하나씩. 빨강·초록은 판정처럼 보여 안 씀 */
+  /* Butter 분류색(배경 / 글자). 화면에는 파랑·청록·주황 세 가지만 씀(논문 근거: docs/spec/color-research.md) */
   --cat-blue: #dbe1ff;   --cat-blue-ink: #203a6c;
   --cat-yellow: #f0df72; --cat-yellow-ink: #443c00;
   --cat-teal: #b0f0d7;   --cat-teal-ink: #00482d;
@@ -51,7 +53,7 @@
   --line-strong: var(--color-border-emphasized);
   --danger: var(--ink);
   /* 카드에 쓰는 면(예전 이름 f1~f4 를 Butter 색으로) */
-  --f1: var(--cat-blue); --f2: var(--cat-teal); --f3: var(--butter-yellow); --f4: var(--cat-cyan);
+  --f1: var(--cat-blue); --f2: var(--cat-cyan); --f3: var(--cat-orange); --f4: var(--cat-cyan);
   /* Butter 둥글기: element 8 / container 12 / page 24 */
   --r-sm: 8px; --r-md: 12px; --r-lg: 12px; --r-page: 24px; --r-btn: 8px;
   --btn-h: 48px;
@@ -101,7 +103,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .chip-stat { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px;
   background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 600; color: var(--muted); }
 .chip-stat svg { width: 16px; height: 16px; flex: none; }
-.chip-stat.streak.lit { color: var(--ink); background: var(--butter-yellow); border-color: transparent; }
+.chip-stat.streak.lit { color: var(--cat-orange-ink); background: var(--cat-orange); border-color: transparent; }
 .chip-stat.level { color: var(--ink); }
 #app { max-width: 520px; margin: 0 auto; padding: 20px 16px calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom)); }
 .tab-bar {
@@ -170,7 +172,7 @@ button.card:active { transform: scale(.99); }
 /* ── 홈 ── */
 .today { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; }
 .today-icon { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--muted); }
-.today.lit .today-icon { background: var(--butter-yellow); color: var(--ink); }
+.today.lit .today-icon { background: var(--cat-orange); color: var(--cat-orange-ink); }
 .today-icon svg { width: 18px; height: 18px; }
 .today-status { font-size: 15px; margin: 0; line-height: 1.45; color: var(--muted); }
 
@@ -440,21 +442,18 @@ button.card:active { transform: scale(.99); }
   button.card:hover, button.card:active, .btn-back:active { transform: none; }
 }
 
-/* ── 단계 색(Butter 분류색): 1 파랑 · 2 노랑 · 3 청록 · 4 주황 · 5 분홍 · 6 하늘 · 7 보라 — 모든 화면에서 같은 단계는 같은 색 ── */
-[data-stage="1"] { --sf: var(--cat-blue);   --sf-ink: var(--cat-blue-ink); }
-[data-stage="2"] { --sf: var(--cat-yellow); --sf-ink: var(--cat-yellow-ink); }
-[data-stage="3"] { --sf: var(--cat-teal);   --sf-ink: var(--cat-teal-ink); }
-[data-stage="4"] { --sf: var(--cat-orange); --sf-ink: var(--cat-orange-ink); }
-[data-stage="5"] { --sf: var(--cat-pink);   --sf-ink: var(--cat-pink-ink); }
-[data-stage="6"] { --sf: var(--cat-cyan);   --sf-ink: var(--cat-cyan-ink); }
-[data-stage="7"] { --sf: var(--cat-purple); --sf-ink: var(--cat-purple-ink); }
+/* ── 단계 색: 파랑 · 주황 · 청록 세 가지를 차례로(옆 단계는 다른 색). 글자는 같은 색상의 진한 색 ── */
+[data-stage="1"], [data-stage="4"], [data-stage="7"] { --sf: var(--cat-blue);   --sf-ink: var(--cat-blue-ink); }
+[data-stage="2"], [data-stage="5"]                   { --sf: var(--cat-orange); --sf-ink: var(--cat-orange-ink); }
+[data-stage="3"], [data-stage="6"]                   { --sf: var(--cat-cyan);   --sf-ink: var(--cat-cyan-ink); }
 .stage-badge, .stage-badge.big, .stage-tag { background: var(--sf, var(--surface)); color: var(--sf-ink, var(--ink)); }
 .stage-badge.big { box-shadow: none; }
 /* 홈 */
-.card-hero { background: var(--butter-yellow); border-color: transparent; }
+.card-hero { background: var(--cat-orange); color: var(--cat-orange-ink); border-color: transparent; }
+.card-hero p { color: var(--cat-orange-ink); }
 .card-pair .card-small { border-color: transparent; }
 .card-pair .card-small:nth-child(1) { background: var(--cat-blue); }
-.card-pair .card-small:nth-child(2) { background: var(--cat-teal); }
+.card-pair .card-small:nth-child(2) { background: var(--cat-cyan); }
 .card-small .card-icon { background: rgba(255, 255, 255, .6); }
 /* 학습 길: 아직 = 단계 색, 다 했음 = 진한 글자색 + 체크, 지금 할 단계 = 단계 색 + 파란 테두리 */
 .path-step .node { background: var(--sf); color: var(--sf-ink); box-shadow: var(--shadow-low); }
@@ -474,14 +473,14 @@ button.card:active { transform: scale(.99); }
 .stage-list .tag-done, .lab-pick .tag-done { background: var(--card); color: var(--sf-ink); }
 /* 내 기록·결과 */
 .records .level-card { background: var(--cat-blue); border-color: transparent; }
-.records .streak-tile { background: var(--butter-yellow); border-color: transparent; }
+.records .streak-tile { background: var(--cat-orange); border-color: transparent; }
 .records .level-card .bar, .records .streak-tile .day-dot { background: rgba(255, 255, 255, .6); }
 .records .streak-tile .muted, .records .level-card .muted { color: var(--ink); opacity: .75; }
-.result-card { background: var(--cat-teal); border-color: transparent; }
-.result-card.is-best { background: var(--butter-yellow); }
+.result-card { background: var(--cat-cyan); border-color: transparent; }
+.result-card.is-best { background: var(--cat-orange); }
 .result-card .pill-gold { background: var(--card); }
 .records .stage-progress .mini-bar > span { background: var(--sf-ink); }
 /* 로고: Sarina 체 42 */
-.brand-mark, .start::before { font-family: "Sarina", var(--font); background: var(--butter-yellow); color: var(--ink); letter-spacing: 0; }
+.brand-mark, .start::before { font-family: "Sarina", var(--font); background: var(--accent); color: var(--accent-ink); letter-spacing: 0; }
 .start::before { font-size: 34px; }
 .brand-mark { font-size: 14px; }
