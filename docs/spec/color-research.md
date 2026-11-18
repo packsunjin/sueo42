@@ -18,7 +18,7 @@
 - 단계 1~7 은 이 세 색을 차례로(1 파랑 · 2 주황 · 3 청록 · 4 파랑 …), 옆 단계끼리는 다른 색
 - 카드 글자는 **같은 색상의 진한 색**(파랑 카드 #203a6c, 주황 카드 #622e00, 청록 카드 #004649) — Schloss & Palmer ①②, 대비 8:1 이상
 - 세 바탕색의 채도 16~24 로 비슷하게(Ou & Luo 채도 차 작게). 채도 50~55 로 튀던 노랑 카드는 뺌
-- 바탕은 밝은 크림 #fdfbe4 그대로(O'Donovan ②, Ou et al. 2004)
+- 바탕: (11/18 7차) 크림 #fdfbe4(노란 기, C* 11.7) → **#f6f8fb**(L* 97.5, C* 1.7, 살짝 차가운 흰색). 근거: Schloss & Palmer 2011 Exp 4 "figural colors were more preferred on cooler backgrounds"(따뜻한 전경이 차가운 배경에서 특히 선호), 밝은 바탕(O'Donovan ②, Ou et al. 2004). 글자 #171b24 대비 16.2, 흐린 글자 #586070 대비 5.94
 - 직접 해보기 결과 화면은 그대로 파랑 하나 + 회색(판정처럼 보이지 않게)
 
 ## 3. 잰 값 (scratchpad colorcheck.py, sRGB→CIELAB D65, WCAG 2 대비)
