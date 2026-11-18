@@ -20,6 +20,8 @@
 | pretendard@1.3.9/Pretendard-ExtraBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-ExtraBold.subset.woff2 | 271,796 | abb0933bd492a56403d2b288394923fdc4c210aaa827c9e44714fcac8ff70c7c |
 | pretendard@1.3.9/Pretendard-Regular.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-Regular.subset.woff2 | 267,096 | 01dd73155fdfab7ce9b25224523e85a96927e21aef97f21957d41f1bfa7e3878 |
 | pretendard@1.3.9/Pretendard-SemiBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-SemiBold.subset.woff2 | 268,752 | 4247dc5e260b92640c2cbd0e75091154647b71e1d5884116655e2903468c54cc |
+| (11/18 추가, 숫자·영문 글꼴) geist@1.3.1/Geist-Variable.woff2 | https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2 | 56,800 | 28258d0621216948416a859d32487ab6ad1c9effa0d08795698e70be3c917630 |
+| geist@1.3.1/LICENSE.txt | https://cdn.jsdelivr.net/npm/geist@1.3.1/LICENSE.TXT | 4,368 | 930853ee1daa68554d9e35c8a9175affb74f699fad9a5da6ee5ebe76379d9137 |
 
 ## 라이선스
 - @mediapipe/tasks-vision 0.10.14: Apache-2.0 (패키지 package.json `"license": "Apache-2.0"`, 원문 LICENSE-mediapipe.txt)
@@ -28,3 +30,4 @@
 - hand_landmarker.task·pose_landmarker_lite.task 모델 파일의 라이선스: **확인 못 함**(공식 페이지의 모델 카드에서 확인 필요).
 - 크기 7개는 docs/tech/structure.md 2절(2026-11-05 확인 값)과 모두 같다.
 - Pretendard 1.3.9 (11/18 추가, 앱 글꼴): SIL Open Font License 1.1, 원문 pretendard@1.3.9/LICENSE.txt. 저작자 길형진(orioncactus). 한국어 자주 쓰는 글자만 담은 subset 4굵기.
+- Geist 1.3.1 (11/18 추가, 숫자·영문 글꼴, taste-skill 이 정해 준 글꼴): SIL Open Font License 1.1, 원문 geist@1.3.1/LICENSE.txt. 저작자 Vercel. 한글은 Pretendard.

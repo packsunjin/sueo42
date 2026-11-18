@@ -157,8 +157,6 @@ function renderResult(el, round) {
   el.append(h("section", { class: "quiz-result" },
     header(t("Q-01"), { onBack: () => go("/quiz") }),
     h("div", { class: `card result-card ${round.isBest ? "is-best" : ""}` },
-      // 최고 점수(Q-14)일 때만 금색 + 작은 반짝임
-      round.isBest ? ["s1", "s2", "s3", "s4"].map((k) => h("span", { class: `sparkle ${k}`, "aria-hidden": "true" })) : null,
       h("h2", {}, t("Q-12")),
       h("p", { class: "result-score" }, t("Q-13", { c, s: round.score })),
       round.isBest ? h("p", { class: "best" }, h("span", { class: "pill pill-gold" }, t("Q-14"))) : null),

@@ -76,3 +76,18 @@
 - 상태 줄: "42" 로고 + 불꽃 칩(연속 일수)·레벨 칩(읽기 프로그램에는 C-07 전체를 읽어 줌)
 - 검색: 돋보기 달린 입력칸, 단계 색 번호, 해 본 단어 체크
 - 토스트를 화면 위로(아래 버튼·결과 판을 가리지 않게), 화면 들어올 때 살짝 올라오는 움직임, 빈 랭킹 안내 칸
+
+## 8. 11/18 3차: taste-skill 규칙으로 다시 (사장 지시 "AI티 너무 남, 너가 생각해서 하지 말고 찾아서 해")
+CLAUDE.md 가 정한 디자인 기준 **taste-skill**(github.com/Leonxlnx/taste-skill, `design-taste-frontend` 2.5.1, MIT)을 받아서 그 규칙대로 고침. 1·2차(내가 정한 "학습 앱 스타일")에서 이 규칙에 걸린 것을 뺐다.
+- **색·글꼴은 스킬의 `start.mjs deal` 이 정해 준 첫 번째 것**(취향으로 고르지 않음): page software, palette `card-pastels`(바탕 #f7f7f5, 면 #ebebe8, 글자 #000, 강조 분홍 #d0106f), type `geist`(제목 굵기 500대, 자간 -3.5%), radius `round`(10/16/24, 버튼 알약). Geist 는 한글이 없어 한글은 Pretendard, 숫자·영문만 Geist
+- 스킬이 "AI가 만든 티"로 꼽은 것 중 우리 앱에 있던 것을 뺌:
+  - 보라·남색 강조(규칙: "Never violet or lavender") → 분홍 하나
+  - 색 여러 개(단계 색 7개·주황·금색·초록) → 화면 90~95% 무채색, 강조색 하나(규칙: "One accent at most")
+  - 그림자 입체 버튼·그라데이션 카드(규칙: "Never a slanted, gradient, ghost or shadowed button") → 알약 버튼 한 쌍(주 = 분홍 채움, 보조 = 테두리), 카드 1px 선
+  - 홈 숫자 3칸(규칙: "The strip of figures … on nearly every model page") → 뺌(상태 줄에 이미 있음)
+  - 화면마다 떠오르기·맥박·통통 튀기·반짝임(규칙: "a fade-in on every section", "random blinking") → 누를 때·올릴 때만 움직임
+  - 본문 느낌표(규칙: copy-exclaim) → Q-07·Q-12·Q-14·T-02·T-04 마침표로(copy.md 도 같이 고침)
+  - 13px 아래 글자, 흐린(blur) 상태 줄 → 13px 이상, 불투명 + 1px 선
+- 사이트용 규칙(한 화면 한 구역, 사진, 히어로 등장 등)은 앱이라 적용 안 함
+- 직접 해보기 결과는 그대로 강조색 하나 + 회색(판정처럼 보이지 않게), 버튼 3개 같은 모양
+- 글꼴 출처: vendor/SOURCES.md (Pretendard OFL, Geist OFL)
