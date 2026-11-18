@@ -1,10 +1,15 @@
 // [손 좌표] vendor/ 의 MediaPipe Hand Landmarker(0.10.14, float16/1)를 불러와 카메라 프레임마다 손 21점 좌표(0~1 비율)를 구한다. GPU 가 안 되면 CPU 로.
 // (11/16) Pose Landmarker lite 로 코·양어깨도 구한다(몸 기준 위치, normalize.js bodyFeatures). 몸 모델이 실패해도 손은 그대로 쓴다.
+// (11/18) tune(): 카메라가 켜진 뒤 GPU 로 몇 프레임 재 보고 느리면(그래픽 칩이 약하거나 막힌 컴퓨터) CPU 로 바꿔 더 빠른 쪽을 쓴다.
 import { CONFIG } from "../../config.js";
 
 let loading = null;
 let landmarker = null;
 let poser = null;
+let visionMod = null;
+let delegateNow = null;   // "GPU" | "CPU"
+let tuned = false;
+const SLOW_MS = 120;      // 한 프레임 손 찾기가 이보다 오래 걸리면 느림(초당 8장 아래) → CPU 도 재 본다
 const VIS_MIN = 0.5;   // 몸 점 visibility 가 이보다 낮으면 그 점은 없음
 
 const abs = (p) => new URL(p, document.baseURI).href;
@@ -35,10 +40,11 @@ export const handTracker = {
     if (!loading) {
       loading = (async () => {
         const vision = await import(abs(CONFIG.MEDIAPIPE_DIR + "/vision_bundle.mjs"));
-        try { landmarker = await create(vision, "GPU"); }
+        visionMod = vision;
+        try { landmarker = await create(vision, "GPU"); delegateNow = "GPU"; }
         catch (e) {
           console.warn("MediaPipe GPU 실패, CPU 로 다시:", e && e.message);
-          landmarker = await create(vision, "CPU");
+          landmarker = await create(vision, "CPU"); delegateNow = "CPU";
         }
         try { poser = await createPose(vision, "CPU"); }   // 손 모델(GPU)과 부딪히지 않게 CPU. 기록하는 3초만 돈다
         catch (e) { console.warn("몸 모델 불러오기 실패(손만 씀):", e && e.message); poser = null; }
@@ -46,6 +52,38 @@ export const handTracker = {
     }
     return loading;
   },
+
+  // 카메라가 켜진 뒤 한 번만: 지금 방식(GPU)으로 6프레임 재고, 느리면 CPU 로도 재서 빠른 쪽을 남긴다.
+  // 결과는 이 페이지를 닫을 때까지 유지. 어떤 오류가 나도 지금 쓰던 방식을 그대로 둔다.
+  async tune(video) {
+    if (tuned || !landmarker || !visionMod) return delegateNow;
+    tuned = true;
+    const measure = async (lm) => {
+      const ms = [];
+      for (let i = 0; i < 6; i++) {
+        await new Promise((r) => setTimeout(r, 40));
+        const t0 = performance.now();
+        try { lm.detectForVideo(video, t0); } catch (e) { return Infinity; }
+        ms.push(performance.now() - t0);
+      }
+      ms.sort((a, b) => a - b);
+      return ms[2];                       // 첫 프레임(준비 시간)을 덜 타는 가운데 값
+    };
+    try {
+      const now = await measure(landmarker);
+      if (delegateNow !== "GPU" || now <= SLOW_MS) return delegateNow;
+      const cpu = await create(visionMod, "CPU");
+      const cpuMs = await measure(cpu);
+      if (cpuMs < now) {
+        try { landmarker.close(); } catch { /* 무시 */ }
+        landmarker = cpu; delegateNow = "CPU";
+      } else { cpu.close(); }
+      console.info(`손 찾기 속도: GPU ${Math.round(now)}ms, CPU ${Math.round(cpuMs)}ms → ${delegateNow}`);
+    } catch (e) { console.warn("속도 재기 실패(지금 방식 유지):", e && e.message); }
+    return delegateNow;
+  },
+
+  get delegate() { return delegateNow; },
 
   // 프레임 하나 → [{ label: "Left"|"Right", landmarks: [[x,y]…21] }] (z·점수는 버림)
   detect(video, timestampMs) {

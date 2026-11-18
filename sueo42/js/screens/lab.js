@@ -212,6 +212,9 @@ async function initCamera() {
   if (ctx !== c || c.mode !== "practice") return;
   c.box.replaceChildren(camVideo, c.overlay, c.cue);
   camVideo.play().catch(() => {});
+  // 이 기기에서 손 찾기가 빠른 방식(GPU/CPU)을 한 번 고른다(처음 한 번만 1~2초, 그동안 [동작 시작]은 잠김)
+  await handTracker.tune(camVideo);
+  if (ctx !== c || c.mode !== "practice") return;
   c.ready = true;
   syncOrientation();
   startLoop();
