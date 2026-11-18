@@ -22,6 +22,11 @@
 | pretendard@1.3.9/Pretendard-SemiBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-SemiBold.subset.woff2 | 268,752 | 4247dc5e260b92640c2cbd0e75091154647b71e1d5884116655e2903468c54cc |
 | (11/18 추가, 숫자·영문 글꼴) geist@1.3.1/Geist-Variable.woff2 | https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2 | 56,800 | 28258d0621216948416a859d32487ab6ad1c9effa0d08795698e70be3c917630 |
 | geist@1.3.1/LICENSE.txt | https://cdn.jsdelivr.net/npm/geist@1.3.1/LICENSE.TXT | 4,368 | 930853ee1daa68554d9e35c8a9175affb74f699fad9a5da6ee5ebe76379d9137 |
+| (11/18 추가, Astryx Butter 글꼴) outfit@5.3.0/outfit-latin-wght-normal.woff2 | https://cdn.jsdelivr.net/npm/@fontsource-variable/outfit@5.3.0/files/outfit-latin-wght-normal.woff2 | 32,292 | 6c18d579fd87c3776be068b762cbc83fde3acb543d49eabd3ade842eb987e887 |
+| outfit@5.3.0/LICENSE.txt | https://cdn.jsdelivr.net/npm/@fontsource-variable/outfit@5.3.0/LICENSE | 4,387 | 0e5fcef5d93bfcae273c11c00f0bb453d3b5491860e1ac8b658767b7577c938f |
+| sarina@5.3.0/sarina-latin-400-normal.woff2 | https://cdn.jsdelivr.net/npm/@fontsource/sarina@5.3.0/files/sarina-latin-400-normal.woff2 | 20,052 | a07b214a6adb30f87ff8a7d88a34c6491877e8fa5ce0bfae2ae69ba8d6551182 |
+| sarina@5.3.0/LICENSE.txt | https://cdn.jsdelivr.net/npm/@fontsource/sarina@5.3.0/LICENSE | 4,410 | 376888371648399be316b93e253b3533502e04a50989c9df804986a414e550a1 |
+| astryx-theme-butter@0.7.16/LICENSE.txt | https://cdn.jsdelivr.net/npm/@astryxdesign/theme-butter@0.7.16/LICENSE | 1,077 | a6855be541fc8f446acd1bc4f2f8efce1ace6dce71dba32fcd8da553ee54b473 |
 
 ## 라이선스
 - @mediapipe/tasks-vision 0.10.14: Apache-2.0 (패키지 package.json `"license": "Apache-2.0"`, 원문 LICENSE-mediapipe.txt)
@@ -31,3 +36,5 @@
 - 크기 7개는 docs/tech/structure.md 2절(2026-11-05 확인 값)과 모두 같다.
 - Pretendard 1.3.9 (11/18 추가, 앱 글꼴): SIL Open Font License 1.1, 원문 pretendard@1.3.9/LICENSE.txt. 저작자 길형진(orioncactus). 한국어 자주 쓰는 글자만 담은 subset 4굵기.
 - Geist 1.3.1 (11/18 추가, 숫자·영문 글꼴, taste-skill 이 정해 준 글꼴): SIL Open Font License 1.1, 원문 geist@1.3.1/LICENSE.txt. 저작자 Vercel. 한글은 Pretendard.
+- Outfit 5.3.0(fontsource) · Sarina 5.3.0(fontsource) (11/18 추가, Meta Astryx「Butter」테마의 글꼴): 둘 다 SIL Open Font License 1.1, 원문 각 폴더 LICENSE.txt. 영문·숫자만 있어 한글은 Pretendard.
+- Meta Astryx「Butter」테마 색·둥글기·그림자·움직임 값(11/18): @astryxdesign/theme-butter 0.7.16 의 dist/theme.css 에서 옮겨 css/app.css 맨 위 :root 에 적음. MIT License, Copyright (c) Meta Platforms, Inc. and affiliates. 원문 astryx-theme-butter@0.7.16/LICENSE.txt. React 컴포넌트는 쓰지 않음(값만).

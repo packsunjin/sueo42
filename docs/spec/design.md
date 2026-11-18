@@ -101,3 +101,11 @@ CLAUDE.md 가 정한 디자인 기준 **taste-skill**(github.com/Leonxlnx/taste-
   - "해 본 단어 k/6"→"6개 중 k개 했어요", "다 해 봄"→"다 했어요", "따라 할 동작: ○○"→"○○", "따라 해 볼 단어를 고르세요"→"연습할 단어를 골라 주세요", "한 판 끝"→"다 풀었어요", "건너뜀 (…)"→"영상을 못 불러와서 건너뛰었어요" 등 43곳(copy.md 와 copy.js 같이)
   - 다 한 단계는 "6개 중 6개 했어요"와 "다 했어요"를 같이 쓰지 않고 "다 했어요"만
   - 강의가 정한 문구(L-22 AI 결과, L-28 "맞나요?", 버튼 3개)는 그대로
+
+## 10. 11/18 5차: Meta Astryx「Butter」테마 (사장 결정: "테마 색·글꼴만 가져오기", 테마 Butter)
+- Astryx = Meta 오픈소스 디자인 시스템(2026.6 공개, MIT, React 19 + StyleX). 컴포넌트는 React 전용이라 쓰지 않고 **테마 값만** 가져옴 — 사장 선택(화면 React 재작성은 안 함)
+- 값 출처: `@astryxdesign/theme-butter` 0.7.16 `dist/theme.css`(밝은 모드). 그대로 옮긴 값: 바탕 #fdfbe4, 카드 #ffffff, 면 #f3f2e2, 글자 #1d1c11·#605f52, 강조 파랑 #225bff, 선 #e5e3d4·#c7c4b2, Butter Yellow #fdee8c, 분류색 배경/글자 쌍, 둥글기 8/12/24px, 그림자 low/high, 움직임 125/300ms
+- 글꼴: Outfit(본문·제목), Sarina(로고 '42') — Butter 테마 글꼴. 한글은 Pretendard. 모두 vendor/ 에 넣음(OFL), 출처 vendor/SOURCES.md
+- 단계 1~7 = Butter 분류색(파랑·노랑·청록·주황·분홍·하늘·보라), 모든 화면에서 같은 단계 같은 색. 빨강·초록은 판정처럼 보여 안 씀
+- 직접 해보기 결과 화면은 그대로 강조색 하나 + 회색, 버튼 3개 같은 모양
+- 4차(taste-skill card-pastels·Geist) 색은 이 값으로 바뀜. 문구(토스 원칙)는 그대로

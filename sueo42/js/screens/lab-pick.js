@@ -16,7 +16,7 @@ export function renderLabPick(el, { query = {} } = {}) {
     header(t("L-01")),
     h("p", {}, t("L-02")),
     isTrialModel() ? h("p", { class: "trial-line" }, trialTag(), " ", h("span", { class: "muted small" }, t("L-04"))) : null,
-    stageNumbers().map((n) => h("details", { class: "card stage-fold", open: n === open },
+    stageNumbers().map((n) => h("details", { class: "card stage-fold", "data-stage": n, open: n === open },
       h("summary", { class: "row-between" },
         h("strong", {}, t("C-14", { n })),
         stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16"))

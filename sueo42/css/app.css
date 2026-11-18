@@ -1,46 +1,66 @@
 /* 수어42 화면 스타일(모바일 세로 우선, 320~520px).
-   11/18 3차: taste-skill(design-taste-frontend 2.5.1, MIT, github.com/Leonxlnx/taste-skill) 규칙으로 다시 씀.
-   - 색·글꼴은 그 스킬의 start.mjs 가 정해 준 것(software, palette card-pastels, type geist, radius round)을 그대로 씀
-   - 팔레트 메모 그대로: "카드·타일마다 파스텔 하나(하늘·라임·호박·청록), 나란히 같은 색 없음. 분홍은 로고·글자 링크에만"
-     → 카드·타일·단계 번호는 파스텔, 주 버튼·진행 막대는 검정, 분홍은 링크·선택 탭·초점에만
-   - 버튼은 알약 하나(그림자·그라데이션 없음), 카드는 1px 선 + 24px 둥글기 하나, 제목 굵기 600 이하, 13px 아래 글자 없음
-   - 움직임은 누를 때·마우스 올릴 때만(화면마다 떠오르기·깜빡임·통통 튀기 없음). 움직임 줄이기 설정이면 모두 끔
-   직접 해보기 결과는 강조색 하나와 회색만(판정처럼 보이는 초록·빨강·금색·축하 없음). 글꼴: Pretendard(한글), Geist(숫자·영문). */
-@font-face { font-family: "Geist"; font-weight: 100 900; font-display: swap; src: url("../vendor/geist@1.3.1/Geist-Variable.woff2") format("woff2");
+   11/18 5차(사장 결정): Meta Astryx 디자인 시스템의「Butter」테마 값을 그대로 씀(색·글꼴·둥글기·그림자·움직임).
+   출처: @astryxdesign/theme-butter 0.7.16 dist/theme.css (MIT, Meta Platforms) — vendor/SOURCES.md. React 컴포넌트는 안 씀(값만).
+   - 바탕 크림 #fdfbe4, 카드 흰색, 글자 #1d1c11, 강조 파랑 #225bff(주 버튼·링크·선택), 단계마다 Butter 분류색 하나(파스텔 면 + 진한 글자)
+   - 둥글기: 버튼·입력 8px, 카드 12px, 아래에서 올라오는 창 24px / 움직임 125ms·300ms
+   - 글꼴: Outfit(영문·숫자), Sarina(로고 42), 한글 Pretendard
+   - 직접 해보기 결과는 강조색 하나 + 회색만(판정처럼 보이는 초록·빨강·축하 없음), 버튼 3개 같은 모양 */
+@font-face { font-family: "Outfit"; font-weight: 100 900; font-display: swap; src: url("../vendor/outfit@5.3.0/outfit-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+2010-2027, U+2030-205E, U+20AC, U+2122, U+2190-21FF, U+2212; }
+@font-face { font-family: "Sarina"; font-weight: 400; font-display: swap; src: url("../vendor/sarina@5.3.0/sarina-latin-400-normal.woff2") format("woff2"); }
 @font-face { font-family: "Pretendard"; font-weight: 400; font-display: swap; src: url("../vendor/pretendard@1.3.9/Pretendard-Regular.subset.woff2") format("woff2"); }
 @font-face { font-family: "Pretendard"; font-weight: 600; font-display: swap; src: url("../vendor/pretendard@1.3.9/Pretendard-SemiBold.subset.woff2") format("woff2"); }
 @font-face { font-family: "Pretendard"; font-weight: 700; font-display: swap; src: url("../vendor/pretendard@1.3.9/Pretendard-Bold.subset.woff2") format("woff2"); }
 
 :root {
-  /* taste-skill start.mjs 가 찍어 준 값 그대로(card-pastels · geist) */
-  --p-bg: #f7f7f5; --p-surface: #ebebe8; --p-ink: #000000; --p-muted: #666662;
-  --p-accent: #d0106f; --p-accent-ink: #ffffff;
-  /* 팔레트의 fields(카드마다 하나씩, 글자는 검정) */
-  --f1: #97cef6; --f2: #bbf697; --f3: #fed878; --f4: #6ef8fb;
+  /* Astryx Butter(밝은 모드) 값 그대로 */
+  --color-background-body: #fdfbe4;
+  --color-background-surface: #ffffff;
+  --color-background-muted: #f3f2e2;
+  --color-text-primary: #1d1c11;
+  --color-text-secondary: #605f52;
+  --color-accent: #225bff;
+  --color-on-accent: #ffffff;
+  --color-accent-muted: #225bff33;
+  --color-border: #e5e3d4;
+  --color-border-emphasized: #c7c4b2;
+  --color-overlay: #1d1c1180;
+  --butter-yellow: #fdee8c;
+  --shadow-low: 0 2px 4px #1d1c110d, 0 4px 8px #1d1c111a;
+  --shadow-high: 0 4px 6px #1d1c111a, 0 12px 24px #1d1c1126;
+  /* Butter 분류색(배경 / 글자) — 단계 1~7 에 하나씩. 빨강·초록은 판정처럼 보여 안 씀 */
+  --cat-blue: #dbe1ff;   --cat-blue-ink: #203a6c;
+  --cat-yellow: #f0df72; --cat-yellow-ink: #443c00;
+  --cat-teal: #b0f0d7;   --cat-teal-ink: #00482d;
+  --cat-orange: #ffdcb6; --cat-orange-ink: #622e00;
+  --cat-pink: #ffd5fb;   --cat-pink-ink: #6c0a68;
+  --cat-cyan: #a9eff0;   --cat-cyan-ink: #004649;
+  --cat-purple: #f2daff; --cat-purple-ink: #52237b;
   /* 앱이 쓰는 이름 */
-  --bg: var(--p-bg);
-  --surface: var(--p-surface);
-  --card: #ffffff;
-  --ink: var(--p-ink);
-  --text: var(--p-ink);
-  --muted: var(--p-muted);
-  --accent: var(--p-accent);
-  --accent-ink: var(--p-accent-ink);
-  --accent-soft: color-mix(in oklab, var(--accent) 9%, var(--card));
-  --line: color-mix(in oklab, var(--ink) 11%, transparent);
-  --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
+  --bg: var(--color-background-body);
+  --card: var(--color-background-surface);
+  --surface: var(--color-background-muted);
   --neutral: var(--surface);
+  --ink: var(--color-text-primary);
+  --text: var(--ink);
+  --muted: var(--color-text-secondary);
+  --accent: var(--color-accent);
+  --accent-ink: var(--color-on-accent);
+  --accent-soft: #dbe1ff;
+  --line: var(--color-border);
+  --line-strong: var(--color-border-emphasized);
   --danger: var(--ink);
-  /* radius round: 10 / 16 / 24 / 알약 */
-  --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-btn: 999px;
+  /* 카드에 쓰는 면(예전 이름 f1~f4 를 Butter 색으로) */
+  --f1: var(--cat-blue); --f2: var(--cat-teal); --f3: var(--butter-yellow); --f4: var(--cat-cyan);
+  /* Butter 둥글기: element 8 / container 12 / page 24 */
+  --r-sm: 8px; --r-md: 12px; --r-lg: 12px; --r-page: 24px; --r-btn: 8px;
   --btn-h: 48px;
-  /* 움직임(taste-skill motion.md) */
-  --m-in: 150ms; --m-out: 120ms; --m-press: 90ms; --m-panel: 200ms; --m-slide: 240ms;
+  /* Butter 움직임: fast 125ms, medium 300ms */
+  --m-in: 125ms; --m-out: 125ms; --m-press: 95ms; --m-panel: 300ms; --m-slide: 300ms;
   --ease: cubic-bezier(.2, .8, .2, 1);
   --tabbar-h: 64px;
   --status-h: 56px;
-  --font: "Geist", "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --font: "Outfit", "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
   font-family: var(--font);
   color: var(--text);
   background: var(--bg);
@@ -81,7 +101,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .chip-stat { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px;
   background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 600; color: var(--muted); }
 .chip-stat svg { width: 16px; height: 16px; flex: none; }
-.chip-stat.streak.lit { color: var(--ink); background: var(--f3); border-color: transparent; }
+.chip-stat.streak.lit { color: var(--ink); background: var(--butter-yellow); border-color: transparent; }
 .chip-stat.level { color: var(--ink); }
 #app { max-width: 520px; margin: 0 auto; padding: 20px 16px calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom)); }
 .tab-bar {
@@ -101,7 +121,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 /* ── 머리 ── */
 .screen-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; min-width: 0; }
 .screen-head h1 { min-width: 0; overflow-wrap: anywhere; }
-.btn-back { flex: none; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--card); color: var(--ink);
+.btn-back { flex: none; height: 40px; padding: 0 14px; border-radius: var(--r-sm); background: var(--card); color: var(--ink);
   border: 1px solid var(--line-strong); font-weight: 600; font-size: 14px; cursor: pointer;
   transition: background var(--m-in) var(--ease), transform var(--m-press) var(--ease); }
 .btn-back:hover { background: color-mix(in oklab, var(--card) 94%, var(--ink)); }
@@ -130,8 +150,8 @@ button.card:active { transform: scale(.99); }
   transition: background var(--m-in) var(--ease), border-color var(--m-in) var(--ease), transform var(--m-press) var(--ease); }
 .btn:active:not(:disabled) { transform: scale(.98); }
 .btn:disabled { opacity: .4; cursor: default; }
-.btn-primary, .btn-ok { background: var(--ink); color: var(--bg); }
-.btn-primary:hover:not(:disabled), .btn-ok:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 82%, var(--bg)); }
+.btn-primary, .btn-ok { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover:not(:disabled), .btn-ok:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 86%, var(--ink)); }
 .btn-secondary, .btn-danger { background: var(--card); color: var(--ink); border-color: var(--line-strong); }
 .btn-secondary:hover:not(:disabled), .btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--card) 94%, var(--ink)); }
 .btn-chip { min-height: 40px; padding: 6px 16px; font-size: 14px; background: var(--card); color: var(--ink); border-color: var(--line-strong); }
@@ -143,14 +163,14 @@ button.card:active { transform: scale(.99); }
 .bottom-actions { margin-top: 20px; }
 
 /* ── 꼬리표: 회색 알약 하나 ── */
-.tag-trial, .tag-done, .pill { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px;
+.tag-trial, .tag-done, .pill { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: var(--r-sm);
   font-size: 13px; font-weight: 600; white-space: nowrap; background: var(--surface); color: var(--ink); }
 .pill-gold { background: var(--f3); color: var(--ink); }
 
 /* ── 홈 ── */
 .today { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; }
 .today-icon { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--muted); }
-.today.lit .today-icon { background: var(--f3); color: var(--ink); }
+.today.lit .today-icon { background: var(--butter-yellow); color: var(--ink); }
 .today-icon svg { width: 18px; height: 18px; }
 .today-status { font-size: 15px; margin: 0; line-height: 1.45; color: var(--muted); }
 
@@ -159,8 +179,8 @@ button.card:active { transform: scale(.99); }
   background: var(--surface); color: var(--ink); }
 .stage-badge.big { width: 44px; height: 44px; border-radius: 14px; font-size: 18px; }
 .mini-bar { display: block; height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; }
-.mini-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--ink); transition: width var(--m-slide) var(--ease); }
-.stage-tag { display: inline-flex; margin: 0 0 12px; height: 26px; align-items: center; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 600;
+.mini-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width var(--m-slide) var(--ease); }
+.stage-tag { display: inline-flex; margin: 0 0 12px; height: 26px; align-items: center; padding: 0 10px; border-radius: var(--r-sm); font-size: 13px; font-weight: 600;
   background: var(--surface); color: var(--ink); }
 
 /* 학습 길: 단계 1~7, 둘레 고리 = 해 본 단어 k/6. 지금 할 단계만 강조색 */
@@ -194,24 +214,24 @@ button.card:active { transform: scale(.99); }
 /* 단계 창(아래에서 올라옴) */
 .stage-sheet h2 { margin-bottom: 2px; }
 .stage-sheet-words { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 16px 0; }
-.stage-sheet-words li { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px; border-radius: 999px;
+.stage-sheet-words li { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 14px; border-radius: var(--r-sm);
   background: var(--surface); color: var(--ink); font-size: 15px; font-weight: 600; }
-.stage-sheet-words li.tried { background: var(--ink); color: var(--bg); }
+
 .stage-sheet-words li svg { width: 15px; height: 15px; }
 
 /* ── 검색 ── */
 .search-field { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 16px; border: 1px solid var(--line-strong);
-  border-radius: 999px; background: var(--card); color: var(--muted); transition: border-color var(--m-in) var(--ease); }
-.search-field:focus-within { border-color: var(--ink); color: var(--ink); }
+  border-radius: var(--r-sm); background: var(--card); color: var(--muted); transition: border-color var(--m-in) var(--ease); }
+.search-field:focus-within { border-color: var(--accent); color: var(--accent); }
 .search-field svg { width: 20px; height: 20px; flex: none; }
 .search-input { flex: 1; min-width: 0; height: 48px; padding: 0; border: 0; font: inherit; background: none; color: var(--text); }
 .search-input:focus { outline: none; }
 .chips { display: flex; gap: 8px; overflow-x: auto; padding: 14px 0 8px; scrollbar-width: none; }
-.chip { flex: none; height: 40px; border: 1px solid var(--line-strong); background: var(--card); border-radius: 999px; padding: 0 16px;
+.chip { flex: none; height: 40px; border: 1px solid var(--line-strong); background: var(--card); border-radius: var(--r-sm); padding: 0 16px;
   font-size: 14px; font-weight: 600; cursor: pointer; transition: background var(--m-in) var(--ease), transform var(--m-press) var(--ease); }
 .chip:hover { background: color-mix(in oklab, var(--card) 94%, var(--ink)); }
 .chip:active { transform: scale(.97); }
-.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .count { margin: 8px 0; font-size: 14px; }
 .word-list { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
 .word-list li + li { border-top: 1px solid var(--line); }
@@ -220,7 +240,7 @@ button.card:active { transform: scale(.99); }
 .word-row:hover { background: color-mix(in oklab, var(--card) 96%, var(--ink)); }
 .word-name { flex: 1; font-weight: 600; font-size: 17px; min-width: 0; }
 .stage-text { font-size: 13px; color: var(--muted); }
-.tried-mark { width: 22px; height: 22px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); }
+.tried-mark { width: 22px; height: 22px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
 .tried-mark svg { width: 13px; height: 13px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
 .empty { padding: 20px 16px; color: var(--muted); }
@@ -268,7 +288,7 @@ button.card:active { transform: scale(.99); }
 .progress-text { font-weight: 600; color: var(--muted); font-size: 14px; }
 .score { flex: none; }
 .bar { height: 8px; background: var(--surface); border-radius: 999px; overflow: hidden; margin: 8px 0; }
-.bar > span { display: block; height: 100%; background: var(--ink); border-radius: 999px; transition: width var(--m-slide) var(--ease); }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width var(--m-slide) var(--ease); }
 .bar-thick { height: 10px; }
 .question { margin-top: 8px; font-size: 21px; }
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
@@ -279,7 +299,7 @@ button.card:active { transform: scale(.99); }
 .option:active:not(:disabled) { transform: scale(.98); }
 .option:disabled { cursor: default; color: inherit; }
 .loading-dim { opacity: .45; }
-.option.is-answer { border: 2px solid var(--ink); background: var(--f2); }
+.option.is-answer { border: 2px solid var(--accent); background: var(--accent-soft); color: var(--cat-blue-ink); }
 .option.is-chosen { background: var(--surface); color: var(--muted); border-color: transparent; }
 
 /* 아래에서 올라오는 결과 판: 정답이든 아니든 같은 바탕. 정답은 강조색 체크 하나로만 표시(빨강·흔들림·X 없음) */
@@ -306,8 +326,8 @@ button.card:active { transform: scale(.99); }
 .rank-list li { padding: 14px 16px; }
 .rank-list li + li { border-top: 1px solid var(--line); }
 .rank-list li.hl { background: var(--f3); font-weight: 600; }
-.nick-input { width: 100%; height: 52px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 999px; font: inherit; margin: 8px 0; background: var(--card); }
-.nick-input:focus { outline: none; border-color: var(--ink); }
+.nick-input { width: 100%; height: 52px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); font: inherit; margin: 8px 0; background: var(--card); }
+.nick-input:focus { outline: none; border-color: var(--accent); }
 
 /* ── 내 기록 ── */
 .level-num { font-size: 34px; letter-spacing: -.045em; margin-bottom: 12px; }
@@ -320,7 +340,7 @@ button.card:active { transform: scale(.99); }
 .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; list-style: none; padding: 0; margin: 8px 0 0; text-align: center; }
 .week li { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .day-dot { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center; }
-.week li.on .day-dot { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.week li.on .day-dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .day-dot svg { width: 16px; height: 16px; }
 .week small { font-size: 13px; color: var(--muted); }
 .stage-progress { list-style: none; padding: 0; margin: 8px 0 0; }
@@ -344,11 +364,11 @@ button.card:active { transform: scale(.99); }
 .info-list li + li { border-top: 1px solid var(--line); }
 
 /* ── 창 · 토스트 ── */
-.modal-layer { position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, .4); display: flex; align-items: center; justify-content: center;
+.modal-layer { position: fixed; inset: 0; z-index: 30; background: var(--color-overlay); display: flex; align-items: center; justify-content: center;
   padding: 16px; animation: fade-in var(--m-panel) var(--ease); }
-.modal-panel { width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; background: var(--card); border-radius: var(--r-lg); padding: 24px; }
+.modal-panel { width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; background: var(--card); border-radius: var(--r-page); padding: 24px; box-shadow: var(--shadow-high); }
 .modal-layer.sheet { align-items: flex-end; padding: 0; }
-.modal-layer.sheet .modal-panel { max-width: 520px; border-radius: var(--r-lg) var(--r-lg) 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom));
+.modal-layer.sheet .modal-panel { max-width: 520px; border-radius: var(--r-page) var(--r-page) 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom));
   animation: slide-up var(--m-slide) var(--ease); }
 .modal-text { margin-bottom: 18px; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -420,47 +440,48 @@ button.card:active { transform: scale(.99); }
   button.card:hover, button.card:active, .btn-back:active { transform: none; }
 }
 
-/* ── 파스텔 면(팔레트 card-pastels 의 fields): 카드·타일마다 하나, 나란히 같은 색 없음. 글자는 검정 ── */
-.card-hero { background: var(--f1); }
+/* ── 단계 색(Butter 분류색): 1 파랑 · 2 노랑 · 3 청록 · 4 주황 · 5 분홍 · 6 하늘 · 7 보라 — 모든 화면에서 같은 단계는 같은 색 ── */
+[data-stage="1"] { --sf: var(--cat-blue);   --sf-ink: var(--cat-blue-ink); }
+[data-stage="2"] { --sf: var(--cat-yellow); --sf-ink: var(--cat-yellow-ink); }
+[data-stage="3"] { --sf: var(--cat-teal);   --sf-ink: var(--cat-teal-ink); }
+[data-stage="4"] { --sf: var(--cat-orange); --sf-ink: var(--cat-orange-ink); }
+[data-stage="5"] { --sf: var(--cat-pink);   --sf-ink: var(--cat-pink-ink); }
+[data-stage="6"] { --sf: var(--cat-cyan);   --sf-ink: var(--cat-cyan-ink); }
+[data-stage="7"] { --sf: var(--cat-purple); --sf-ink: var(--cat-purple-ink); }
+.stage-badge, .stage-badge.big, .stage-tag { background: var(--sf, var(--surface)); color: var(--sf-ink, var(--ink)); }
+.stage-badge.big { box-shadow: none; }
+/* 홈 */
+.card-hero { background: var(--butter-yellow); border-color: transparent; }
 .card-pair .card-small { border-color: transparent; }
-.card-pair .card-small:nth-child(1) { background: var(--f2); }
-.card-pair .card-small:nth-child(2) { background: var(--f3); }
-.card-small .card-icon { background: rgba(255, 255, 255, .55); }
-/* 단계 번호: 단계마다 차례로(1 하늘 · 2 라임 · 3 호박 · 4 청록 · 5 하늘 …) */
-[data-stage] { --sf: var(--f1); }
-[data-stage="2"], [data-stage="6"] { --sf: var(--f2); }
-[data-stage="3"], [data-stage="7"] { --sf: var(--f3); }
-[data-stage="4"] { --sf: var(--f4); }
-.stage-badge { background: var(--sf, var(--surface)); }
-.stage-badge.big { background: var(--sf, var(--surface)); color: var(--ink); }
-.stage-tag { background: var(--sf, var(--surface)); }
-/* 학습 길: 아직 = 그 단계 파스텔, 다 했음 = 검정 + 체크, 지금 할 단계 = 파스텔 + 검정 테두리 */
-.path-step .node { background: var(--sf); }
+.card-pair .card-small:nth-child(1) { background: var(--cat-blue); }
+.card-pair .card-small:nth-child(2) { background: var(--cat-teal); }
+.card-small .card-icon { background: rgba(255, 255, 255, .6); }
+/* 학습 길: 아직 = 단계 색, 다 했음 = 진한 글자색 + 체크, 지금 할 단계 = 단계 색 + 파란 테두리 */
+.path-step .node { background: var(--sf); color: var(--sf-ink); box-shadow: var(--shadow-low); }
 .path-step .node.done { background: var(--ink); color: var(--bg); }
-.path-step .node.next { background: var(--sf); color: var(--ink); border-color: var(--ink); }
-.stage-sheet { --sf: var(--f1); }
-.stage-sheet h2 { display: inline-block; background: var(--sf); padding: 2px 12px; border-radius: 999px; }
-/* 뜻 맞히기 단계 카드·직접 해보기 단계 카드·내 기록 카드: 차례로 다른 파스텔 */
-.stage-list .stage-card { border-color: transparent; }
-.stage-list .stage-card:nth-child(4n+1) { background: var(--f1); }
-.stage-list .stage-card:nth-child(4n+2) { background: var(--f2); }
-.stage-list .stage-card:nth-child(4n+3) { background: var(--f3); }
-.stage-list .stage-card:nth-child(4n+4) { background: var(--f4); }
+.path-step .node.next { background: var(--sf); color: var(--sf-ink); border-color: var(--accent); }
+.node-ring { background: conic-gradient(var(--accent) calc(var(--p, 0) * 1turn), var(--line) 0); }
+.bubble, .bubble::after { background: var(--accent); color: var(--accent-ink); }
+.stage-sheet h2 { display: inline-block; background: var(--sf); color: var(--sf-ink); padding: 2px 12px; border-radius: var(--r-sm); }
+.stage-sheet-words li.tried { background: var(--sf); color: var(--sf-ink); }
+/* 단계 카드(뜻 맞히기·직접 해보기 단어 고르기): 단계 색 면 + 진한 글자 */
+.stage-list .stage-card, .lab-pick .stage-fold { background: var(--sf); color: var(--sf-ink); border-color: transparent; }
+.stage-list .stage-card strong, .lab-pick .stage-fold strong { color: var(--sf-ink); }
 .stage-list .stage-badge.big { background: var(--card); }
 .stage-list .mini-bar { background: rgba(255, 255, 255, .6); }
-.stage-list .tag-done { background: var(--card); }
-.lab-pick .stage-fold { border-color: transparent; }
-.lab-pick .stage-fold:nth-of-type(4n+1) { background: var(--f1); }
-.lab-pick .stage-fold:nth-of-type(4n+2) { background: var(--f2); }
-.lab-pick .stage-fold:nth-of-type(4n+3) { background: var(--f3); }
-.lab-pick .stage-fold:nth-of-type(4n+4) { background: var(--f4); }
-.lab-pick .tag-done { background: var(--card); }
-.records .level-card { background: var(--f1); border-color: transparent; }
-.records .streak-tile { background: var(--f3); border-color: transparent; }
+.stage-list .mini-bar > span { background: var(--sf-ink); }
+.stage-list .muted, .lab-pick .stage-fold .muted { color: var(--sf-ink); opacity: .8; }
+.stage-list .tag-done, .lab-pick .tag-done { background: var(--card); color: var(--sf-ink); }
+/* 내 기록·결과 */
+.records .level-card { background: var(--cat-blue); border-color: transparent; }
+.records .streak-tile { background: var(--butter-yellow); border-color: transparent; }
 .records .level-card .bar, .records .streak-tile .day-dot { background: rgba(255, 255, 255, .6); }
-.records .streak-tile .muted, .records .level-card .muted { color: #2b2b28; }
-.result-card { background: var(--f2); border-color: transparent; }
-.result-card.is-best { background: var(--f3); }
+.records .streak-tile .muted, .records .level-card .muted { color: var(--ink); opacity: .75; }
+.result-card { background: var(--cat-teal); border-color: transparent; }
+.result-card.is-best { background: var(--butter-yellow); }
 .result-card .pill-gold { background: var(--card); }
-.start::before { background: var(--f1); color: var(--ink); }
-.brand-mark { background: var(--accent); color: var(--accent-ink); }
+.records .stage-progress .mini-bar > span { background: var(--sf-ink); }
+/* 로고: Sarina 체 42 */
+.brand-mark, .start::before { font-family: "Sarina", var(--font); background: var(--butter-yellow); color: var(--ink); letter-spacing: 0; }
+.start::before { font-size: 34px; }
+.brand-mark { font-size: 14px; }
