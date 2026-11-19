@@ -151,13 +151,13 @@ function poseFigure() {
   svg.setAttribute("aria-hidden", "true");
   // 화면 안에 얼굴·양어깨·손이 들어오게 서는 법(틀 모서리 + 사람 윤곽 + 손이 들어올 자리). 손 모양은 그리지 않음(수어로 오해되지 않게)
   svg.innerHTML = `
-    <rect x="14" y="6" width="172" height="138" rx="18" fill="#e2f4f4"/>
-    <g fill="none" stroke="#0b7c7d" stroke-width="4" stroke-linecap="round">
+    <rect x="14" y="6" width="172" height="138" rx="18" fill="#e3f6ea"/>
+    <g fill="none" stroke="#17804f" stroke-width="4" stroke-linecap="round">
       <path d="M28 30V22a8 8 0 0 1 8-8h8"/><path d="M156 14h8a8 8 0 0 1 8 8v8"/>
       <path d="M172 120v8a8 8 0 0 1-8 8h-8"/><path d="M44 136h-8a8 8 0 0 1-8-8v-8"/></g>
-    <circle cx="100" cy="54" r="19" fill="#11314f"/>
-    <path d="M56 136 Q58 88 100 84 Q142 88 144 136 Z" fill="#11314f"/>
-    <g fill="#ffb627" fill-opacity=".35" stroke="#ffb627" stroke-width="2.5" stroke-dasharray="5 4">
+    <circle cx="100" cy="54" r="19" fill="#0f3d2b"/>
+    <path d="M56 136 Q58 88 100 84 Q142 88 144 136 Z" fill="#0f3d2b"/>
+    <g fill="#a6e35a" fill-opacity=".35" stroke="#a6e35a" stroke-width="2.5" stroke-dasharray="5 4">
       <circle cx="58" cy="76" r="15"/><circle cx="142" cy="76" r="15"/></g>`;
   return svg;
 }

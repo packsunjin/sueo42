@@ -53,6 +53,11 @@ function flame(filled) {
   return svg;
 }
 
+// 화면이 바뀌면 열려 있던 창(아래에서 올라온 창·확인 창)을 닫는다 — 뒤로 가기로 나가도 창이 남지 않게(11/19 고침)
+function closeOpenSheets() {
+  document.querySelectorAll(".modal-layer").forEach((m) => m.remove());
+}
+
 function drawTabs(pattern) {
   tabbarEl.hidden = HIDE_TABBAR.includes(pattern);
   tabbarEl.replaceChildren(...TABS.map((tab) => {
@@ -87,7 +92,7 @@ function boot() {
   renderStart(app, () => {
     statusEl.hidden = false;
     registerRoutes();
-    setHooks({ before: (pattern) => { drawStatus(); drawTabs(pattern); } });
+    setHooks({ before: (pattern) => { closeOpenSheets(); drawStatus(); drawTabs(pattern); } });
     startRouter();
     if (!storageOk) { markStorageWarned(); showStorageWarning(); } // S0 다음 한 번
   });
