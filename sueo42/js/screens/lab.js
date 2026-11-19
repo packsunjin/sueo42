@@ -258,6 +258,22 @@ function stopLoop(c) {
   if (c.vfcTimer) cancelAnimationFrame(c.vfcTimer);
   c.raf = 0; c.vfc = 0; c.vfcTimer = 0;
 }
+// 화면용 손 위치 이어 그리기: 마지막 결과 + 속도 × (지금 − 그 프레임을 찍은 시각). AI 계산 시간만큼 늦은 것도 메운다.
+// 최대 150ms 앞까지만, 0.85 배로 약하게(튀지 않게). 같은 손(라벨)이 두 결과에 다 있을 때만. 결과 간격이 250ms 보다 길면 이어 그리지 않음
+const PREDICT_MAX_MS = 150;
+function predictHands(a, b, now) {
+  if (!b) return [];
+  if (!a) return b.hands;
+  const dt = b.t - a.t;
+  if (!(dt > 0) || dt > 250) return b.hands;
+  const k = (Math.min(Math.max(now - b.t, 0), PREDICT_MAX_MS) / dt) * 0.85;
+  return b.hands.map((hd) => {
+    const p = a.hands.find((x) => x.label === hd.label);
+    if (!p) return hd;
+    return { label: hd.label, landmarks: hd.landmarks.map(([x, y], i) => [x + (x - p.landmarks[i][0]) * k, y + (y - p.landmarks[i][1]) * k]) };
+  });
+}
+
 function startLoop() {
   const c = ctx;
   const g = c.overlay.getContext("2d");
@@ -265,11 +281,13 @@ function startLoop() {
   let lastVT = -1, lastStored = -Infinity, lastBodyAt = -Infinity, busy = false, dirty = true;
   c.lastHands = [];
   let shownBody = null;
+  let prevR = null, lastR = null;   // 그리기용 최근 결과 두 개 { t, hands }
 
   // 결과 하나가 왔을 때: 화면 상태 갱신 + 기록 중이면 모으기
   const onHands = (hands, now) => {
     if (ctx !== c) return;
     c.lastHands = hands; dirty = true;
+    prevR = lastR; lastR = { t: now, hands };   // t = 카메라 프레임을 보낸 시각(AI 계산 시간만큼 늦게 도착함)
     c.handState.textContent = hands.length ? t("L-19") : t("L-20");
     c.handState.classList.toggle("on", hands.length > 0);
     if (c.mode === "recording" && now - lastStored >= MIN_FRAME_MS) {
@@ -315,14 +333,16 @@ function startLoop() {
     }
   }
 
-  // 그리기는 화면이 새로 그려질 때마다(가벼움). 새 결과가 있을 때만 다시 그림
+  // 그리기는 화면이 새로 그려질 때마다(초당 60번쯤). AI 결과는 그보다 드물게 오므로, 사이에는 직전 두 결과의 움직임으로
+  // 손이 있을 자리를 이어서 그린다(predictHands). 화면에 보이는 뼈대만 그렇고, 기록·순위에는 AI 가 실제로 찾은 점만 쓴다.
   function draw() {
     if (ctx !== c) return;
     c.raf = requestAnimationFrame(draw);
-    if (!dirty) return;
+    const moving = prevR && lastR && performance.now() - lastR.t < 250 + PREDICT_MAX_MS;
+    if (!dirty && !moving) return;
     dirty = false;
     if (c.overlay.width !== camVideo.videoWidth && camVideo.videoWidth) { c.overlay.width = camVideo.videoWidth; c.overlay.height = camVideo.videoHeight; }
-    drawHands(g, c.lastHands, { mirror: true });
+    drawHands(g, predictHands(prevR, lastR, performance.now()), { mirror: true });
     drawBody(g, c.mode === "recording" ? c.fixedBody : shownBody, { mirror: true });
   }
   stopLoop(c);

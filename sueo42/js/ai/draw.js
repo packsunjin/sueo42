@@ -16,8 +16,9 @@ export function drawHands(ctx, hands, { mirror = false, clear = true } = {}) {
   const lw = Math.max(2, W / 160);
   hands.forEach((hd, n) => {
     const P = hd.landmarks.map(([x, y]) => [(mirror ? 1 - x : x) * W, y * H]);
-    ctx.strokeStyle = COLORS[n % 2];
-    ctx.fillStyle = COLORS[n % 2];
+    const col = hd.label ? COLORS[hd.label === "Right" ? 0 : 1] : COLORS[n % 2];   // 손마다 늘 같은 색(순서가 바뀌어도)
+    ctx.strokeStyle = col;
+    ctx.fillStyle = col;
     ctx.lineWidth = lw;
     ctx.beginPath();
     for (const [a, b] of HAND_CONNECTIONS) { ctx.moveTo(P[a][0], P[a][1]); ctx.lineTo(P[b][0], P[b][1]); }
