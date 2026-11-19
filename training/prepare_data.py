@@ -43,7 +43,9 @@ from count_words import DEFAULT_WORDS, decode, load_words, names_of
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FPS = 30
-VID_RE = re.compile(r"NIA_SL_SEN(\d+)_REAL(\d+)_([A-Z])")
+# (11/19) 문장(SEN)과 따로 한 단어(WORD) 영상 둘 다 받는다. 단어 영상은 sentences.npy 에 10000+번호로 넣는다
+VID_RE = re.compile(r"NIA_SL_(SEN|WORD)(\d+)_REAL(\d+)_([A-Z])")
+WORD_BASE = 10000
 KP_SUFFIX = b"_keypoints.json"
 
 
@@ -61,7 +63,7 @@ def read_labels(paths, name_to_idx, angles, drop):
                 if not m:
                     drop["라벨 파일 이름을 못 읽음(파일 단위)"] += 1
                     continue
-                if m.group(3) not in angles:
+                if m.group(4) not in angles:
                     continue
                 n_files += 1
                 try:
@@ -183,8 +185,8 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="AI-Hub 문장 손 좌표 → 42개 단어 학습 배열")
-    ap.add_argument("--labels", nargs="+", required=True, help="문장 형태소 라벨 zip (여러 개 가능)")
-    ap.add_argument("--keypoints", nargs="+", required=True, help="문장 keypoint zip (여러 개 가능)")
+    ap.add_argument("--labels", nargs="+", required=True, help="형태소 라벨 zip — 문장(sen)·단어(word) 섞어도 됨(여러 개 가능)")
+    ap.add_argument("--keypoints", nargs="+", required=True, help="keypoint zip — 문장·단어 섞어도 됨(여러 개 가능)")
     ap.add_argument("--out", default=os.path.join(HERE, "data"), help="출력 폴더(기본 training/data, git 에 넣지 않음)")
     ap.add_argument("--words", default=DEFAULT_WORDS, help="words.csv 경로")
     ap.add_argument("--angles", default="DFLRU", help="쓸 촬영 각도 글자(기본 DFLRU 전부)")
@@ -265,7 +267,8 @@ def main():
                     except (ValueError, zlib.error, json.JSONDecodeError, UnicodeDecodeError):
                         drop["프레임 JSON 깨짐(프레임 단위, 그 프레임만 뺌)"] += 1
                 m = VID_RE.fullmatch(vid)
-                sen, spk, ang = int(m.group(1)), int(m.group(2)), args.angles.index(m.group(3))
+                sen = int(m.group(2)) + (WORD_BASE if m.group(1) == "WORD" else 0)
+                spk, ang = int(m.group(3)), args.angles.index(m.group(4))
                 for w, s, e in segs[vid]:
                     if not e > s:
                         drop["end 가 start 보다 크지 않음"] += 1

@@ -7,7 +7,9 @@
 #   --epochs 에폭 수(기본 30)  --seed 난수 씨앗(기본 0)
 #
 # 규칙
-# - 사람 단위 분할: 검증 = REAL17·18(AI-Hub Validation), 학습 = 나머지(REAL01~04). 같은 사람이 양쪽에 들어가지 않는다.
+# - 사람 단위 분할: 검증 = REAL17·18(AI-Hub Validation), 학습 = 나머지(받은 사람 전부, 11/19 까지는 REAL01~04). 같은 사람이 양쪽에 들어가지 않는다.
+# - (11/19) 좌우 뒤집기 증강(--mirror-p, 기본 0.5): 사전 영상을 거울처럼 반대 손으로 따라 하는 사람이 많다(앱 실험 9/42 → design.md 16절).
+#   mirror.py = 앱 normalize.js mirrorFrame 과 같은 결과. 검증은 그대로·뒤집은 것 둘 다 재고, 둘의 평균으로 가장 좋은 에폭을 고른다.
 # - 단어 불균형: 클래스 가중치 = 전체/(42·단어 수), 최대 30 으로 자른 뒤 평균 1 로 맞춘다.
 # - 증강(norm.py 정규화와 어긋나지 않는 것만. 손목은 늘 (0,0), 없는 점·없는 손은 늘 0):
 #   손마다 손목 중심 회전(±12°)·크기(×N(1,0.06))·점 잡음(σ 0.02, 있는 점만),
@@ -33,6 +35,7 @@ import numpy as np  # noqa: E402
 import tensorflow as tf  # noqa: E402
 import tf_keras as keras  # noqa: E402  tensorflowjs 4.22 가 쓰는 Keras 2
 import tensorflowjs as tfjs  # noqa: E402
+from mirror import mirror_features  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORDS_CSV = os.path.join(HERE, "..", "sueo42", "data", "words.csv")
@@ -81,7 +84,7 @@ def time_jitter(X, rng):
     return out
 
 
-def augment(X, rng):
+def augment(X, rng, mirror_p=0.5):
     """X [N,30,90] → 증강본. 손 자리: [오른손 42, 왼손 42], 손 42 = x,y 번갈아 21점, 뒤 6 = 몸 기준 위치."""
     X = time_jitter(X, rng)
     n = X.shape[0]
@@ -121,7 +124,10 @@ def augment(X, rng):
         h[i, fmask[i], which[i]] = 0
         body[i, fmask[i], which[i]] = 0
     h[~np.broadcast_to(present_pt, h.shape)] = 0  # 없는 점은 끝까지 0
-    return np.concatenate([h.reshape(n, FRAMES, HANDS), body.reshape(n, FRAMES, 6)], axis=2).astype(np.float32)
+    out = np.concatenate([h.reshape(n, FRAMES, HANDS), body.reshape(n, FRAMES, 6)], axis=2).astype(np.float32)
+    flip = rng.random(n) < mirror_p                                 # (11/19) 거울처럼 반대 손
+    out[flip] = mirror_features(out[flip])
+    return out
 
 
 def build_model():
@@ -165,13 +171,15 @@ def write_report(path, labels, rows_f, rows_all, info):
     low = sorted([k for k in range(CLASSES) if rows_f[k][0] > 0], key=lambda k: (rows_f[k][1], rows_f[k][2]))[:5]
     L = []
     L.append("# 학습 보고(3-3) — 개발용, 앱 화면에 넣지 않음\n")
-    L.append("> 출처: 한국지능정보사회진흥원 AI 허브(aihub.or.kr)「수어 영상」 문장 keypoint·morpheme. "
-             "검증 = REAL17·18(학습에 안 쓴 사람), 학습 = REAL01~04. 비율은 단어마다 따로 내고 42개를 단순 평균.\n")
+    L.append("> 출처: 한국지능정보사회진흥원 AI 허브(aihub.or.kr)「수어 영상」 " + info['sources'] + " keypoint·morpheme. "
+             f"검증 = REAL17·18(학습에 안 쓴 사람), 학습 = REAL{info['train_speakers']}. 비율은 단어마다 따로 내고 42개를 단순 평균.\n")
     L.append("## 요약\n")
     L.append(f"- 모델: Conv1D(96)×2 + GRU(128) + Dense(42), 파라미터 {info['params']:,}개, 입력 [1,30,90](손 모양 84 + 몸 기준 위치 6). "
              f"학습 {info['epochs']}에폭(가장 좋은 에폭 {info['best_epoch']}), {info['minutes']:.1f}분(CPU).")
     L.append(f"- 정면(F) 검증 단어 평균: 상위1 {f1:.1%}, 상위2 {f2:.1%} (표본 {info['n_val_f']}개).")
     L.append(f"- 5개 각도 전부 검증 단어 평균: 상위1 {a1:.1%}, 상위2 {a2:.1%} (표본 {info['n_val_all']}개).")
+    L.append(f"- 거울처럼 반대 손으로 한 동작(정면 검증을 좌우로 뒤집음): 상위1 {info['mir1']:.1%}, 상위2 {info['mir2']:.1%}.")
+    L.append(f"- 검증 표본 중 문장 속 단어 {info['n_val_sen']}개, 따로 한 단어 {info['n_val_word']}개. 문장 속 단어는 같은 문장을 다른 사람이 한 것이라 실제보다 높게 나올 수 있다(design.md 16절).")
     L.append("- 가장 낮은 단어 5개(F): " + ", ".join(
         f"{labels[k]}(상위1 {rows_f[k][1]:.0%}·상위2 {rows_f[k][2]:.0%}, {rows_f[k][0]}개)" for k in low) + ".")
     L.append("- 검증 표본이 10개 미만인 단어는 비율이 크게 흔들린다(아래 표의 표본 수). AI-Hub 손 좌표(OpenPose)로만 쟀고 "
@@ -195,11 +203,13 @@ def main():
     ap.add_argument("--probe-out", default=None)
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--mirror-p", type=float, default=0.5, help="좌우 뒤집기 증강 확률(0 이면 끔)")
     args = ap.parse_args()
 
     rng = np.random.default_rng(args.seed)
     tf.random.set_seed(args.seed)
     X, y, spk, ang, labels, meta = load(args.data)
+    sen = np.load(os.path.join(args.data, "sentences.npy"))      # 10000 이상 = 따로 한 단어(WORD) 영상
     f_idx = meta["angles"].index("F")
     val = np.isin(spk, VAL_SPEAKERS)
     tr = ~val
@@ -217,19 +227,28 @@ def main():
     best, best_w, best_ep = -1.0, None, 0
     for ep in range(args.epochs):
         keras.backend.set_value(model.optimizer.learning_rate, lr_sched(ep))
-        h = model.fit(augment(Xtr, rng), ytr, sample_weight=sw, batch_size=128, epochs=1, shuffle=True, verbose=0)
+        h = model.fit(augment(Xtr, rng, args.mirror_p), ytr, sample_weight=sw, batch_size=128, epochs=1, shuffle=True, verbose=0)
         pv = model.predict(Xv[vf], batch_size=512, verbose=0)
         f1, f2 = summary(per_word(pv, yv[vf]))
-        if f1 > best:
-            best, best_w, best_ep = f1, model.get_weights(), ep + 1
-        print(f"에폭 {ep + 1:2d} 손실 {h.history['loss'][0]:.3f} | F 단어평균 상위1 {f1:.3f} 상위2 {f2:.3f} | {time.time() - t0:.0f}초", flush=True)
+        pm = model.predict(mirror_features(Xv[vf]), batch_size=512, verbose=0)
+        m1, m2 = summary(per_word(pm, yv[vf]))
+        score = (f1 + m1) / 2
+        if score > best:
+            best, best_w, best_ep = score, model.get_weights(), ep + 1
+        print(f"에폭 {ep + 1:2d} 손실 {h.history['loss'][0]:.3f} | F 상위1 {f1:.3f} 상위2 {f2:.3f} | 거울 상위1 {m1:.3f} 상위2 {m2:.3f} | {time.time() - t0:.0f}초", flush=True)
     model.set_weights(best_w)
     minutes = (time.time() - t0) / 60
 
     pv_all = model.predict(Xv, batch_size=512, verbose=0)
     rows_all = per_word(pv_all, yv)
     rows_f = per_word(pv_all[vf], yv[vf])
+    mir1, mir2 = summary(per_word(model.predict(mirror_features(Xv[vf]), batch_size=512, verbose=0), yv[vf]))
+    tr_spk = sorted(set(spk[tr].tolist()))
+    sv = sen[val]
     info = dict(params=model.count_params(), epochs=args.epochs, best_epoch=best_ep, minutes=minutes,
+                mir1=mir1, mir2=mir2, n_val_sen=int((sv < 10000).sum()), n_val_word=int((sv >= 10000).sum()),
+                train_speakers=",".join(f"{k:02d}" for k in tr_spk),
+                sources="문장" + ("·단어" if (sen >= 10000).any() else ""),
                 n_val_f=int(vf.sum()), n_val_all=len(yv), train_counts=np.bincount(ytr, minlength=CLASSES).tolist())
     write_report(args.report, labels, rows_f, rows_all, info)
 

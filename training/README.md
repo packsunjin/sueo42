@@ -40,7 +40,8 @@ TensorFlow.js(LayersModel)로 바꾼다. 정규화 규칙은 `docs/tech/structur
 | `norm.py` | (3-2) 손 좌표 정규화 파이썬 판. 앱 `sueo42/js/ai/normalize.js` 와 같은 결과 |
 | `test_norm.py` | (3-2) `docs/tech/norm-testcases.json` 으로 norm.py 검사(인자 없이 실행) |
 | `prepare_data.py` | (3-2) 문장(SEN) 손 좌표에서 42개 단어 구간을 잘라 `training/data/` 에 X·y·화자 배열 저장 |
-| `train.py` | (3-3·3-4) `training/data/` 로 Conv1D+GRU 학습(검증 = REAL17·18) → `sueo42/model/` TF.js 변환 + `docs/data/train-report.md` 지표 |
+| `train.py` | (3-3·3-4) `training/data/` 로 Conv1D+GRU 학습(검증 = REAL17·18) → `sueo42/model/` TF.js 변환 + `docs/data/train-report.md` 지표. (11/19) 좌우 뒤집기 증강 |
+| `mirror.py` | (11/19) 좌우 뒤집기(앱 normalize.js mirrorFrame 과 같은 결과) |
 | `smoke_test_tfjs.py` | (3-0) 무작위 숫자 GRU 모델(입력 [1,30,84] → 42)을 TF.js 로 변환해 보는 환경 시험 |
 | `tfjs_compat.py` | Windows 에서 tensorflowjs 를 import 하게 빈 모듈을 채움(다른 스크립트가 씀) |
 
@@ -82,3 +83,39 @@ training\.venv\Scripts\python.exe training\prepare_data.py --labels <문장 형�
   `angles.npy`, `sentences.npy`, `nframes.npy`, `labels.json`(42개 이름 배열), `meta.json`(표본 수·버린 수).
 - 시작할 때 정규화 검사를 돌리고, 앱과 다르면 데이터를 만들지 않고 멈춘다.
 - 구간: 프레임 k 시각 = k/30 초, `start ≤ k/30 ≤ end`. `--angles F` 처럼 각도를 고를 수 있다(기본 5개 전부).
+
+## (11/19) 정확도 올리기: 더 많은 사람 + 따로 한 단어 + 좌우 뒤집기로 다시 학습
+
+사장 지시 "완벽하게 분류할 수 있게 해봐". 지금 모델은 문장 손 좌표 **4명(REAL01~04)** 만 봤다(16명 중).
+반갑다·모르다·신중처럼 문장에 한 번만 나오는 단어는 사실상 4번 본 것이다. 사람을 늘리는 것이 가장 큰 효과다.
+100% 를 약속할 수는 없다(사람마다 동작·카메라가 다름). 목표: 사전 영상 42개 그대로·거울 둘 다 상위1 40/42 이상.
+
+### 1. 받을 파일 (AI-Hub「수어 영상」, 저장소 밖 폴더에. 위에서부터 순서대로, 디스크가 모자라면 앞에서 끊어도 됨)
+| 순서 | 파일 | 크기(대략) | 효과 |
+|---|---|---|---|
+| ① | `1.Training/[라벨]05~10_real_sen_keypoint.zip` (6개) | 각 12GB | 사람 4명 → 10명 |
+| ② | `1.Training/[라벨]01~04_real_word_keypoint.zip` (4개) | 각 10~15GB | 따로 한 단어 동작(42개 중 23개 단어). 직접 해보기와 같은 조건 |
+| ③ | `1.Training/[라벨]11~16_real_sen_keypoint.zip` (6개) | 각 12GB | 10명 → 16명 |
+| ④ | `1.Training/[라벨]05~16_real_word_keypoint.zip` | 각 10~15GB | 단어 동작 사람 늘리기 |
+- 라벨은 이미 받은 것을 그대로 쓴다: `[라벨]01_real_sen_morpheme.zip`(문장, REAL01~16), `[라벨]01_real_word_morpheme.zip`(단어, REAL01~16), Validation 문장 라벨.
+- 파일 이름이 다르면(사이트에서 바뀜) 화면에 보이는 이름 그대로 받고, 아래 명령의 경로만 바꾸면 된다.
+
+### 2. 학습 배열 만들기 (문장·단어를 한 번에, zip 은 풀지 않음)
+```powershell
+training\.venv\Scripts\python.exe training\prepare_data.py `
+  --labels "D:\aihub\[라벨]01_real_sen_morpheme.zip" "D:\aihub\[라벨]01_real_word_morpheme.zip" "D:\aihub\01_real_sen_morpheme.zip" `
+  --keypoints (Get-ChildItem D:\aihub\*_keypoint.zip).FullName
+```
+- 메모리가 모자라면(8GB PC) `--angles FLR` 로 각도를 3개만 쓴다.
+- 끝에 "손 좌표 파일이 없는 영상" 수가 줄었는지 본다(받은 사람만큼 줄어야 함).
+
+### 3. 학습 (좌우 뒤집기 증강 기본 켜짐)
+```powershell
+training\.venv\Scripts\python.exe training\train.py --data training\data --model-out sueo42\model --report docs\data\train-report.md --epochs 40
+```
+- 16명이면 1시간쯤(CPU). 에폭마다 `F 상위1`(그대로)과 `거울 상위1`(반대 손)을 같이 보여 주고, 둘의 평균이 가장 좋은 에폭을 남긴다.
+- 보고서에 "문장 속 단어 / 따로 한 단어" 검증 표본 수가 나온다. 문장 속 단어 점수는 실제보다 높게 나올 수 있다.
+
+### 4. 올리기 전 확인
+- `sueo42/model/` 의 `model.json`·`group1-shard1of1.bin`·`labels.json` 만 커밋한다(`training/data/` 는 절대 커밋 금지 — .gitignore).
+- 푸시하면 Claude 가 사전 영상 42개(그대로·거울)와 실제 앱 흐름으로 다시 재서 이전 모델과 비교한다. 나빠지면 되돌린다.
