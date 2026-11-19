@@ -24,10 +24,18 @@ export function wordsFromCSV(text) {
 }
 
 // S0 에서 부름. 실패하면 오류를 던진다(→ E-01)
+// 휴대폰 망이 끊기면 fetch 가 끝나지 않아 '불러오는 중'이 계속 돈다 → 15초 지나면 멈추고 E-01 + [다시 시도]
+const LOAD_TIMEOUT_MS = 15000;
 export async function loadWords(fetchFn = fetch) {
-  const res = await fetchFn(CONFIG.WORDS_CSV_URL, { cache: "no-cache" });
-  if (!res.ok) throw new Error(`words.csv ${res.status}`);
-  const list = wordsFromCSV(await res.text());
+  const ctl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), LOAD_TIMEOUT_MS) : null;
+  let text;
+  try {
+    const res = await fetchFn(CONFIG.WORDS_CSV_URL, { cache: "no-cache", signal: ctl ? ctl.signal : undefined });
+    if (!res.ok) throw new Error(`words.csv ${res.status}`);
+    text = await res.text();
+  } finally { if (timer) clearTimeout(timer); }
+  const list = wordsFromCSV(text);
   if (!list.length) throw new Error("words.csv 0줄");
   WORDS = list;
   return list;
