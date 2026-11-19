@@ -10,9 +10,9 @@ import { getState, recordLabChoice, recordLabRetry, setCameraIntroSeen } from ".
 import { levelInfo } from "../game/progress.js";
 import { startCamera, stopCamera, getStream, isOn as cameraOn } from "../ai/camera.js";
 import { handTracker } from "../ai/hands.js";
-import { drawHands, replay } from "../ai/draw.js";
-import { prepareFeatures } from "../ai/normalize.js";
-import { rank, preload } from "../ai/model.js";
+import { drawHands, drawBody, replay } from "../ai/draw.js";
+import { prepareFeatures, mirrorFrame, mirrorPlan } from "../ai/normalize.js";
+import { rankBest, preload } from "../ai/model.js";
 
 // ── 화면이 바뀌어도 남는 것: 카메라 <video> 하나, 카메라 끄기 예약 ──
 const camVideo = h("video", { class: "cam-video", muted: true, autoplay: true, playsInline: true });
@@ -103,7 +103,7 @@ export function renderLabWord(el, { no }) {
 
 function teardown(c) {
   c.timers.forEach(clearTimeout); c.timers = [];
-  cancelAnimationFrame(c.raf); c.raf = 0;
+  stopLoop(c);
   if (c.stopReplay) { c.stopReplay(); c.stopReplay = null; }
 }
 
@@ -173,10 +173,11 @@ function showPractice() {
   const box = h("div", { class: "cam-box" });
   const overlay = h("canvas", { class: "cam-overlay" });
   const cue = h("div", { class: "cam-cue", hidden: true });
-  const handState = h("p", { class: "hand-state muted small" }, t("L-20"));
+  const handState = h("span", { class: "track-pill" }, t("L-20"));
+  const bodyState = h("span", { class: "track-pill" }, t("L-44"));
   const notice = h("div");
   const startBtn = button(btn("L-15"), () => begin(), { kind: "primary", cls: "btn-big", disabled: true });
-  Object.assign(ctx, { dict, box, overlay, cue, handState, notice, startBtn, ready: false });
+  Object.assign(ctx, { dict, box, overlay, cue, handState, bodyState, notice, startBtn, ready: false, bodyHist: [], fixedBody: null });
 
   screen("practice", [
     header(t("L-09", { "단어": w.name }), { onBack: () => go("/lab") }),
@@ -188,7 +189,7 @@ function showPractice() {
     isLowData(w) ? h("p", { class: "info-line" }, t("L-13")) : null,
     h("h3", { class: "pane-label" }, t("L-11")),
     box,
-    handState,
+    h("div", { class: "track-state" }, handState, bodyState),
     notice,
     h("p", { class: "muted" }, t("L-14")),
     h("div", { class: "bottom-actions" }, startBtn),
@@ -233,33 +234,68 @@ function syncOrientation() {
 matchMedia("(orientation: landscape)").addEventListener?.("change", () => syncOrientation());
 
 // 프레임마다 손 좌표 구하기 → 카메라 위에 그리기, 기록 중이면 모으기
+// (11/19 속도) 새 카메라 프레임이 올 때만 돈다(requestVideoFrameCallback, 없으면 rAF).
+// 몸 모델(코·양어깨)은 기록 전에만 0.2초마다 돌려 화면에 얼굴·어깨 기준을 그리고, 기록하는 동안은 손 모델만 돌린다.
+// 기록 프레임의 몸 값 = 기록 직전 1초쯤의 가운데 값 하나(사전 영상 42개 실험: 매 프레임 값과 순위가 같음, design.md 16절).
+const BODY_EVERY_MS = 200, BODY_HIST = 6;
+function medianBody(list) {
+  const ok = list.filter((b) => b && b.rs && b.ls);
+  if (!ok.length) return null;
+  const md = (k) => {
+    const pts = ok.map((b) => b[k]).filter(Boolean);
+    if (!pts.length) return null;
+    return [0, 1].map((j) => pts.map((p) => p[j]).sort((x, y) => x - y)[pts.length >> 1]);
+  };
+  return { nose: md("nose"), rs: md("rs"), ls: md("ls") };
+}
+function stopLoop(c) {
+  if (!c.raf) return;
+  if (c.rafVideo && camVideo.cancelVideoFrameCallback) camVideo.cancelVideoFrameCallback(c.raf); else cancelAnimationFrame(c.raf);
+  c.raf = 0;
+}
 function startLoop() {
   const c = ctx;
-  let lastVT = -1, lastStored = -Infinity;
+  let lastVT = -1, lastStored = -Infinity, lastBodyAt = -Infinity, shownBody = null;
   const g = c.overlay.getContext("2d");
+  const rvfc = typeof camVideo.requestVideoFrameCallback === "function";
+  const schedule = () => { c.rafVideo = rvfc; c.raf = rvfc ? camVideo.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
   function tick() {
-    c.raf = requestAnimationFrame(tick);
-    if (camVideo.readyState < 2 || camVideo.currentTime === lastVT) return;
+    if (ctx !== c) return;
+    schedule();
+    if (camVideo.readyState < 2 || (!rvfc && camVideo.currentTime === lastVT)) return;
     lastVT = camVideo.currentTime;
     const now = performance.now();
     let hands = [];
     try { hands = handTracker.detect(camVideo, now); } catch (e) { hands = []; }
+    const recording = c.mode === "recording";
+    if (!recording && now - lastBodyAt >= BODY_EVERY_MS) {
+      lastBodyAt = now;
+      let b = null;
+      try { b = handTracker.detectBody(camVideo, now); } catch (e) { b = null; }
+      c.bodyHist.push(b);
+      if (c.bodyHist.length > BODY_HIST) c.bodyHist.shift();
+      shownBody = b;
+      c.bodyState.hidden = !handTracker.hasBody;
+      c.bodyState.textContent = b ? t("L-43") : t("L-44");
+      c.bodyState.classList.toggle("on", !!b);
+    }
     if (c.overlay.width !== camVideo.videoWidth) { c.overlay.width = camVideo.videoWidth || 640; c.overlay.height = camVideo.videoHeight || 480; }
     drawHands(g, hands, { mirror: true });
+    drawBody(g, recording ? c.fixedBody : shownBody, { mirror: true });
     c.handState.textContent = hands.length ? t("L-19") : t("L-20");
     c.handState.classList.toggle("on", hands.length > 0);
-    if (c.mode === "recording" && now - lastStored >= MIN_FRAME_MS) {
-      // 몸 모델은 기록할 때만, 그것도 3프레임에 한 번(약 10 fps)만 돌리고 사이에는 직전 값을 쓴다(어깨·코는 천천히 움직임)
-      if (c.frames.length % 3 === 0) {
-        try { c.lastBody = handTracker.detectBody(camVideo, now); } catch (e) { c.lastBody = null; }
+    if (recording && now - lastStored >= MIN_FRAME_MS) {
+      // 기록 전에 어깨를 못 잡았으면(fixedBody 없음) 기록 중에 6프레임마다 한 번만 몸 모델을 돌린다
+      if (!c.fixedBody && c.frames.length % 6 === 0) {
+        try { c.lastBody = handTracker.detectBody(camVideo, now) || c.lastBody; } catch (e) { /* 손만 씀 */ }
       }
-      const body = c.lastBody || null;
+      const body = c.fixedBody || c.lastBody || null;
       c.frames.push({ width: camVideo.videoWidth, height: camVideo.videoHeight, hands, body });
       lastStored = now;
     }
   }
-  cancelAnimationFrame(c.raf);
-  c.raf = requestAnimationFrame(tick);
+  stopLoop(c);
+  schedule();
 }
 
 // 녹화 길이 = 사전 영상 길이(사장 지시 11/16). 영상 정보를 아직 모르면 CONFIG.LAB_RECORD_SECONDS
@@ -285,6 +321,7 @@ function begin() {
   [3, 2, 1].forEach((n, i) => later(i * 1000, () => show(h("span", { class: "count" }, t("L-16", { "3/2/1": n })))));
   later(3000, () => {
     c.recSec = recordSeconds(c);
+    c.fixedBody = medianBody(c.bodyHist);   // 기록 직전 얼굴·어깨 위치 하나로 고정
     c.mode = "recording";
     startClip(c);
     later(c.recSec * 1000, () => {
@@ -307,14 +344,20 @@ async function analyze(frames) {
   screen("analyzing", [header(t("L-09", { "단어": c.word.name })), mini, body]);
   c.stopReplay = replay(mini, frames, { durationMs: c.recSec * 1000 });
 
-  const prep = prepareFeatures(frames, { flip: CONFIG.HANDEDNESS_FLIP, minFrames: CONFIG.LAB_MIN_HAND_FRAMES });
+  // 거울처럼 따라 했는지 보고(normalize.js mirrorPlan) 그대로·뒤집은 것 중 필요한 것만 모델에 넣는다
+  const opts = { flip: CONFIG.HANDEDNESS_FLIP, minFrames: CONFIG.LAB_MIN_HAND_FRAMES };
+  const plan = mirrorPlan(frames, CONFIG.HANDEDNESS_FLIP);
+  const preps = [];
+  if (plan !== "mirror") preps.push(prepareFeatures(frames, opts));
+  if (plan !== "as-is") preps.push(prepareFeatures(frames.map(mirrorFrame), opts));
+  const prep = preps.find((p) => !p.error) || preps[0];
   if (prep.error) {        // E-09: 순위를 찾지 않음. [다시 해보기]는 시도 횟수에 넣지 않음
     body.replaceChildren(errorBox("E-09", { [btn("L-31")]: () => showPractice() }));
     return;
   }
   const runRank = async () => {
     body.replaceChildren(spinner(t("L-21")));
-    const r = await rank(prep.windows.length ? prep.windows : prep.features, allWords());
+    const r = await rankBest(preps.filter((p) => !p.error).map((p) => (p.windows.length ? p.windows : p.features)), allWords());
     if (ctx !== c) return;
     if (r.error === "E-08") {
       body.replaceChildren(errorBox("E-08", { [btn("C-11")]: runRank, [btn("L-38")]: () => go("/lab") }));

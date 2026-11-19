@@ -140,3 +140,43 @@ export function windowSequences(featFrames) {
   }
   return out.slice(0, 12);   // model.js BATCH 와 같은 최대 개수
 }
+
+// ── (11/19) 거울처럼 따라 한 동작 맞추기 ──
+// 사전 영상을 마주 보고 따라 하면 많은 사람이 거울처럼 반대 손을 쓴다. 사전 영상 42개로 재 보니
+// 그대로 넣으면 상위1 38/42 인데, 거울처럼 한 동작은 9/42 로 떨어졌다(scratchpad 실험, design.md 16절).
+// 그래서 더 많이 움직인 손이 왼손이면 좌우를 뒤집어 넣고, 두 손이 비슷하게 움직이면 두 방향 다 모델에 넣어 본다(model.js rankBest).
+// 이렇게 하면 그대로 한 동작·거울처럼 한 동작 모두 36/42. 왼손잡이도 같은 효과.
+
+// 좌우를 뒤집은 프레임: x → 1−x, MediaPipe 손 라벨 맞바꿈, 오른어깨·왼어깨 맞바꿈
+export function mirrorFrame(f) {
+  const fx = (p) => (p ? [1 - p[0], p[1]] : null);
+  return {
+    ...f,
+    hands: (f.hands || []).map((hd) => ({ label: hd.label === "Left" ? "Right" : "Left", landmarks: hd.landmarks.map(([x, y]) => [1 - x, y]) })),
+    body: f.body && f.body.rs && f.body.ls ? { nose: fx(f.body.nose), rs: fx(f.body.ls), ls: fx(f.body.rs) } : f.body || null,
+  };
+}
+
+// 실제 오른손·왼손 손목이 움직인 거리 합(픽셀)
+export function handMotion(frames, flip) {
+  const sum = [0, 0], prev = [null, null];
+  for (const f of frames) {
+    const { right, left } = assignHands(f, flip);
+    [right, left].forEach((px, k) => {
+      if (!px) return;
+      if (prev[k]) sum[k] += Math.hypot(px[0][0] - prev[k][0], px[0][1] - prev[k][1]);
+      prev[k] = px[0];
+    });
+  }
+  return { right: sum[0], left: sum[1] };
+}
+
+// 어느 방향으로 모델에 넣을지: "as-is"(그대로) | "mirror"(뒤집어서) | "both"(둘 다 넣어 보고 모델이 고름)
+export const MIRROR_RATIO = 1.5;
+export function mirrorPlan(frames, flip) {
+  const { right, left } = handMotion(frames, flip);
+  const q = left / (right + 1e-6);
+  if (q > MIRROR_RATIO) return "mirror";
+  if (q < 1 / MIRROR_RATIO) return "as-is";
+  return "both";
+}

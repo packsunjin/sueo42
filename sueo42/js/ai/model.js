@@ -52,7 +52,12 @@ export function preload() {
 }
 
 // features: [30][90] 또는 창 여러 개 [n][30][90], words: 단어 목록. 돌려주는 값: { names: [①, ②], trial } 또는 { error }
-export async function rank(features, words) {
+export function rank(features, words) {
+  return rankBest([features], words);
+}
+
+// (11/19) 후보 여러 개(그대로·좌우 뒤집음)를 각각 모델에 넣고, 1위 값이 더 큰 후보의 순위를 쓴다(값은 고르는 데만 쓰고 버림)
+export async function rankBest(candidates, words) {
   const size = CONFIG.LAB_RANK_SIZE;
   if (!CONFIG.MODEL_URL) {
     return { names: sample(words, size).map((w) => w.name), trial: true };
@@ -62,14 +67,20 @@ export async function rank(features, words) {
   catch (e) { console.warn("AI 모델 불러오기 실패:", e && e.message); return { error: "E-08" }; }
   try {
     const { tf, model, labels } = m;
-    const order = tf.tidy(() => {
-      // features 가 창 여러 개([n][30][90])면 창마다 낸 값을 더해 하나의 순위로(값은 정렬에만 쓰고 버림)
-      // 입력 크기를 늘 BATCH(12)로 고정해야 크기가 바뀔 때마다 1~2초씩 멈추지 않는다 → 모자라면 0 으로 채우고 앞 n 개만 더함
-      const seqs = (Array.isArray(features[0]?.[0]) ? features : [features]).slice(0, BATCH);
-      const pad = Array.from({ length: BATCH - seqs.length }, () => ZERO_SEQ);
-      const out = model.predict(tf.tensor3d(seqs.concat(pad), [BATCH, 30, 90], "float32")).slice([0, 0], [seqs.length, -1]).sum(0);
-      return Array.from(tf.topk(out.reshape([-1]), labels.length).indices.dataSync()); // 번호만 꺼냄
-    });
+    let best = null, bestTop = -Infinity;
+    for (const features of candidates) {
+      const sc = tf.tidy(() => {
+        // features 가 창 여러 개([n][30][90])면 창마다 낸 값을 더함
+        // 입력 크기를 늘 BATCH(12)로 고정해야 크기가 바뀔 때마다 1~2초씩 멈추지 않는다 → 모자라면 0 으로 채우고 앞 n 개만 더함
+        const seqs = (Array.isArray(features[0]?.[0]) ? features : [features]).slice(0, BATCH);
+        const pad = Array.from({ length: BATCH - seqs.length }, () => ZERO_SEQ);
+        const out = model.predict(tf.tensor3d(seqs.concat(pad), [BATCH, 30, 90], "float32")).slice([0, 0], [seqs.length, -1]).mean(0);
+        return Array.from(out.dataSync());
+      });
+      const top = Math.max(...sc);
+      if (top > bestTop) { bestTop = top; best = sc; }
+    }
+    const order = best.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map((x) => x[1]);   // 번호만 남김
     const known = new Set(words.map((w) => w.name));
     const names = order.map((i) => labels[i]).filter((n) => known.has(n)).slice(0, size);
     if (names.length < size) throw new Error("words.csv 에 있는 이름이 모자람");

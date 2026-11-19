@@ -84,6 +84,7 @@ export const handTracker = {
   },
 
   get delegate() { return delegateNow; },
+  get hasBody() { return !!poser; },   // 몸 모델이 없으면(불러오기 실패) 얼굴·어깨 안내를 숨긴다
 
   // 프레임 하나 → [{ label: "Left"|"Right", landmarks: [[x,y]…21] }] (z·점수는 버림)
   detect(video, timestampMs) {

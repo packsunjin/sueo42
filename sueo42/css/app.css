@@ -503,3 +503,11 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .chip-stat.streak.lit { background: #d4361a; border-color: #a82810; }
 .chip-stat.level { color: var(--sky-edge); }
 .chip-stat.streak:not(.lit) { color: #d4361a; }
+
+/* (11/19) 카메라 아래 상태 두 개: 손 / 얼굴·어깨. 잡히면 초록, 아니면 회색(판정이 아니라 카메라 상태) */
+.track-state { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.track-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: 999px; font-size: 14px; font-weight: 700;
+  background: var(--surface); color: var(--muted); border: 2px solid var(--line); }
+.track-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .6; }
+.track-pill.on { background: var(--g-100); color: var(--g-700); border-color: #b6e3c8; }
+.track-pill.on::before { opacity: 1; }
