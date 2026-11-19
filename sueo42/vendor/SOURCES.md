@@ -38,3 +38,4 @@
 - Geist 1.3.1 (11/18 추가, 숫자·영문 글꼴, taste-skill 이 정해 준 글꼴): SIL Open Font License 1.1, 원문 geist@1.3.1/LICENSE.txt. 저작자 Vercel. 한글은 Pretendard.
 - Outfit 5.3.0(fontsource) · Sarina 5.3.0(fontsource) (11/18 추가, Meta Astryx「Butter」테마의 글꼴): 둘 다 SIL Open Font License 1.1, 원문 각 폴더 LICENSE.txt. 영문·숫자만 있어 한글은 Pretendard.
 - Meta Astryx「Butter」테마 색·둥글기·그림자·움직임 값(11/18): @astryxdesign/theme-butter 0.7.16 의 dist/theme.css 에서 옮겨 css/app.css 맨 위 :root 에 적음. MIT License, Copyright (c) Meta Platforms, Inc. and affiliates. 원문 astryx-theme-butter@0.7.16/LICENSE.txt. React 컴포넌트는 쓰지 않음(값만).
+- Fredoka(fontsource 5.3.0, 굵기 700, SIL Open Font License 1.1, Copyright 2016 The Fredoka Project Authors) (11/19): 로고 img/logo.svg 의 숫자 "42" 윤곽만 옮겨 씀. 글꼴 파일은 앱에 넣지 않음

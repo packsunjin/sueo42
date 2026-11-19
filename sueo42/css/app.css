@@ -60,7 +60,7 @@ a { color: var(--g-600); font-weight: 700; text-underline-offset: 3px; }
 .status-bar { position: sticky; top: 0; z-index: 10; height: var(--status-h); padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
   gap: 8px; background: var(--bg); border-bottom: 2px solid var(--line); }
 .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; letter-spacing: -.04em; color: var(--g-900); }
-.brand-logo { width: 34px; height: 34px; display: block; }
+.brand-logo { width: 40px; height: 31px; display: block; }
 .status-chips { display: inline-flex; gap: 6px; }
 .chip-stat { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px 0 10px; border-radius: 12px; font-weight: 800; font-size: 15px;
   color: var(--muted); border: 2px solid var(--line); background: var(--card); }
@@ -169,7 +169,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
   background: var(--card); color: var(--g-600); border: 2px solid var(--line); border-bottom-width: 4px; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 800; }
 .bubble::after { content: ""; position: absolute; top: 100%; left: 50%; width: 10px; height: 10px; background: var(--card); border-right: 2px solid var(--line);
   border-bottom: 2px solid var(--line); transform: translate(-50%, -4px) rotate(45deg); }
-.path-art { position: absolute; top: 150px; width: 104px; height: auto; pointer-events: none; }
+.path-art { position: absolute; top: 170px; width: 96px; height: auto; pointer-events: none; opacity: .95; }
 .path-art.right { right: 0; } .path-art.left { left: 0; }
 @media (max-width: 360px) { .path-art { width: 76px; } }
 .home > .source { margin: 0 0 16px; }
@@ -207,7 +207,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--g-600); flex: none; }
 .empty { padding: 20px 16px; color: var(--muted); }
 .empty-state { text-align: center; padding: 30px 20px; background: var(--card); border: 2px solid var(--line); border-bottom-width: 5px; border-radius: var(--r-lg); color: var(--muted); }
-.empty-icon { width: 110px; height: 96px; margin: 0 auto 12px; background: url("../img/bubbles.svg") center / contain no-repeat; }
+.empty-icon { width: 110px; height: 86px; margin: 0 auto 12px; background: url("../img/bubbles.svg") center / contain no-repeat; }
 .empty-icon svg { display: none; }
 
 /* ── 사전 영상 ── */
@@ -242,7 +242,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 
 /* ── 첫 화면 ── */
 .start { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; text-align: center; }
-.start-logo { width: 124px; height: 124px; }
+.start-logo { width: 150px; height: 117px; }
 .app-name { font-size: 38px; letter-spacing: -.05em; }
 .tagline { color: var(--muted); font-weight: 600; }
 
@@ -383,10 +383,86 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .picker { display: flex; flex-direction: column; } .picker-list { overflow-y: auto; margin-top: 10px; }
 .picker-stage h4 { margin: 14px 0 6px; font-size: 14px; color: var(--muted); }
 .saved-hero { text-align: center; padding: 22px 18px 18px; background: var(--g-100); border-radius: 20px; border-bottom: 5px solid #b6e3c8; margin: 8px 0 16px; }
-.saved-hero::before { content: ""; display: block; width: 110px; height: 96px; margin: 0 auto 10px; background: url("../img/bubbles.svg") center / contain no-repeat; }
+.saved-hero::before { content: ""; display: block; width: 110px; height: 86px; margin: 0 auto 10px; background: url("../img/bubbles.svg") center / contain no-repeat; }
 .saved-title { margin: 0 0 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .btn:active:not(:disabled), .option:active:not(:disabled), .chip:active, .word-card:active, button.card:active, .btn-back:active, .wp-node:active { transform: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   11/19 2차(사장: "앱이 너무 찐하다", "블록마다 단색 말고 입체감"):
+   ① 진한 초록으로 꽉 채운 배너 → 연한 초록·연한 연두 면 + 진초록 글자(대비 10.6~11.2:1). 진한 초록은 버튼·강조에만
+   ② 모든 블록에 입체: 아래 두꺼운 테두리 + 위쪽 안쪽 밝은 선 + 바닥에 깔린 부드러운 그림자(그라데이션 없음)
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --pale-green: #dff5e7; --pale-green-line: #bfe6cf; --pale-green-edge: #9fd3b4;
+  --pale-lime: #eef9dc;  --pale-lime-line: #d6eeb0;  --pale-lime-edge: #b9dc84;
+  --raise: inset 0 2px 0 rgba(255, 255, 255, .85), 0 12px 18px -14px rgba(15, 61, 43, .45);
+  --raise-sm: inset 0 2px 0 rgba(255, 255, 255, .85), 0 6px 10px -8px rgba(15, 61, 43, .4);
+}
+/* 흰 블록들: 입체 */
+.card, .facts-card, .word-list, .empty-state, .evidence, .rank-list, .search-field, .error-box { box-shadow: var(--raise); }
+.option, .chip, .btn-secondary, .btn-danger, .btn-chip, .btn-back, .word-card, .stage-sheet-words li, .bubble { box-shadow: var(--raise-sm); }
+.btn-primary, .btn-ok { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), 0 10px 16px -10px rgba(15, 92, 56, .7); }
+.btn:active:not(:disabled), .option:active:not(:disabled), .chip:active, .word-card:active, .btn-back:active { box-shadow: none; }
+
+/* 직접 해보기 배너: 연한 초록 면 */
+.lab-banner { background: var(--pale-green); color: var(--g-900); border: 2px solid var(--pale-green-line); border-bottom: 6px solid var(--pale-green-edge); box-shadow: var(--raise); }
+.lab-banner h2 { color: var(--g-900); }
+.lab-banner p { color: var(--g-900); opacity: 1; font-weight: 500; }
+.lab-banner .tag-trial { background: #fff; color: var(--g-700); }
+.lab-banner .btn-light, .unit-banner .btn-light { background: var(--g-600); color: #fff; border-color: var(--g-600); border-bottom-color: var(--g-700);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .28), 0 8px 14px -10px rgba(15, 92, 56, .7); }
+/* 단계 배너: 연한 초록 · 연한 연두 번갈아 */
+.unit-banner { color: var(--g-900); background: var(--pale-green); border: 2px solid var(--pale-green-line); border-bottom: 6px solid var(--pale-green-edge); box-shadow: var(--raise); }
+.unit:nth-of-type(even) .unit-banner { background: var(--pale-lime); border-color: var(--pale-lime-line); border-bottom-color: var(--pale-lime-edge); }
+.unit-label { color: var(--g-700); opacity: 1; }
+.unit-progress { color: #3f5248; opacity: 1; }
+/* 결과·레벨 카드: 연한 면 */
+.result-card { background: var(--pale-green); color: var(--g-900); border: 2px solid var(--pale-green-line); border-bottom: 6px solid var(--pale-green-edge); box-shadow: var(--raise); }
+.result-card h2 { color: var(--g-700); opacity: 1; }
+.level-card { background: var(--pale-green); color: var(--g-900); border: 2px solid var(--pale-green-line); border-bottom: 6px solid var(--pale-green-edge); box-shadow: var(--raise); }
+.level-card .level-num { color: var(--g-900); }
+.level-card .bar { background: #fff; box-shadow: inset 0 1px 2px rgba(15, 61, 43, .15); } .level-card .bar > span { background: var(--g-500); }
+.level-card .bar-label, .level-card .muted { color: #3f5248; opacity: 1; }
+.streak-tile { background: var(--pale-lime); border-color: var(--pale-lime-line); border-bottom-color: var(--pale-lime-edge); }
+.saved-hero { border: 2px solid var(--pale-green-line); border-bottom: 6px solid var(--pale-green-edge); background: var(--pale-green); box-shadow: var(--raise); }
+/* 진행 막대: 안쪽이 파인 홈처럼 */
+.bar, .mini-bar { box-shadow: inset 0 2px 3px rgba(15, 61, 43, .14); }
+.bar > span, .mini-bar > span { box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35); }
+/* 단어 동그라미: 바닥 그림자 */
+.wp-node { box-shadow: 0 6px 0 var(--line-edge), 0 14px 16px -12px rgba(15, 61, 43, .5); }
+.wp-node.done { box-shadow: 0 6px 0 var(--g-500-edge), 0 14px 16px -12px rgba(15, 61, 43, .5); }
+.wp-node.next { box-shadow: 0 6px 0 var(--g-700), 0 0 0 6px var(--lime), 0 16px 18px -10px rgba(15, 61, 43, .5); }
+/* 상태 줄·탭 바: 테두리 대신 얕은 그림자 */
+.status-bar { border-bottom: 0; box-shadow: 0 2px 0 var(--line), 0 6px 12px -10px rgba(15, 61, 43, .35); }
+.tab-bar { border-top: 0; box-shadow: 0 -2px 0 var(--line), 0 -6px 14px -10px rgba(15, 61, 43, .35); }
+.tab.on .tab-icon { box-shadow: var(--raise-sm); }
+
+/* ── 11/19 3차 (사장: "다 초록 쓰라는 건 아니잖아, 불은 빨간색"): 뜻이 있는 아이콘은 그 사물의 색.
+   초록 = 앱 색(버튼·길·진행). 불(연속 학습) = 빨강·주황, 배지·메달 = 금색, 레벨 = 파랑.
+   직접 해보기 결과 화면에는 이 색들을 쓰지 않는다(판정처럼 보이지 않게). ── */
+:root {
+  --fire: #ff4b2b; --fire-edge: #d93a1c; --fire-pale: #fff0eb; --fire-line: #ffd2c4; --fire-ink: #8a1f0b;
+  --gold: #ffc23d; --gold-edge: #e09a00; --gold-pale: #fff7e0; --gold-ink: #6b4500;
+  --sky: #1c9cf0; --sky-edge: #1178c4; --sky-pale: #e6f4fe; --sky-line: #bfe2fb; --sky-ink: #0b3f6b;
+}
+.chip-stat.streak { color: var(--fire); }
+.chip-stat.streak.lit { color: #fff; background: var(--fire); border-color: var(--fire-edge); }
+.chip-stat.level { color: var(--sky); }
+.today.lit .today-icon, .streak-flame { background: var(--fire); color: #fff; box-shadow: inset 0 -3px 0 var(--fire-edge); }
+.streak-tile { background: var(--fire-pale); border-color: var(--fire-line); border-bottom-color: #ffb39c; }
+.streak-tile h2 { color: var(--fire-ink); }
+.week li.on .day-dot { background: var(--fire); border-color: var(--fire-edge); color: #fff; }
+.level-card { background: var(--sky-pale); border-color: var(--sky-line); border-bottom-color: #93cdf5; color: var(--sky-ink); }
+.level-card .level-num { color: var(--sky-ink); }
+.level-card .bar > span { background: var(--sky); }
+.level-card .bar-label, .level-card .muted { color: #33536e; }
+.badge.on .medal { background: var(--gold); color: var(--gold-ink); border-bottom: 5px solid var(--gold-edge); }
+.toast-icon { background: var(--gold); color: var(--gold-ink); }
+/* 숫자가 올라가는 칸은 글자 대비 4.5 이상: 진한 불색·진한 파랑 */
+.chip-stat.streak.lit { background: #d4361a; border-color: #a82810; }
+.chip-stat.level { color: var(--sky-edge); }
+.chip-stat.streak:not(.lit) { color: #d4361a; }
