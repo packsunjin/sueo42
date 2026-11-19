@@ -4,6 +4,16 @@ import { t, btn, ERROR_COPY, BADGE_COPY, unbracket } from "./copy.js";
 import { CONFIG } from "../config.js";
 import { go, back } from "./router.js";
 import { BADGES } from "./game/progress.js";
+import { thumbOf } from "./data/words.js";
+
+// 사전 영상의 작은 그림(국립국어원 한국수어사전이 주는 215×161 그대로, 편집 안 함). 못 불러오면 자리만 남김
+export function signThumb(w, cls = "thumb") {
+  const src = thumbOf(w);
+  if (!src) return null;
+  const img = h("img", { class: cls, src, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+  img.addEventListener("error", () => img.classList.add("broken"), { once: true });
+  return img;
+}
 
 // ── 선 아이콘(직접 그린 단순한 SVG, 외부 이미지 없음) ──
 const ICONS = {

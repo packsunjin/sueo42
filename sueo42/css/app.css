@@ -490,7 +490,7 @@ button.card:active { transform: scale(.99); }
 /* ── 로고 ── */
 .brand-logo { width: 42px; height: 28px; display: block; }
 .start::before { content: none; }
-.start-logo { width: 132px; height: 88px; margin-bottom: 4px; }
+.start-logo { width: 128px; height: 113px; margin-bottom: 6px; }
 
 /* ════════════════════════════════════════════════════════════════════
    11/18 10차: 완성도 다듬기 — 모든 화면에 같은 부품 하나씩(깊이·꾸민 버튼·아이콘 뒤로 버튼·탭 표시·카드 그림자·장식)
@@ -507,7 +507,7 @@ body { background: var(--bg); }
 /* 상태 줄·로고 */
 .status-bar { box-shadow: 0 1px 0 var(--line); border-bottom: 0; }
 .brand { font-size: 20px; letter-spacing: -.04em; }
-.brand-logo { width: 48px; height: 32px; }
+.brand-logo { width: 36px; height: 32px; }
 .chip-stat { height: 34px; box-shadow: 0 1px 2px rgba(17, 49, 79, .06); }
 
 /* 탭 바: 선택한 탭은 아이콘 뒤에 알약 */
@@ -624,3 +624,59 @@ body { background: var(--bg); }
 .pane-label { color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) { .btn-primary:hover::after { transform: none; } }
+
+/* ════════════════════════════════════════════════════════════════════
+   11/18 11차: 단색 블록이 허전하다(사장) → 카드 면에 층을 줌
+   ① 같은 색 안에서 밝기만 바뀌는 그라데이션(Schloss & Palmer 2011: 같은 색상·다른 밝기가 가장 조화)
+   ② 아주 옅은 점 무늬 ③ 왼쪽 위 빛 ④ 오른쪽 아래 구석에 로고 말풍선(흐리게) ⑤ 카드 안에 실제 사전 그림
+   직접 해보기 결과 화면에는 넣지 않음(판정처럼 보이지 않게 담백하게)
+   ════════════════════════════════════════════════════════════════════ */
+:root {
+  --dots: radial-gradient(rgba(17, 49, 79, .07) 1px, transparent 1.4px) 0 0 / 14px 14px;
+  --glow: radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, .75) 0%, rgba(255, 255, 255, 0) 55%);
+}
+.card-hero, .stage-list .stage-card, .lab-pick .stage-fold, .records .level-card, .records .streak-tile, .result-card, .lab-saved .saved-hero {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--glow), var(--dots), linear-gradient(150deg, var(--fill-a, var(--sf)) 0%, var(--fill-b, var(--sf)) 100%);
+}
+.card-hero::before, .stage-list .stage-card::before, .lab-pick .stage-fold::before, .records .level-card::before, .records .streak-tile::before, .result-card::before {
+  content: ""; position: absolute; right: -14px; bottom: -12px; width: 110px; height: 77px; z-index: -1; pointer-events: none;
+  background: url("../img/bubbles.svg") center / contain no-repeat; opacity: .16; transform: rotate(-8deg);
+}
+/* 면 색(같은 색상의 밝은 쪽 → 조금 진한 쪽) */
+.card-hero { --fill-a: #fff8e8; --fill-b: #ffe9bf; }
+[data-stage="1"], [data-stage="4"], [data-stage="7"] { --fill-a: #eefafa; --fill-b: #cdeeee; }
+[data-stage="2"], [data-stage="5"]                   { --fill-a: #fff8e8; --fill-b: #ffe6b3; }
+[data-stage="3"], [data-stage="6"]                   { --fill-a: #f1f4f8; --fill-b: #d9e1ea; }
+.records .level-card { --fill-a: #eefafa; --fill-b: #cdeeee; }
+.records .streak-tile { --fill-a: #fff8e8; --fill-b: #ffe6b3; }
+.result-card { --fill-a: #eefafa; --fill-b: #cdeeee; }
+.result-card.is-best { --fill-a: #fff8e8; --fill-b: #ffe2a6; }
+.lab-saved .saved-hero { --fill-a: #eefafa; --fill-b: #d6f1f1; }
+.card-hero::after { z-index: 0; }
+.card-hero > *, .stage-list .stage-card > *, .lab-pick .stage-fold > *, .records .level-card > *, .records .streak-tile > *, .result-card > * { position: relative; }
+
+/* 흰 카드도 아주 옅은 빛·점 무늬 */
+.card:not(.card-hero):not(.stage-card):not(.stage-fold):not(.level-card):not(.streak-tile):not(.result-card) {
+  background: var(--glow), radial-gradient(rgba(17, 49, 79, .035) 1px, transparent 1.4px) 0 0 / 14px 14px, var(--card);
+}
+.card-small { position: relative; overflow: hidden; }
+.card-small::after { content: ""; position: absolute; right: -10px; bottom: -10px; width: 64px; height: 64px; border-radius: 50%;
+  background: var(--accent-soft); opacity: .8; z-index: 0; }
+.card-small > * { position: relative; z-index: 1; }
+.card-pair .card-small:nth-child(2)::after { background: #ffe6b3; }
+
+/* 카드 안 사전 그림 */
+.thumb-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 2px 0; }
+.thumb { width: 100%; aspect-ratio: 215 / 161; object-fit: cover; border-radius: 6px; display: block; background: rgba(255, 255, 255, .6);
+  box-shadow: 0 1px 2px rgba(17, 49, 79, .15); }
+.thumb.broken { visibility: hidden; }
+.word-card { flex-direction: column; gap: 4px; padding: 6px 6px 8px; min-height: 0; }
+.word-card .thumb { border-radius: 8px; }
+.word-card > span:first-of-type { font-size: 14px; }
+.word-card .dot { position: absolute; top: 10px; right: 10px; box-shadow: 0 0 0 2px #fff; }
+.lab-pick > .source, .quiz-home > .source { margin: 4px 0 8px; }
+
+/* 홈 학습 길: 단계 동그라미도 같은 면 */
+.path-step .node { background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .85), transparent 55%), linear-gradient(150deg, var(--fill-a), var(--fill-b)); }
+.path-step .node.done { background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .25), transparent 55%), var(--ink); }

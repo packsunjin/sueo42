@@ -1,7 +1,7 @@
 // [S9 직접 해보기: 단어 고르기] 단계 1~7 접는 목록(이어서 할 단계 또는 ?stage=n 이 펼쳐짐), 단어를 누르면 #/lab/word/번호 로. 연습 화면(S10~S15)은 lab.js.
 import { h } from "../util.js";
 import { t } from "../copy.js";
-import { header, trialTag, go } from "../ui.js";
+import { header, trialTag, go, signThumb } from "../ui.js";
 import { isTrialModel } from "../../config.js";
 import { allWords, wordsOfStage, stageNumbers } from "../data/words.js";
 import { getState } from "../store.js";
@@ -23,6 +23,8 @@ export function renderLabPick(el, { query = {} } = {}) {
           : h("span", { class: "muted small" }, t("C-15", { k: stageTried(s, words, n) }))),
       h("div", { class: "word-grid" }, wordsOfStage(n).map((w) =>
         h("button", { class: "word-card", onclick: () => go(`/lab/word/${w.no}`) },
+          signThumb(w),
           h("span", {}, w.name),
-          isTried(s, w.no) ? h("span", { class: "dot", "aria-hidden": "true" }) : null)))))));
+          isTried(s, w.no) ? h("span", { class: "dot", "aria-hidden": "true" }) : null))))),
+    h("p", { class: "source" }, t("C-19"))));
 }

@@ -2,7 +2,7 @@
 // 점수·정답·랭킹은 이 기능에만 있다. 한 판 중에는 탭 바를 숨긴다(main.js HIDE_TABBAR).
 import { h, shuffle, sample, charLen } from "../util.js";
 import { t, btn, COPY } from "../copy.js";
-import { header, button, dictVideo, sourceLine, dictLink, go, openModal, confirmModal, icon } from "../ui.js";
+import { header, button, dictVideo, sourceLine, dictLink, go, openModal, confirmModal, icon, signThumb } from "../ui.js";
 import { CONFIG } from "../../config.js";
 import { allWords, wordsOfStage, stageNumbers } from "../data/words.js";
 import { getState, recordQuizAnswer, recordQuizRound, addRanking } from "../store.js";
@@ -49,11 +49,13 @@ export function renderQuizHome(el) {
             h("strong", {}, t("C-14", { n })),
             stageDone(s, words, n) ? h("span", { class: "tag-done" }, t("C-16")) : null),
           h("span", { class: "stage-words" }, ws.map((w) => w.name).join(" · ")),
+          h("span", { class: "thumb-strip", "aria-hidden": "true" }, ws.map((w) => signThumb(w))),
           h("span", { class: "mini-bar", "aria-hidden": "true" }, h("span", { style: { width: `${(k / 6) * 100}%` } })),
           h("span", { class: "row-between muted small" },
             stageDone(s, words, n) ? h("span", {}) : h("span", {}, t("C-15", { k })),
             best !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: best })) : null)));
     })),
+    h("p", { class: "source" }, t("C-19")),
     h("div", { class: "bottom-actions" }, button(btn("Q-03"), () => go("/ranking"), { kind: "secondary" }))));
 }
 
