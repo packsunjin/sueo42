@@ -208,7 +208,11 @@ async function initCamera() {
   const err = await startCamera(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
   if (err) { c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() })); return; }
-  try { await handTracker.load(); }
+  // (11/19) 먼저 일꾼(다른 스레드)으로. 안 되는 브라우저면 화면 스레드로
+  let viaWorker = false;
+  try { await handTracker.loadWorker(); viaWorker = true; }
+  catch (e) { console.warn("손 찾기 일꾼 실패(화면 스레드로):", e && e.message); }
+  try { if (!viaWorker) await handTracker.load(); }
   catch (e) {
     console.warn("MediaPipe 불러오기 실패:", e && e.message);
     if (ctx === c) c.box.replaceChildren(errorBox("E-07", { [btn("C-11")]: () => initCamera() }));
@@ -218,7 +222,7 @@ async function initCamera() {
   c.box.replaceChildren(camVideo, c.overlay, c.cue);
   camVideo.play().catch(() => {});
   // 이 기기에서 손 찾기가 빠른 방식(GPU/CPU)을 한 번 고른다(처음 한 번만 1~2초, 그동안 [동작 시작]은 잠김)
-  await handTracker.tune(camVideo);
+  if (viaWorker) await handTracker.tuneWorker(camVideo); else await handTracker.tune(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
   c.ready = true;
   syncOrientation();
@@ -249,53 +253,81 @@ function medianBody(list) {
   return { nose: md("nose"), rs: md("rs"), ls: md("ls") };
 }
 function stopLoop(c) {
-  if (!c.raf) return;
-  if (c.rafVideo && camVideo.cancelVideoFrameCallback) camVideo.cancelVideoFrameCallback(c.raf); else cancelAnimationFrame(c.raf);
-  c.raf = 0;
+  if (c.raf) cancelAnimationFrame(c.raf);
+  if (c.vfc && camVideo.cancelVideoFrameCallback) camVideo.cancelVideoFrameCallback(c.vfc);
+  if (c.vfcTimer) cancelAnimationFrame(c.vfcTimer);
+  c.raf = 0; c.vfc = 0; c.vfcTimer = 0;
 }
 function startLoop() {
   const c = ctx;
-  let lastVT = -1, lastStored = -Infinity, lastBodyAt = -Infinity, shownBody = null;
   const g = c.overlay.getContext("2d");
   const rvfc = typeof camVideo.requestVideoFrameCallback === "function";
-  const schedule = () => { c.rafVideo = rvfc; c.raf = rvfc ? camVideo.requestVideoFrameCallback(tick) : requestAnimationFrame(tick); };
-  function tick() {
+  let lastVT = -1, lastStored = -Infinity, lastBodyAt = -Infinity, busy = false, dirty = true;
+  c.lastHands = [];
+  let shownBody = null;
+
+  // 결과 하나가 왔을 때: 화면 상태 갱신 + 기록 중이면 모으기
+  const onHands = (hands, now) => {
     if (ctx !== c) return;
-    schedule();
-    if (camVideo.readyState < 2 || (!rvfc && camVideo.currentTime === lastVT)) return;
-    lastVT = camVideo.currentTime;
-    const now = performance.now();
-    let hands = [];
-    try { hands = handTracker.detect(camVideo, now); } catch (e) { hands = []; }
-    const recording = c.mode === "recording";
-    if (!recording && now - lastBodyAt >= BODY_EVERY_MS) {
-      lastBodyAt = now;
-      let b = null;
-      try { b = handTracker.detectBody(camVideo, now); } catch (e) { b = null; }
-      c.bodyHist.push(b);
-      if (c.bodyHist.length > BODY_HIST) c.bodyHist.shift();
-      shownBody = b;
-      c.bodyState.hidden = !handTracker.hasBody;
-      c.bodyState.textContent = b ? t("L-43") : t("L-44");
-      c.bodyState.classList.toggle("on", !!b);
-    }
-    if (c.overlay.width !== camVideo.videoWidth) { c.overlay.width = camVideo.videoWidth || 640; c.overlay.height = camVideo.videoHeight || 480; }
-    drawHands(g, hands, { mirror: true });
-    drawBody(g, recording ? c.fixedBody : shownBody, { mirror: true });
+    c.lastHands = hands; dirty = true;
     c.handState.textContent = hands.length ? t("L-19") : t("L-20");
     c.handState.classList.toggle("on", hands.length > 0);
-    if (recording && now - lastStored >= MIN_FRAME_MS) {
-      // 기록 전에 어깨를 못 잡았으면(fixedBody 없음) 기록 중에 6프레임마다 한 번만 몸 모델을 돌린다
-      if (!c.fixedBody && c.frames.length % 6 === 0) {
-        try { c.lastBody = handTracker.detectBody(camVideo, now) || c.lastBody; } catch (e) { /* 손만 씀 */ }
-      }
+    if (c.mode === "recording" && now - lastStored >= MIN_FRAME_MS) {
       const body = c.fixedBody || c.lastBody || null;
       c.frames.push({ width: camVideo.videoWidth, height: camVideo.videoHeight, hands, body });
       lastStored = now;
     }
+  };
+  const onBody = (b) => {
+    if (ctx !== c) return;
+    if (c.mode === "recording") { if (b) c.lastBody = b; return; }   // 어깨를 기록 전에 못 잡았을 때만 옴
+    c.bodyHist.push(b);
+    if (c.bodyHist.length > BODY_HIST) c.bodyHist.shift();
+    shownBody = b; dirty = true;
+    c.bodyState.hidden = !handTracker.hasBody;
+    c.bodyState.textContent = b ? t("L-43") : t("L-44");
+    c.bodyState.classList.toggle("on", !!b);
+  };
+
+  // 새 카메라 프레임마다: 손 찾기가 쉬고 있으면 이 (가장 새) 프레임을 보낸다. 바쁘면 이 프레임은 건너뜀 → 밀린 프레임이 쌓이지 않아 늦어지지 않음
+  function pump() {
+    if (ctx !== c) return;
+    c.vfc = rvfc ? camVideo.requestVideoFrameCallback(pump) : 0;
+    if (!rvfc) c.vfcTimer = requestAnimationFrame(pump);
+    if (busy || camVideo.readyState < 2 || (!rvfc && camVideo.currentTime === lastVT)) return;
+    lastVT = camVideo.currentTime;
+    const now = performance.now();
+    const recording = c.mode === "recording";
+    const wantBody = recording ? (!c.fixedBody && c.frames.length % 6 === 0) : now - lastBodyAt >= BODY_EVERY_MS;
+    if (wantBody && !recording) lastBodyAt = now;
+    if (handTracker.usingWorker) {
+      busy = true;
+      handTracker.send(camVideo, now, {
+        body: wantBody,
+        onHands: (hands) => { busy = false; onHands(hands, now); },
+        onBody,
+      }).catch(() => { busy = false; });
+    } else {
+      let hands = [];
+      try { hands = handTracker.detect(camVideo, now); } catch (e) { hands = []; }
+      onHands(hands, now);
+      if (wantBody) { let b = null; try { b = handTracker.detectBody(camVideo, now); } catch (e) { b = null; } onBody(b); }
+    }
+  }
+
+  // 그리기는 화면이 새로 그려질 때마다(가벼움). 새 결과가 있을 때만 다시 그림
+  function draw() {
+    if (ctx !== c) return;
+    c.raf = requestAnimationFrame(draw);
+    if (!dirty) return;
+    dirty = false;
+    if (c.overlay.width !== camVideo.videoWidth && camVideo.videoWidth) { c.overlay.width = camVideo.videoWidth; c.overlay.height = camVideo.videoHeight; }
+    drawHands(g, c.lastHands, { mirror: true });
+    drawBody(g, c.mode === "recording" ? c.fixedBody : shownBody, { mirror: true });
   }
   stopLoop(c);
-  schedule();
+  c.raf = requestAnimationFrame(draw);
+  pump();
 }
 
 // 녹화 길이 = 사전 영상 길이(사장 지시 11/16). 영상 정보를 아직 모르면 CONFIG.LAB_RECORD_SECONDS

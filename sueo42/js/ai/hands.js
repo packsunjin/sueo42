@@ -1,5 +1,6 @@
 // [손 좌표] vendor/ 의 MediaPipe Hand Landmarker(0.10.14, float16/1)를 불러와 카메라 프레임마다 손 21점 좌표(0~1 비율)를 구한다. GPU 가 안 되면 CPU 로.
 // (11/16) Pose Landmarker lite 로 코·양어깨도 구한다(몸 기준 위치, normalize.js bodyFeatures). 몸 모델이 실패해도 손은 그대로 쓴다.
+// (11/19) 일꾼(hand-worker.js)에서 돌리는 길을 먼저 쓴다(loadWorker·send). 일꾼을 못 띄우는 브라우저는 아래 load·detect(화면 스레드)로.
 // (11/18) tune(): 카메라가 켜진 뒤 GPU 로 몇 프레임 재 보고 느리면(그래픽 칩이 약하거나 막힌 컴퓨터) CPU 로 바꿔 더 빠른 쪽을 쓴다.
 import { CONFIG } from "../../config.js";
 
@@ -32,8 +33,60 @@ async function createPose(vision, delegate) {
   });
 }
 
+// ── 일꾼 길 ──
+let worker = null, workerLoading = null, workerHasBody = false, nextId = 1, workerTuned = false, tuneWaiter = null;
+const pending = new Map();   // id → { onHands, onBody }
+const WORKER_TIMEOUT_MS = 30000;
+
 // 시험에서 detect 를 가짜로 바꿔 끼울 수 있게 객체 하나로 내보낸다
 export const handTracker = {
+  // 일꾼을 띄우고 모델을 불러온다. 실패하면 오류를 던진다(→ 화면 스레드 길로 바꿔 씀)
+  loadWorker() {
+    if (worker) return Promise.resolve();
+    if (!workerLoading) {
+      workerLoading = new Promise((resolve, reject) => {
+        let w;
+        try { w = new Worker(abs("js/ai/hand-worker.js")); } catch (e) { reject(e); return; }
+        const timer = setTimeout(() => { w.terminate(); reject(new Error("일꾼 시간 초과")); }, WORKER_TIMEOUT_MS);
+        w.onmessage = (ev) => {
+          const m = ev.data;
+          if (m.type === "ready") {
+            clearTimeout(timer); worker = w; delegateNow = m.delegate; workerHasBody = m.hasBody;
+            w.onmessage = onWorkerMessage; resolve();
+          } else if (m.type === "error") { clearTimeout(timer); w.terminate(); reject(new Error(m.message)); }
+        };
+        w.onerror = (e) => { clearTimeout(timer); w.terminate(); reject(new Error((e && e.message) || "일꾼 오류")); };
+        w.postMessage({
+          type: "init", bundle: abs(CONFIG.MEDIAPIPE_DIR + "/vision_bundle.mjs"), wasm: abs(CONFIG.MEDIAPIPE_DIR + "/wasm"),
+          handModel: abs(CONFIG.HAND_MODEL_URL), poseModel: abs(CONFIG.POSE_MODEL_URL),
+        });
+      }).catch((e) => { workerLoading = null; throw e; });
+    }
+    return workerLoading;
+  },
+  get usingWorker() { return !!worker; },
+
+  // 카메라가 켜진 뒤 한 번: 일꾼이 이 프레임으로 GPU·CPU 중 빠른 쪽을 고른다(처음 1~2초, 그동안 [동작 시작]은 잠김)
+  async tuneWorker(video) {
+    if (!worker || workerTuned) return delegateNow;
+    workerTuned = true;
+    const bitmap = await createImageBitmap(video);
+    return new Promise((resolve) => {
+      tuneWaiter = (m) => { console.info(m.message); delegateNow = m.delegate; resolve(m.delegate); };
+      worker.postMessage({ type: "tune", bitmap }, [bitmap]);
+    });
+  },
+
+  // 프레임 하나를 일꾼에 보낸다. onHands(hands) 가 먼저, body=true 면 onBody(body) 가 뒤에 불린다.
+  // source = ImageBitmap 으로 만들 수 있는 것(video). 보낸 뒤 결과가 오기 전에는 다음 프레임을 보내지 않는 것이 좋다(가장 새 프레임만)
+  async send(source, ts, { body = false, onHands, onBody } = {}) {
+    const bitmap = await createImageBitmap(source);
+    const id = nextId++;
+    pending.set(id, { onHands, onBody, body });
+    worker.postMessage({ type: "frame", id, bitmap, ts, body }, [bitmap]);
+    return id;
+  },
+
   // 한 번만 불러온다. 실패하면 오류를 던진다(→ E-07). 다시 부르면 다시 시도
   load() {
     if (landmarker) return Promise.resolve();
@@ -84,7 +137,7 @@ export const handTracker = {
   },
 
   get delegate() { return delegateNow; },
-  get hasBody() { return !!poser; },   // 몸 모델이 없으면(불러오기 실패) 얼굴·어깨 안내를 숨긴다
+  get hasBody() { return worker ? workerHasBody : !!poser; },   // 몸 모델이 없으면(불러오기 실패) 얼굴·어깨 안내를 숨긴다
 
   // 프레임 하나 → [{ label: "Left"|"Right", landmarks: [[x,y]…21] }] (z·점수는 버림)
   detect(video, timestampMs) {
@@ -116,3 +169,18 @@ export const handTracker = {
     return { nose: pt(0), rs, ls };
   },
 };
+
+function onWorkerMessage(ev) {
+  const m = ev.data;
+  if (m.type === "tuned") { if (tuneWaiter) { tuneWaiter(m); tuneWaiter = null; } return; }
+  const p = pending.get(m.id);
+  if (!p) return;
+  if (m.type === "hands") {
+    if (!p.body) pending.delete(m.id);
+    if (p.onHands) p.onHands(m.hands);
+  } else if (m.type === "body") {
+    pending.delete(m.id);
+    workerHasBody = m.hasBody;
+    if (p.onBody) p.onBody(m.body);
+  }
+}
