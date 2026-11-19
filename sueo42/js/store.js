@@ -55,6 +55,9 @@ export function normalize(raw) {
   s.cameraIntroSeen = raw.cameraIntroSeen === true;
   s.labTries = count(raw.labTries);
   s.quizRounds = count(raw.quizRounds);
+  if (isObj(raw.daily)) {   // (11/19) 오늘의 목표
+    for (const [k, v] of Object.entries(raw.daily)) if (isDay(k) && Number.isFinite(v) && v > 0) s.daily[k] = Math.floor(v);
+  }
   return s;
 }
 
@@ -94,18 +97,19 @@ export const setEventSink = (f) => { eventSink = f; };
 export const setStorageWarn = (f) => { warnSink = f; };
 export const markStorageWarned = () => { storageWarned = true; };
 
-// 기록 하나 적용 → 저장 → 생긴 일(토스트) 보내기
-function record(mutate, opts) {
-  const events = applyRecord(state, allWords(), localDate(), mutate, opts);
+// 기록 하나 적용 → 저장 → 생긴 일 보내기. from: "quiz" | "lab" (직접 해보기에서 생긴 일은 축하 화면 없이 토스트만 — main.js)
+function record(mutate, opts = {}) {
+  const { from = "quiz", ...rest } = opts;
+  const events = applyRecord(state, allWords(), localDate(), mutate, rest);
   save();
-  if (events.length) eventSink(events);
+  if (events.length) eventSink(events, { from });
   return events;
 }
 
 export const recordQuizAnswer = (no) => record(RECORD.quizAnswer(no));
 export const recordQuizRound = (stage, score) => record(RECORD.quizRound(stage, score));
-export const recordLabChoice = (no) => record(RECORD.labChoice(no));   // 1-6 에서 씀
-export const recordLabRetry = () => record(RECORD.labRetry());        // 1-6 에서 씀
+export const recordLabChoice = (no) => record(RECORD.labChoice(no), { from: "lab" });   // 1-6 에서 씀
+export const recordLabRetry = () => record(RECORD.labRetry(), { from: "lab" });        // 1-6 에서 씀
 
 // 랭킹에 올리기(학습 기록이 아니므로 학습한 날에 넣지 않음). 돌려주는 값: 올린 줄의 at
 export function addRanking({ name, score, stage }) {

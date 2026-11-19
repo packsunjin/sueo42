@@ -33,6 +33,10 @@ export const CONFIG = {
   QUIZ_QUESTIONS: 6,
   QUIZ_OPTIONS: 4,
   QUIZ_POINTS_PER_ANSWER: 10,
+  QUIZ_COMBO_FROM: 3,                     // (11/19) 뜻 맞히기에서만: 이 개수째 연속 정답부터
+  QUIZ_COMBO_BONUS: 5,                    //   한 문제에 이만큼 더(정답 점수는 뜻 맞히기에만 — 강연 규칙)
+  DAILY_GOAL: 10,                         // (11/19) 오늘의 목표: 레벨 점수와 같은 셈(뜻 맞히기 1문제 1, 직접 해보기 1번 2). 맞고 틀림은 안 봄
+  STAR_STEPS: [1, 3, 5],                  // (11/19) 단어 별 1·2·3개: 그 단어를 해 본 횟수(뜻 맞히기 + 직접 해보기)
   RANKING_SIZE: 10,
   NICKNAME_MAX: 8,
   TOAST_MS: 2500,

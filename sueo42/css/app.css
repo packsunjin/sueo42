@@ -511,3 +511,63 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .track-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .6; }
 .track-pill.on { background: var(--g-100); color: var(--g-700); border-color: #b6e3c8; }
 .track-pill.on::before { opacity: 1; }
+
+/* ── 11/19 게임 요소 늘림 (사장: "게이미피케이션이 부족함") — 모두 참여 기준, 점수·연속 정답은 뜻 맞히기에만 ── */
+/* 오늘의 목표 카드: 고리 + 숫자 + 연속 학습 */
+.goal-card { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; padding: 14px 16px; background: var(--card);
+  border: 2px solid var(--line); border-bottom-width: 5px; border-radius: var(--r-lg); box-shadow: var(--raise); }
+.goal-card.done { background: var(--gold-pale); border-color: #ffe08a; border-bottom-color: var(--gold-edge); }
+.goal-ring { position: relative; width: 64px; height: 64px; flex: none; }
+.goal-ring svg { width: 64px; height: 64px; transform: rotate(-90deg); }
+.goal-ring .ring-bg { fill: none; stroke: var(--surface); stroke-width: 8; }
+.goal-ring .ring-fg { fill: none; stroke: var(--g-500); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 600ms var(--ease); }
+.goal-card.done .ring-fg { stroke: var(--gold); }
+.goal-ring-icon { position: absolute; inset: 0; display: grid; place-items: center; color: var(--g-600); }
+.goal-card.done .goal-ring-icon { color: var(--gold-ink); }
+.goal-ring-icon svg { width: 24px; height: 24px; }
+.goal-text { min-width: 0; }
+.goal-title { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 0; font-size: 17px; }
+.goal-num { font-weight: 800; color: var(--g-600); }
+.goal-card.done .goal-num { color: var(--gold-ink); }
+.goal-text .muted.small { margin: 2px 0 6px; }
+.goal-streak { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 700; color: var(--muted); }
+.goal-streak svg { width: 18px; height: 18px; flex: none; }
+.goal-streak.lit { color: var(--fire-ink); } .goal-streak.lit svg { color: var(--fire); }
+@keyframes ring-in { from { stroke-dashoffset: 163.4; } }
+.goal-ring .ring-fg { animation: ring-in 800ms 200ms var(--ease) backwards; }
+
+/* 단어 별(해 본 횟수 1·3·5번) */
+.wp-stars { display: flex; gap: 1px; margin-top: 1px; color: var(--line-edge); }
+.wp-stars span { display: grid; }
+.wp-stars svg { width: 14px; height: 14px; }
+.wp-stars .on { color: var(--gold); }
+.wp-stars .on svg { filter: drop-shadow(0 1px 0 var(--gold-edge)); }
+
+/* 뜻 맞히기 연속 정답 */
+.pill.combo { display: inline-flex; align-items: center; gap: 3px; background: var(--fire-pale); color: var(--fire-ink); border-color: var(--fire-line); font-weight: 800; }
+.pill.combo svg { width: 14px; height: 14px; color: var(--fire); }
+.pill.combo[hidden] { display: none; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.pill.combo.bump { animation: bump 380ms var(--ease); }
+.result-combo { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 0; font-weight: 800; color: var(--fire-ink); }
+.result-combo svg { width: 18px; height: 18px; color: var(--fire); }
+
+/* 축하 화면(레벨·단계·배지·오늘의 목표). 직접 해보기 결과에는 쓰지 않음 */
+.celebrate { position: relative; text-align: center; padding-top: 8px; overflow: visible; }
+.celebrate h2 { font-size: 22px; margin: 12px 0 4px; }
+.celebrate-more { margin: 4px 0 0; color: var(--muted); font-weight: 700; }
+.celebrate .btn-col { margin-top: 18px; }
+.celebrate-icon { width: 88px; height: 88px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center;
+  animation: pop-in 520ms var(--ease) backwards; }
+.celebrate-icon svg { width: 44px; height: 44px; }
+.celebrate.kind-level .celebrate-icon { background: var(--sky-pale); color: var(--sky-edge); box-shadow: inset 0 -6px 0 #bfe2fb; }
+.celebrate.kind-badge .celebrate-icon { background: var(--gold); color: var(--gold-ink); box-shadow: inset 0 -6px 0 var(--gold-edge); }
+.celebrate.kind-stage .celebrate-icon { background: var(--g-100); color: var(--g-600); box-shadow: inset 0 -6px 0 #b6e3c8; }
+.celebrate.kind-goal .celebrate-icon { background: var(--gold-pale); color: var(--gold-ink); box-shadow: inset 0 -6px 0 #ffe08a; }
+.confetti { position: absolute; left: -22px; right: -22px; top: -22px; height: 260px; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; top: -12px; width: 8px; height: 13px; border-radius: 2px; opacity: 0;
+  animation: confetti-fall 1.6s var(--d) cubic-bezier(.2,.6,.4,1) forwards; }
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  100% { opacity: 0; transform: translate(var(--x), 250px) rotate(var(--r)); } }
+.toast-icon.goal { background: var(--gold); color: var(--gold-ink); }

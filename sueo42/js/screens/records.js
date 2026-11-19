@@ -4,7 +4,7 @@ import { t, btn, BADGE_COPY, fill } from "../copy.js";
 import { header, button, go, levelBar, confirmModal, toast, icon } from "../ui.js";
 import { getState, clearAll } from "../store.js";
 import { allWords, stageNumbers } from "../data/words.js";
-import { levelInfo, streak, last7, triedCount, totals, stageTried, stageDone, BADGES, badgeProgress } from "../game/progress.js";
+import { levelInfo, streak, last7, triedCount, totals, stageTried, stageDone, BADGES, badgeProgress, goalDays } from "../game/progress.js";
 
 export function renderRecords(el) {
   const s = getState(), words = allWords(), today = localDate();
@@ -22,7 +22,7 @@ export function renderRecords(el) {
 
     h("div", { class: "card streak-tile" },
       h("h2", {}, h("span", { class: "streak-flame", "aria-hidden": "true" }, flameIcon()), t("R-06", { d: streak(s, today) })),
-      h("p", { class: "muted small" }, t("R-07")),
+      h("p", { class: "muted small" }, t("R-07"), " · ", t("R-18", { k: goalDays(s) })),
       h("ol", { class: "week" }, last7(s, today).map((d) => h("li", { title: d.date, class: d.done ? "on" : "" },
         h("span", { class: "day-dot", "aria-hidden": "true" }, d.done ? icon("check", { stroke: 3.2 }) : null),
         h("span", { class: "sr-only" }, d.done ? "●" : "○"),
@@ -42,7 +42,7 @@ export function renderRecords(el) {
       }))),
 
     h("div", { class: "card" },
-      h("h2", {}, t("R-10", { k: got })),
+      h("h2", {}, t("R-10", { k: got, n: BADGES.length })),
       h("ul", { class: "badges" }, BADGES.map((b) => badgeCell(b, s, words)))),
 
     h("div", { class: "btn-col" },

@@ -1,4 +1,4 @@
-// [S1 홈] (11/19 다시 짬, 사장: 듀오링고 같은 구성) 오늘 상태 → 단계마다 초록 배너(단계 n · 단어 · 진행 · [뜻 맞히기])
+// [S1 홈] (11/19 다시 짬, 사장: 듀오링고 같은 구성) 오늘의 목표(고리) + 연속 학습 → 단계마다 초록 배너(단계 n · 단어 · 진행 · [뜻 맞히기])
 // → 그 단계 단어 6개가 굽이치는 동그라미 길(동그라미 안에 그 단어의 사전 그림, 해 본 단어는 체크, 다음 단어는 '여기서부터')
 // → 길 옆 빈자리에 로고 그림. 동그라미를 누르면 아래에서 올라오는 창에 [이 단어 직접 해보기]·[이 단계 뜻 맞히기]·[자세히 보기].
 // 잠금 없음. 상태는 참여(해 본 단어)만 본다. 사전 그림은 국립국어원 한국수어사전 것을 그대로 쓰고 출처 줄(C-19)을 붙인다.
@@ -7,9 +7,9 @@ import { t, btn } from "../copy.js";
 import { button, go, trialTag, openModal, icon, signThumb } from "../ui.js";
 import { getState } from "../store.js";
 import { allWords, wordsOfStage, stageNumbers } from "../data/words.js";
-import { stageTried, stageDone, isTried, learnedToday, streak } from "../game/progress.js";
+import { stageTried, stageDone, isTried, learnedToday, streak, dailyPoints, wordStars } from "../game/progress.js";
 import { startQuiz } from "./quiz.js";
-import { isTrialModel } from "../../config.js";
+import { isTrialModel, CONFIG } from "../../config.js";
 
 // 길에서 동그라미가 좌우로 놓이는 자리(단어 6개, 단계마다 같은 굽이)
 const OFFSETS = [0, 46, 70, 46, 0, -46];
@@ -20,9 +20,7 @@ export function renderHome(el) {
   const nextWord = words.find((w) => !isTried(s, w.no)) || null;
 
   el.append(h("section", { class: "home" },
-    h("div", { class: `today ${lit ? "lit" : ""}` },
-      h("span", { class: "today-icon", "aria-hidden": "true" }, icon("flame", { stroke: 1.8, fill: lit ? "currentColor" : "none" })),
-      h("p", { class: "today-status" }, lit ? t("H-11", { d }) : t("H-10"))),
+    goalCard(dailyPoints(s, today), lit, d),
 
     h("div", { class: "lab-banner" },
       h("div", {},
@@ -51,7 +49,8 @@ export function renderHome(el) {
               "aria-label": `${w.name}${tried ? `, ${t("C-16")}` : ""}` },
               signThumb(w, "wp-img"),
               tried ? h("span", { class: "wp-check", "aria-hidden": "true" }, icon("check", { stroke: 3.2 })) : null),
-            h("span", { class: "wp-label", "aria-hidden": "true" }, w.name));
+            h("span", { class: "wp-label", "aria-hidden": "true" }, w.name),
+            starRow(wordStars(s, w.no)));
         })),
         // 길 옆 빈자리 그림(단계마다 반대쪽)
         h("img", { class: `path-art ${si % 2 ? "left" : "right"}`, src: "img/bubbles.svg", alt: "", "aria-hidden": "true" }));
@@ -65,6 +64,29 @@ export function renderHome(el) {
       h("button", { class: "card card-small", onclick: () => go("/quiz") },
         h("span", { class: "card-icon" }, icon("quiz")),
         h("strong", {}, t("C-04")), h("span", { class: "muted" }, t("H-09"))))));
+}
+
+// (11/19) 오늘의 목표 카드: 고리(오늘 한 만큼) + 목표 숫자 + 연속 학습 한 줄. 맞고 틀림은 안 봄(뜻 맞히기 1문제 1, 직접 해보기 1번 2)
+function goalCard(pts, lit, d) {
+  const n = CONFIG.DAILY_GOAL, k = Math.min(pts, n), done = pts >= n;
+  const R = 26, C = 2 * Math.PI * R;
+  const ring = `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${R}" class="ring-bg"/>` +
+    `<circle cx="32" cy="32" r="${R}" class="ring-fg" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - k / n)).toFixed(1)}"/></svg>`;
+  const ringEl = h("span", { class: "goal-ring" });
+  ringEl.innerHTML = ring;
+  ringEl.append(h("span", { class: "goal-ring-icon" }, done ? icon("check", { stroke: 3 }) : icon("target", { stroke: 2.2 })));
+  return h("div", { class: `goal-card ${done ? "done" : ""}` },
+    ringEl,
+    h("div", { class: "goal-text" },
+      h("p", { class: "goal-title" }, h("strong", {}, t("H-16")), h("span", { class: "goal-num" }, done ? t("H-18") : t("H-17", { k, n }))),
+      h("p", { class: "muted small" }, t("H-19")),
+      h("p", { class: `goal-streak ${lit ? "lit" : ""}` }, icon("flame", { stroke: 1.8, fill: lit ? "currentColor" : "none" }), lit ? t("H-11", { d }) : t("H-10"))));
+}
+
+// 단어 별 1~3개(그 단어를 해 본 횟수 1·3·5번). 0개면 빈 별 세 개
+function starRow(k) {
+  return h("span", { class: "wp-stars", "aria-label": t("H-20", { k }) },
+    [0, 1, 2].map((i) => h("span", { class: i < k ? "on" : "" }, icon("star", { stroke: 1.6, fill: i < k ? "currentColor" : "none" }))));
 }
 
 // 단어 창: 사전 그림 + 이름 + [이 단어 직접 해보기] [이 단계 뜻 맞히기] [자세히 보기]

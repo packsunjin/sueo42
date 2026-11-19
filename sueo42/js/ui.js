@@ -23,6 +23,8 @@ const ICONS = {
   camera: '<path d="M3.5 8h3.5l1.8-2.6h6.4L17 8h3.5v11.5h-17z"/><circle cx="12" cy="13.5" r="3.6"/>',
   chart: '<path d="M4 20h16"/><path d="M6.5 20v-7"/><path d="M12 20V5.5"/><path d="M17.5 20v-10"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+  star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
   medal: '<circle cx="12" cy="14" r="5.5"/><path d="M8.5 3.5 10.5 9M15.5 3.5 13.5 9"/><path d="m12 11.8.9 1.6 1.7.3-1.2 1.2.3 1.7-1.7-.8-1.7.8.3-1.7-1.2-1.2 1.7-.3z"/>',
   up: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
   info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/>',
@@ -196,16 +198,46 @@ function nextToast() {
 }
 
 // 기록 이벤트 → 토스트 문구(T-01~T-04)
+// ── (11/19) 축하 화면: 레벨·단계·배지·오늘의 목표(모두 참여 기준). 직접 해보기에서 생긴 일은 여기 오지 않음(main.js) ──
+// 뜻 맞히기 문제를 푸는 동안에는 모아 뒀다가 결과 화면에서 한 번에 보여 준다(holdCelebrations)
+let celebrateHold = false, celebrateQueue = [];
+export function holdCelebrations(on) {
+  celebrateHold = on;
+  if (!on && celebrateQueue.length) { const q = celebrateQueue; celebrateQueue = []; celebrate(q); }
+}
+const CELEBRATE_ICON = { level: "up", stage: "check", badge: "medal", goal: "target" };
+const CONFETTI = ["#17804f", "#a6e35a", "#ffc23d", "#1c9cf0", "#ff4b2b"];
+export function celebrate(events) {
+  const big = events.filter((e) => CELEBRATE_ICON[e.type]);
+  if (!big.length) return;
+  if (celebrateHold) { celebrateQueue.push(...big); return; }
+  const order = ["level", "badge", "stage", "goal"];
+  big.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+  const top = big[0];
+  const reduce = globalThis.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const confetti = reduce ? null : h("div", { class: "confetti", "aria-hidden": "true" },
+    Array.from({ length: 36 }, (_, i) => h("i", { style: {
+      left: `${(i * 37) % 100}%`, background: CONFETTI[i % CONFETTI.length],
+      "--d": `${(i % 9) * 0.07}s`, "--r": `${(i * 47) % 360}deg`, "--x": `${((i * 29) % 60) - 30}px`,
+    } })));
+  const m = openModal(h("div", { class: `celebrate kind-${top.type}` },
+    confetti,
+    h("span", { class: "celebrate-icon", "aria-hidden": "true" }, icon(CELEBRATE_ICON[top.type], { stroke: 2.4 })),
+    big.map((e, i) => h(i === 0 ? "h2" : "p", { class: i === 0 ? "" : "celebrate-more" }, eventToastText(e))),
+    h("div", { class: "btn-col" }, button(btn("T-06"), () => m.close(), { kind: "primary" }))));
+}
+
 export function eventToastText(ev) {
   if (ev.type === "badge") return t("T-01", { "배지 이름": BADGE_COPY[badgeCopyId(ev.id)].name });
   if (ev.type === "day") return t("T-02", { d: ev.streak });
   if (ev.type === "level") return t("T-03", { n: ev.level });
   if (ev.type === "stage") return t("T-04", { n: ev.stage });
+  if (ev.type === "goal") return t("T-05");
   return "";
 }
 // 기록 이벤트 → 토스트 아이콘 종류(배지 금색 메달, 연속 학습 주황 불꽃, 레벨 주색 화살표, 단계 초록 체크)
-export const eventToastKind = (ev) => ({ badge: "badge", day: "day", level: "level", stage: "stage" }[ev.type] || "info");
-const TOAST_ICON = { badge: "medal", day: "flame", level: "up", stage: "check", info: "info" };
+export const eventToastKind = (ev) => ({ badge: "badge", day: "day", level: "level", stage: "stage", goal: "goal" }[ev.type] || "info");
+const TOAST_ICON = { badge: "medal", day: "flame", level: "up", stage: "check", goal: "target", info: "info" };
 export const badgeCopyId = (id) => BADGES.find((b) => b.id === id).copy;
 
 // "시험용" 표시

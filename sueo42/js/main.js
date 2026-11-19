@@ -4,7 +4,7 @@ import { t } from "./copy.js";
 import { route, startRouter, setHooks, go } from "./router.js";
 import { initStore, getState, onChange, setEventSink, setStorageWarn, markStorageWarned } from "./store.js";
 import { levelInfo, streak, learnedToday } from "./game/progress.js";
-import { toast, eventToastText, eventToastKind, showStorageWarning, icon } from "./ui.js";
+import { toast, eventToastText, eventToastKind, showStorageWarning, icon, celebrate, holdCelebrations } from "./ui.js";
 import { renderStart } from "./screens/start.js";
 import { renderHome } from "./screens/home.js";
 import { renderSearch } from "./screens/search.js";
@@ -82,7 +82,13 @@ function registerRoutes() {
 
 function boot() {
   const storageOk = initStore();
-  setEventSink((events) => events.forEach((ev) => toast(eventToastText(ev), () => go("/records"), eventToastKind(ev))));
+  // (11/19) 큰 일(레벨·단계·배지·오늘의 목표)은 축하 화면, 연속 학습은 토스트. 직접 해보기에서 생긴 일은 모두 토스트만
+  // (AI 결과 뒤에 축하가 뜨면 '맞혔다'로 보일 수 있어서 — 강연 규칙)
+  setEventSink((events, { from } = {}) => {
+    const small = from === "lab" ? events : events.filter((ev) => ev.type === "day");
+    small.forEach((ev) => toast(eventToastText(ev), () => go("/records"), eventToastKind(ev)));
+    if (from !== "lab") celebrate(events);
+  });
   setStorageWarn(showStorageWarning);
   onChange(drawStatus);
 
@@ -92,7 +98,7 @@ function boot() {
   renderStart(app, () => {
     statusEl.hidden = false;
     registerRoutes();
-    setHooks({ before: (pattern) => { closeOpenSheets(); drawStatus(); drawTabs(pattern); } });
+    setHooks({ before: (pattern) => { closeOpenSheets(); holdCelebrations(false); drawStatus(); drawTabs(pattern); } });
     startRouter();
     if (!storageOk) { markStorageWarned(); showStorageWarning(); } // S0 다음 한 번
   });

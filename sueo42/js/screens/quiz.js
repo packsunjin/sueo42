@@ -2,7 +2,7 @@
 // 점수·정답·랭킹은 이 기능에만 있다. 한 판 중에는 탭 바를 숨긴다(main.js HIDE_TABBAR).
 import { h, shuffle, sample, charLen } from "../util.js";
 import { t, btn, COPY } from "../copy.js";
-import { header, button, dictVideo, sourceLine, dictLink, go, openModal, confirmModal, icon, signThumb } from "../ui.js";
+import { header, button, dictVideo, sourceLine, dictLink, go, openModal, confirmModal, icon, signThumb, holdCelebrations } from "../ui.js";
 import { CONFIG } from "../../config.js";
 import { allWords, wordsOfStage, stageNumbers } from "../data/words.js";
 import { getState, recordQuizAnswer, recordQuizRound, addRanking } from "../store.js";
@@ -21,7 +21,7 @@ export function makeQuestion(word, all, rnd = Math.random) {
 export function newRound(stage, all = allWords(), rnd = Math.random) {
   const ws = shuffle(all.filter((w) => w.stage === Number(stage)), rnd).slice(0, CONFIG.QUIZ_QUESTIONS);
   return { stage: Number(stage), items: ws.map((w) => makeQuestion(w, all, rnd)), index: 0, score: 0,
-    done: false, isBest: false, uploadedAt: null };
+    combo: 0, bestCombo: 0, done: false, isBest: false, uploadedAt: null };
 }
 
 export const correctCount = (round) => round.items.filter((q) => q.chosen === q.word.no).length;
@@ -67,10 +67,18 @@ export function renderQuizPlay(el, { stage }) {
   else renderQuestion(el, current);
 }
 
+// (11/19) 연속 정답 보너스: QUIZ_COMBO_FROM 개째 연속 정답부터 한 문제에 QUIZ_COMBO_BONUS 점 더. 점수·정답은 뜻 맞히기에만(강연 규칙)
+export function answerPoints(combo) {
+  return CONFIG.QUIZ_POINTS_PER_ANSWER + (combo >= CONFIG.QUIZ_COMBO_FROM ? CONFIG.QUIZ_COMBO_BONUS : 0);
+}
+
 function renderQuestion(el, round) {
+  holdCelebrations(true);   // 문제 푸는 동안 축하 화면은 결과 화면까지 미룸
   const q = round.items[round.index];
   const total = round.items.length;
   const scoreEl = h("span", { class: "pill score" }, t("Q-06", { s: round.score }));
+  const comboEl = h("span", { class: "pill combo", hidden: round.combo < 2 },
+    icon("flame", { stroke: 1.8, fill: "currentColor" }), t("Q-32", { c: round.combo }));
   const sourceSlot = h("div", {}, sourceLine(q.word, { hideHeadword: true }));
   const answerArea = h("div", { class: "answer-area" });
   const section = h("section", { class: "quiz-play" });
@@ -88,9 +96,18 @@ function renderQuestion(el, round) {
     if (q.chosen !== null) return;          // 한 번 고르면 바꿀 수 없음
     q.chosen = w.no;
     const right = w.no === q.word.no;
-    if (right) round.score += CONFIG.QUIZ_POINTS_PER_ANSWER;
+    let gained = 0;
+    if (right) {
+      round.combo += 1;
+      round.bestCombo = Math.max(round.bestCombo, round.combo);
+      gained = answerPoints(round.combo);
+      round.score += gained;
+    } else round.combo = 0;
     recordQuizAnswer(q.word.no);            // 정답이든 아니든 그 문제 단어 quiz +1
     scoreEl.textContent = t("Q-06", { s: round.score });
+    comboEl.hidden = round.combo < 2;
+    comboEl.lastChild.textContent = t("Q-32", { c: round.combo });
+    if (right && round.combo >= 2) { comboEl.classList.remove("bump"); void comboEl.offsetWidth; comboEl.classList.add("bump"); }
     optionBtns.forEach((b, i) => {
       b.disabled = true;
       const o = q.options[i];
@@ -104,7 +121,8 @@ function renderQuestion(el, round) {
       h("div", { class: "answer-panel-inner" },
         h("p", { class: "answer-msg" },
           right ? h("span", { class: "msg-icon" }, icon("check", { stroke: 3 })) : null,
-          h("span", {}, right ? t("Q-07") : t("Q-08", { "단어": q.word.name }))),
+          h("span", {}, !right ? t("Q-08", { "단어": q.word.name })
+            : round.combo >= CONFIG.QUIZ_COMBO_FROM ? t("Q-33", { p: gained, c: round.combo }) : t("Q-07"))),
         evidenceBox(q.word),
         h("div", { class: "bottom-actions" }, round.index + 1 < total
           ? button(btn("Q-10"), () => next(), { kind })
@@ -133,6 +151,7 @@ function renderQuestion(el, round) {
       h("button", { class: "btn-back", onclick: onBack, "aria-label": btn("C-09") }, icon("back", { stroke: 2.4 }), h("span", { class: "sr-only" }, btn("C-09"))),
       h("div", { class: "bar bar-thick", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": total, "aria-valuenow": round.index + 1 },
         h("span", { style: { width: `${((round.index + 1) / total) * 100}%` } })),
+      comboEl,
       scoreEl),
     h("p", { class: "progress-text" }, t("Q-04", { i: round.index + 1 })),
     h("h2", { class: "question" }, t("Q-05")),
@@ -155,12 +174,14 @@ function evidenceBox(w) {
 
 function renderResult(el, round) {
   const c = correctCount(round);
+  queueMicrotask(() => holdCelebrations(false));   // 결과 화면을 그린 뒤 모아 둔 축하를 보여 줌
   const uploadBtn = button(btn("Q-15"), () => openNicknameSheet(round), { kind: "primary", disabled: !!round.uploadedAt });
   el.append(h("section", { class: "quiz-result" },
     header(t("Q-01"), { onBack: () => go("/quiz") }),
     h("div", { class: `card result-card ${round.isBest ? "is-best" : ""}` },
       h("h2", {}, t("Q-12")),
       h("p", { class: "result-score" }, t("Q-13", { c, s: round.score })),
+      round.bestCombo >= 2 ? h("p", { class: "result-combo" }, icon("flame", { stroke: 1.8, fill: "currentColor" }), t("Q-34", { c: round.bestCombo })) : null,
       round.isBest ? h("p", { class: "best" }, h("span", { class: "pill pill-gold" }, t("Q-14"))) : null),
     h("p", { class: "muted" }, t("Q-18")),
     h("ul", { class: "word-list" }, round.items.map((q) => h("li", {},

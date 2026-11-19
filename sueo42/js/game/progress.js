@@ -1,4 +1,5 @@
 // [게임 계산] 단계·레벨·연속 학습·배지를 저장된 기록에서 계산한다(game.md). 맞고 틀림은 보지 않고 횟수·날짜만 센다.
+// (11/19 게임 요소 늘림) 오늘의 목표(하루 레벨 점수 10)·단어 별(해 본 횟수 1·3·5번)·배지 5개 더. 모두 참여 기준.
 import { CONFIG } from "../../config.js";
 import { addDays } from "../util.js";
 
@@ -12,6 +13,12 @@ export const BADGES = [
   { id: "lab10",   copy: "B-06", goal: 10 },          // 직접 해보기 기록 10번
   { id: "streak7", copy: "B-07" },
   { id: "all42",   copy: "B-08", goal: 42 },          // 해 본 단어 42개
+  // (11/19) 참여 기준 배지 5개 더
+  { id: "goal1",   copy: "B-10" },                    // 오늘의 목표 처음 채움
+  { id: "quiz10",  copy: "B-12", goal: 10 },          // 뜻 맞히기 10판(점수와 상관없이 끝낸 판)
+  { id: "star3",   copy: "B-13" },                    // 한 단어를 5번 해서 별 3개
+  { id: "goal7",   copy: "B-11", goal: 7 },           // 오늘의 목표를 채운 날 7일(이어지지 않아도 됨)
+  { id: "streak14", copy: "B-14" },                   // 14일 연속
 ];
 
 export function emptyState() {
@@ -27,7 +34,23 @@ export function emptyState() {
     ranking: [],        // [{ name, score, stage, date, at }]
     lastName: "",
     cameraIntroSeen: false,
+    daily: {},          // (11/19) { YYYY-MM-DD: 그날 레벨 점수 } — 오늘의 목표
   };
+}
+
+// ── (11/19) 오늘의 목표 · 단어 별 ──
+export const dailyPoints = (state, day) => (state.daily && state.daily[day]) || 0;
+export const goalDone = (state, day) => dailyPoints(state, day) >= CONFIG.DAILY_GOAL;
+export const goalDays = (state) => Object.keys(state.daily || {}).filter((d) => goalDone(state, d)).length;
+export const wordTries = (state, no) => { const c = wc(state, no); return (c.quiz || 0) + (c.lab || 0); };
+export function wordStars(state, no) {
+  const n = wordTries(state, no);
+  return CONFIG.STAR_STEPS.filter((k) => n >= k).length;
+}
+export function maxTries(state) {
+  let m = 0;
+  for (const c of Object.values(state.words)) m = Math.max(m, (c.quiz || 0) + (c.lab || 0));
+  return m;
 }
 
 const wc = (state, no) => state.words[String(no)] || { quiz: 0, lab: 0 };
@@ -102,6 +125,9 @@ export function badgeProgress(id, state, words) {
       return { k: Math.max(0, ...stages.map((s) => stageTried(state, words, s))), n: 6 };
     }
     case "all42": return { k: triedCount(state, words), n: words.length };
+    case "quiz10": return { k: Math.min(state.quizRounds, 10), n: 10 };
+    case "goal7": return { k: Math.min(goalDays(state), 7), n: 7 };
+    case "star3": { const top = CONFIG.STAR_STEPS[CONFIG.STAR_STEPS.length - 1]; return { k: Math.min(maxTries(state), top), n: top }; }
     default: return null;
   }
 }
@@ -120,24 +146,40 @@ export function earnedBadgeIds(state, words, today) {
     lab10: lab >= 10,
     streak7: st >= 7,
     all42: words.length > 0 && triedCount(state, words) >= words.length,
+    goal1: goalDays(state) >= 1,
+    quiz10: state.quizRounds >= 10,
+    star3: maxTries(state) >= CONFIG.STAR_STEPS[CONFIG.STAR_STEPS.length - 1],
+    goal7: goalDays(state) >= 7,
+    streak14: st >= 14,
   };
   return BADGES.map((b) => b.id).filter((id) => ok[id]);
 }
 
 // 기록 하나를 적용하고 생긴 일을 돌려준다. mutate(state) 가 기록을 바꾼다.
-// 돌려주는 events: [{type:"day", streak}, {type:"level", level}, {type:"stage", stage}, {type:"badge", id}]
+// 돌려주는 events: [{type:"day", streak}, {type:"goal"}, {type:"level", level}, {type:"stage", stage}, {type:"badge", id}]
 export function applyRecord(state, words, today, mutate, { learning = true } = {}) {
   const before = {
     today: learnedToday(state, today),
     level: levelInfo(state).level,
     done: new Set([...new Set(words.map((w) => w.stage))].filter((s) => stageDone(state, words, s))),
+    pts: levelScore(state),
+    goal: goalDone(state, today),
   };
   mutate(state);
   if (learning && !state.days.includes(today)) state.days.push(today);
   state.days.sort();
+  // 오늘의 목표: 이번 기록으로 늘어난 레벨 점수만큼 오늘 칸에 더함. 60일 넘은 칸은 지움
+  const gained = levelScore(state) - before.pts;
+  if (gained > 0) {
+    state.daily = state.daily || {};
+    state.daily[today] = dailyPoints(state, today) + gained;
+    const old = addDays(today, -60);
+    for (const d of Object.keys(state.daily)) if (d < old) delete state.daily[d];
+  }
 
   const events = [];
   if (!before.today && learnedToday(state, today)) events.push({ type: "day", streak: streak(state, today) });
+  if (!before.goal && goalDone(state, today)) events.push({ type: "goal" });
   const lv = levelInfo(state).level;
   if (lv > before.level) events.push({ type: "level", level: lv });
   const newDone = [...new Set(words.map((w) => w.stage))].sort((a, b) => a - b)
