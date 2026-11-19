@@ -7,3 +7,14 @@ services:
     branch: main
     buildCommand: ""
     staticPublishPath: ./sueo42
+    # (11/19 최적화) vendor/ 는 폴더 이름에 버전이 있어 내용이 안 바뀜 → 7일 캐시. 앱 파일은 매번 확인(바뀌면 바로 반영)
+    headers:
+      - path: /vendor/*
+        name: Cache-Control
+        value: public, max-age=604800
+      - path: /img/*
+        name: Cache-Control
+        value: public, max-age=86400
+      - path: /*
+        name: Cache-Control
+        value: no-cache

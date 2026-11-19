@@ -7,13 +7,40 @@
   <meta name="theme-color" content="#ffffff">
   <title>수어42</title>
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="preload" href="vendor/pretendard-variable@1.3.9/Pretendard42.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="vendor/outfit@5.3.0/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="vendor/pretendard-variable@1.3.9/pretendardvariable-dynamic-subset.css">
   <link rel="preload" href="img/logo.svg" as="image" type="image/svg+xml">
 </head>
 <body>
   <div id="status" class="status-bar" aria-live="polite"></div>
   <main id="app"></main>
   <nav id="tabbar" class="tab-bar" aria-label="메뉴"></nav>
+  <!-- (11/19 최적화) 모듈을 한꺼번에 미리 받는다(main → 화면 → AI 로 이어지는 3단 대기 없앰) -->
+  <link rel="modulepreload" href="js/ai/camera.js">
+  <link rel="modulepreload" href="js/ai/draw.js">
+  <link rel="modulepreload" href="js/ai/hands.js">
+  <link rel="modulepreload" href="js/ai/model.js">
+  <link rel="modulepreload" href="js/ai/normalize.js">
+  <link rel="modulepreload" href="js/copy.js">
+  <link rel="modulepreload" href="js/data/csv.js">
+  <link rel="modulepreload" href="js/data/words.js">
+  <link rel="modulepreload" href="js/game/progress.js">
+  <link rel="modulepreload" href="js/router.js">
+  <link rel="modulepreload" href="js/screens/detail.js">
+  <link rel="modulepreload" href="js/screens/home.js">
+  <link rel="modulepreload" href="js/screens/info.js">
+  <link rel="modulepreload" href="js/screens/lab-pick.js">
+  <link rel="modulepreload" href="js/screens/lab.js">
+  <link rel="modulepreload" href="js/screens/quiz.js">
+  <link rel="modulepreload" href="js/screens/records.js">
+  <link rel="modulepreload" href="js/screens/search.js">
+  <link rel="modulepreload" href="js/screens/start.js">
+  <link rel="modulepreload" href="js/store.js">
+  <link rel="modulepreload" href="js/ui.js">
+  <link rel="modulepreload" href="js/util.js">
+  <link rel="modulepreload" href="config.js">
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

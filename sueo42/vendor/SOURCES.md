@@ -16,10 +16,9 @@
 | LICENSE-mediapipe.txt | https://raw.githubusercontent.com/google-ai-edge/mediapipe/master/LICENSE | 12,331 | 8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8 |
 | LICENSE-tfjs.txt | https://raw.githubusercontent.com/tensorflow/tfjs/master/LICENSE | 11,358 | cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30 |
 | (11/18 추가, 글꼴) pretendard@1.3.9/LICENSE.txt | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/LICENSE.txt | 4,419 | b04538c9abec39a3db75108cf0af0fd9c77032fe8aa2cf38345b4d250e98e38e |
-| pretendard@1.3.9/Pretendard-Bold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-Bold.subset.woff2 | 270,784 | 78eb71c33101ee7d4f8d1b777d193a12d00f8a296e712a8c417cf27abe946397 |
-| pretendard@1.3.9/Pretendard-ExtraBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-ExtraBold.subset.woff2 | 271,796 | abb0933bd492a56403d2b288394923fdc4c210aaa827c9e44714fcac8ff70c7c |
-| pretendard@1.3.9/Pretendard-Regular.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-Regular.subset.woff2 | 267,096 | 01dd73155fdfab7ce9b25224523e85a96927e21aef97f21957d41f1bfa7e3878 |
-| pretendard@1.3.9/Pretendard-SemiBold.subset.woff2 | https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/woff2-subset/Pretendard-SemiBold.subset.woff2 | 268,752 | 4247dc5e260b92640c2cbd0e75091154647b71e1d5884116655e2903468c54cc |
+| (11/19 최적화) pretendard-variable@1.3.9/Pretendard42.woff2 | npm pretendard@1.3.9 dist/web/variable/woff2/PretendardVariable.woff2 를 tools/font-subset.py 로 앱 글자 686자·굵기 400~800 만 남김(OFL 허용 범위의 부분 글꼴) | 104,000 쯤 | — |
+| pretendard-variable@1.3.9/woff2-dynamic-subset/*, pretendardvariable-dynamic-subset.css | npm pretendard@1.3.9 dist/web/variable/ 그대로(92조각, 필요한 글자 조각만 브라우저가 받음) | — | — |
+| pretendard-variable@1.3.9/LICENSE.txt | pretendard@1.3.9/LICENSE.txt 복사(OFL 1.1) | 4,419 | 위와 같음 |
 | (11/18 추가, 숫자·영문 글꼴) geist@1.3.1/Geist-Variable.woff2 | https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Variable.woff2 | 56,800 | 28258d0621216948416a859d32487ab6ad1c9effa0d08795698e70be3c917630 |
 | geist@1.3.1/LICENSE.txt | https://cdn.jsdelivr.net/npm/geist@1.3.1/LICENSE.TXT | 4,368 | 930853ee1daa68554d9e35c8a9175affb74f699fad9a5da6ee5ebe76379d9137 |
 | (11/18 추가, Astryx Butter 글꼴) outfit@5.3.0/outfit-latin-wght-normal.woff2 | https://cdn.jsdelivr.net/npm/@fontsource-variable/outfit@5.3.0/files/outfit-latin-wght-normal.woff2 | 32,292 | 6c18d579fd87c3776be068b762cbc83fde3acb543d49eabd3ade842eb987e887 |
