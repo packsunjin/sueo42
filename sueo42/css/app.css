@@ -60,7 +60,7 @@ a { color: var(--g-600); font-weight: 700; text-underline-offset: 3px; }
 .status-bar { position: sticky; top: 0; z-index: 10; height: var(--status-h); padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
   gap: 8px; background: var(--bg); border-bottom: 2px solid var(--line); }
 .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; letter-spacing: -.04em; color: var(--g-900); }
-.brand-logo { width: 40px; height: 31px; display: block; }
+.brand-logo { width: 40px; height: 33px; display: block; }
 .status-chips { display: inline-flex; gap: 6px; }
 .chip-stat { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px 0 10px; border-radius: 12px; font-weight: 800; font-size: 15px;
   color: var(--muted); border: 2px solid var(--line); background: var(--card); }
@@ -242,7 +242,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 
 /* ── 첫 화면 ── */
 .start { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; text-align: center; }
-.start-logo { width: 150px; height: 117px; }
+.start-logo { width: 150px; height: 125px; }
 .app-name { font-size: 38px; letter-spacing: -.05em; }
 .tagline { color: var(--muted); font-weight: 600; }
 
