@@ -50,10 +50,20 @@ export const wordsOfStage = (n) => WORDS.filter((w) => w.stage === Number(n));
 export const stageNumbers = () => [...new Set(WORDS.map((w) => w.stage))].sort((a, b) => a - b);
 
 // 검색 거름: 「단어」 또는 「사전 표제어」(쉼표로 나뉜 말 하나라도)에 입력이 들어 있으면 통과
+// (11/24) 초성 검색: 입력이 모두 자음(ㄱ~ㅎ)이면 단어의 첫소리끼리 비교(예: 'ㅌㅅ' → 택시)
+const CHO = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+export function initials(s) {
+  return [...s].map((ch) => {
+    const c = ch.charCodeAt(0) - 0xac00;
+    return c >= 0 && c < 11172 ? CHO[Math.floor(c / 588)] : ch;
+  }).join("");
+}
+const isChoOnly = (q) => /^[ㄱ-ㅎ]+$/.test(q);
 export function matchWord(w, query) {
-  const q = query.trim().toLowerCase();
+  const q = query.trim().toLowerCase().replace(/\s+/g, "");
   if (!q) return true;
-  const terms = [w.name, ...String(w.headword || "").split(",")].map((s) => s.trim().toLowerCase());
+  const terms = [w.name, ...String(w.headword || "").split(",")].map((s) => s.trim().toLowerCase().replace(/\s+/g, ""));
+  if (isChoOnly(q)) return terms.some((s) => s && initials(s).includes(q));
   return terms.some((s) => s && s.includes(q));
 }
 

@@ -26,6 +26,19 @@ export function newRound(stage, all = allWords(), rnd = Math.random) {
 
 export const correctCount = (round) => round.items.filter((q) => q.chosen === q.word.no).length;
 
+// (11/24) 틀린 문제만 다시: 결과 화면에서 틀린 단어로 짧은 판. 랭킹·최고 점수·판 수에는 넣지 않음(일부 단어만이라).
+// 고른 답은 그대로 단어 기록(별·오늘의 목표)에 들어감
+export const missedWords = (round) => round.items.filter((q) => !q.skipped && q.chosen !== null && q.chosen !== q.word.no).map((q) => q.word);
+export function startReview(round, all = allWords(), rnd = Math.random) {
+  const ws = missedWords(round);
+  if (!ws.length) return;
+  current = { stage: round.stage, items: shuffle(ws, rnd).map((w) => makeQuestion(w, all, rnd)), index: 0, score: 0,
+    combo: 0, bestCombo: 0, done: false, isBest: false, uploadedAt: null, review: true };
+  // 같은 주소(결과 화면)면 라우터가 다시 그리지 않으므로 직접 그림
+  if (location.hash === `#/quiz/play/${round.stage}`) { const el = document.getElementById("app"); if (el) rerender(el); }
+  else go(`/quiz/play/${round.stage}`);
+}
+
 // 단계 카드·단어 상세의 [이 단계 뜻 맞히기]·[한 판 더] 에서 부름: 새 판을 만들고 문제 화면으로
 export function startQuiz(stage) {
   current = newRound(stage);
@@ -139,6 +152,7 @@ function renderQuestion(el, round) {
   function next() { round.index++; rerender(el); }
   function finish() {
     round.done = true;
+    if (round.review) { rerender(el); return; }   // 다시 풀기 판은 랭킹·최고 점수·판 수에 안 넣음
     const prevBest = getState().best[round.stage];
     round.isBest = round.score > 0 && (prevBest === undefined || round.score > prevBest);
     recordQuizRound(round.stage, round.score);
@@ -153,7 +167,7 @@ function renderQuestion(el, round) {
         h("span", { style: { width: `${((round.index + 1) / total) * 100}%` } })),
       comboEl,
       scoreEl),
-    h("p", { class: "progress-text" }, t("Q-04", { i: round.index + 1 })),
+    h("p", { class: "progress-text" }, t("Q-04", { i: round.index + 1, n: total })),
     h("h2", { class: "question" }, t("Q-05")),
     video,
     optionsBox,
@@ -175,12 +189,14 @@ function evidenceBox(w) {
 function renderResult(el, round) {
   const c = correctCount(round);
   queueMicrotask(() => holdCelebrations(false));   // 결과 화면을 그린 뒤 모아 둔 축하를 보여 줌
-  const uploadBtn = button(btn("Q-15"), () => openNicknameSheet(round), { kind: "primary", disabled: !!round.uploadedAt });
+  const uploadBtn = round.review ? null : button(btn("Q-15"), () => openNicknameSheet(round), { kind: "primary", disabled: !!round.uploadedAt });
+  const missed = missedWords(round);
+  const reviewBtn = missed.length ? button(btn("Q-35"), () => startReview(round), { kind: round.review ? "primary" : "secondary" }) : null;
   el.append(h("section", { class: "quiz-result" },
     header(t("Q-01"), { onBack: () => go("/quiz") }),
     h("div", { class: `card result-card ${round.isBest ? "is-best" : ""}` },
-      h("h2", {}, t("Q-12")),
-      h("p", { class: "result-score" }, t("Q-13", { c, s: round.score })),
+      h("h2", {}, round.review ? t("Q-36") : t("Q-12")),
+      h("p", { class: "result-score" }, round.review ? t("Q-37", { n: round.items.length, c }) : t("Q-13", { c, s: round.score })),
       round.bestCombo >= 2 ? h("p", { class: "result-combo" }, icon("flame", { stroke: 1.8, fill: "currentColor" }), t("Q-34", { c: round.bestCombo })) : null,
       round.isBest ? h("p", { class: "best" }, h("span", { class: "pill pill-gold" }, t("Q-14"))) : null),
     h("p", { class: "muted" }, t("Q-18")),
@@ -191,6 +207,7 @@ function renderResult(el, round) {
           : q.chosen === q.word.no ? h("span", { class: "mark-right", "aria-label": "정답" }, "○") : null)))),
     h("div", { class: "btn-col bottom-actions" },
       uploadBtn,
+      reviewBtn,
       button(btn("Q-16"), () => startQuiz(round.stage), { kind: "secondary" }),
       button(btn("Q-17"), () => { current = null; go("/quiz"); }, { kind: "secondary" }))));
 }
