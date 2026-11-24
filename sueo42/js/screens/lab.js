@@ -3,7 +3,7 @@
 import { h } from "../util.js";
 import { t, btn } from "../copy.js";
 import { CONFIG, isTrialModel } from "../../config.js";
-import { header, button, dictVideo, errorBox, spinner, trialTag, levelBar, openModal, confirmModal, go } from "../ui.js";
+import { header, button, dictVideo, errorBox, spinner, trialTag, levelBar, openModal, confirmModal, go, icon } from "../ui.js";
 import { setLeaveGuard } from "../router.js";
 import { allWords, wordByNo, wordsOfStage, stageNumbers, matchWord, isLowData } from "../data/words.js";
 import { getState, recordLabChoice, recordLabRetry, setCameraIntroSeen } from "../store.js";
@@ -177,22 +177,39 @@ function showPractice() {
   const bodyState = h("span", { class: "track-pill" }, t("L-44"));
   const notice = h("div");
   const startBtn = button(btn("L-15"), () => begin(), { kind: "primary", cls: "btn-big", disabled: true });
-  Object.assign(ctx, { dict, box, overlay, cue, handState, bodyState, notice, startBtn, ready: false, bodyHist: [], fixedBody: null });
+
+  // (11/24) 한 화면 연습: 휴대폰에서 사전 영상·내 카메라·[동작 시작]이 스크롤 없이 함께 보이게.
+  // 내 카메라를 크게, 사전 영상은 카메라 모서리에 작게. 작은 쪽을 누르면 둘의 크기를 바꿈. 사전 영상은 편집하지 않고 크기만 바꿔 보여 줌
+  const dictBox = dict.querySelector(".video-box");
+  const dictTools = dict.querySelector(".video-tools");
+  const dictSource = dict.lastElementChild;
+  const stage = h("div", { class: "practice-stage" });
+  const swapBtn = h("button", { class: "pip-swap", type: "button" });
+  const syncSwap = () => {
+    const big = stage.classList.contains("swap");
+    swapBtn.setAttribute("aria-label", big ? t("L-46") : t("L-45"));
+    swapBtn.replaceChildren(icon("expand", { stroke: 2.4 }));
+  };
+  swapBtn.onclick = () => { if (ctx.mode === "practice") { stage.classList.toggle("swap"); syncSwap(); } };
+  dictBox.classList.add("pip-target");
+  dictBox.append(h("span", { class: "pip-label" }, t("L-10")));
+  stage.append(box, dictBox, swapBtn);
+  syncSwap();
+  Object.assign(ctx, { dict, box, overlay, cue, handState, bodyState, notice, startBtn, stage, ready: false, bodyHist: [], fixedBody: null });
 
   screen("practice", [
     header(t("L-09", { "단어": w.name }), { onBack: () => go("/lab") }),
     trialBlock(false),
     ctx.retried ? h("p", { class: "info-line" }, t("L-39")) : null,
-    h("h3", { class: "pane-label" }, t("L-10")),
-    dict,
-    h("div", {}, shapeBtn, shapeText),
-    isLowData(w) ? h("p", { class: "info-line" }, t("L-13")) : null,
-    h("h3", { class: "pane-label" }, t("L-11")),
-    box,
+    stage,
     h("div", { class: "track-state" }, handState, bodyState),
+    h("div", { class: "practice-tools" }, dictTools, shapeBtn),
+    shapeText,
+    dictSource,
+    isLowData(w) ? h("p", { class: "info-line" }, t("L-13")) : null,
     notice,
-    h("p", { class: "muted" }, t("L-14")),
-    h("div", { class: "bottom-actions" }, startBtn),
+    h("p", { class: "muted small" }, t("L-14")),
+    h("div", { class: "bottom-actions sticky-actions" }, startBtn),
   ]);
   ctx.retried = false;
   initCamera();
@@ -210,6 +227,7 @@ async function initCamera() {
   const err = await startCamera(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
   if (err) { c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() })); return; }
+  fitCameraBox(c);
   // (11/19) 먼저 일꾼(다른 스레드)으로. 안 되는 브라우저면 화면 스레드로
   const viaWorker = await workerReady;
   try { if (!viaWorker) await handTracker.load(); }
@@ -227,6 +245,15 @@ async function initCamera() {
   c.ready = true;
   syncOrientation();
   startLoop();
+}
+
+// (11/24) 카메라 상자 비율 = 실제 카메라 비율(휴대폰은 세로 3:4 등). 전에는 4:3 고정에 영상을 잘라 보여 줘서
+// 뼈대(캔버스, 늘어남)와 영상(잘림)이 어긋날 수 있었음. 높이는 화면의 52% 까지
+function fitCameraBox(c) {
+  const vw = camVideo.videoWidth, vh = camVideo.videoHeight;
+  if (!(vw > 0 && vh > 0)) return;
+  c.box.style.aspectRatio = `${vw} / ${vh}`;
+  c.box.style.width = `min(100%, calc(52svh * ${(vw / vh).toFixed(4)}))`;
 }
 
 function syncOrientation() {
@@ -350,6 +377,7 @@ function begin() {
   c.lastBody = null;
   c.recSec = recordSeconds(c);   // 카운트다운 동안 영상 정보가 오면 녹화 시작 때 다시 정한다
   dropClip(c);
+  if (c.stage) { c.stage.classList.remove("swap"); }   // 동작할 때는 늘 내 카메라를 크게
   const later = (ms, fn) => c.timers.push(setTimeout(fn, ms));
   const show = (...kids) => { c.cue.hidden = false; c.cue.replaceChildren(...kids); };
   [3, 2, 1].forEach((n, i) => later(i * 1000, () => show(h("span", { class: "count" }, t("L-16", { "3/2/1": n })))));

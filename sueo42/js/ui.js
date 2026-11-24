@@ -23,6 +23,7 @@ const ICONS = {
   camera: '<path d="M3.5 8h3.5l1.8-2.6h6.4L17 8h3.5v11.5h-17z"/><circle cx="12" cy="13.5" r="3.6"/>',
   chart: '<path d="M4 20h16"/><path d="M6.5 20v-7"/><path d="M12 20V5.5"/><path d="M17.5 20v-10"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  expand: '<path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6"/>',
   target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
   star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
   medal: '<circle cx="12" cy="14" r="5.5"/><path d="M8.5 3.5 10.5 9M15.5 3.5 13.5 9"/><path d="m12 11.8.9 1.6 1.7.3-1.2 1.2.3 1.7-1.7-.8-1.7.8.3-1.7-1.2-1.2 1.7-.3z"/>',

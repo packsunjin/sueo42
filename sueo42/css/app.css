@@ -571,3 +571,31 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
   0% { opacity: 1; transform: translate(0, 0) rotate(0); }
   100% { opacity: 0; transform: translate(var(--x), 250px) rotate(var(--r)); } }
 .toast-icon.goal { background: var(--gold); color: var(--gold-ink); }
+
+/* ── 11/24 한 화면 연습(직접 해보기): 사전 영상·내 카메라·[동작 시작]이 휴대폰 한 화면에 ── */
+.practice-stage { position: relative; margin-top: 6px; }
+.practice-stage > .cam-box { margin: 0 auto; max-width: 100%; }
+.practice-stage > .video-box { position: absolute; top: 10px; right: 10px; width: 38%; aspect-ratio: 700 / 466; z-index: 3;
+  border-radius: 14px; overflow: hidden; border: 3px solid #fff; box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .55); background: #10221a; }
+.practice-stage > .video-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.practice-stage > .video-box .loading { position: absolute; inset: 0; justify-content: center; color: #b9c9c0; font-size: 12px; }
+.pip-label { position: absolute; left: 6px; bottom: 5px; padding: 1px 7px; border-radius: 999px; background: rgba(15, 61, 43, .78); color: #fff; font-size: 11px; font-weight: 800; pointer-events: none; }
+.pip-swap { position: absolute; z-index: 4; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 10px; border: 0;
+  display: grid; place-items: center; background: rgba(255, 255, 255, .92); color: var(--g-700); cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+.pip-swap svg { width: 18px; height: 18px; }
+/* 바꾼 상태: 사전 영상이 크게, 내 카메라가 작게 */
+.practice-stage.swap > .video-box { position: relative; top: auto; right: auto; width: 100%; border: 0; box-shadow: none; border-radius: 18px; z-index: 1; }
+.practice-stage.swap > .video-box .pip-label { display: none; }
+.practice-stage.swap > .cam-box { position: absolute; top: 10px; right: 10px; width: 38% !important; aspect-ratio: 4 / 3 !important; z-index: 3;
+  border: 3px solid #fff; border-radius: 14px; box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .55); }
+.practice-stage.swap > .cam-box .cam-cue .count { font-size: 32px; }
+.lab-practice .track-state { margin-top: 8px; }
+.practice-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.practice-tools .video-tools { margin: 0; }
+.lab-practice .handshape { margin: 8px 0 0; }
+.lab-practice > .source { margin-top: 6px; }
+/* [동작 시작]은 화면 아래에 늘 보이게 */
+.sticky-actions { position: sticky; bottom: 0; z-index: 5; margin: 14px -16px 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: var(--card); box-shadow: 0 -2px 0 var(--line), 0 -8px 14px -12px rgba(15, 61, 43, .4); }
+.sticky-actions .btn { width: 100%; }
+.lab-practice { padding-bottom: 0; }
