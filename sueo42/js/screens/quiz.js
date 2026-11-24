@@ -140,9 +140,10 @@ function renderQuestion(el, round) {
         h("div", { class: "bottom-actions" }, round.index + 1 < total
           ? button(btn("Q-10"), () => next(), { kind })
           : button(btn("Q-11"), () => finish(), { kind }))));
+    section.classList.add("answered");   // 답을 고르면 영상을 줄여 보기·결과 판이 한 화면에
     answerArea.replaceChildren(panel);
     // 판이 가린 만큼 아래 여백을 줘서 위 내용(영상·보기)을 끝까지 볼 수 있게
-    requestAnimationFrame(() => { section.style.paddingBottom = `${panel.offsetHeight + 16}px`; });
+    // (11/24) 판 아래로 페이지를 늘리지 않음(판이 정답·근거를 다 보여 주므로 가려진 보기를 보려고 스크롤할 필요 없음)
   }
 
   function skip() {                          // 영상을 못 불러온 문제: 점수·기록 없이 넘어감
@@ -180,8 +181,9 @@ function evidenceBox(w) {
   return h("div", { class: "evidence" },
     h("h3", {}, t("Q-09", { "단어": w.name })),
     h("dl", { class: "facts" },
-      h("dt", {}, t("S-06")), h("dd", {}, w.headword),
-      h("dt", {}, t("S-07")), h("dd", {}, w.handshape)),
+      h("dt", {}, t("S-06")), h("dd", {}, w.headword)),
+    // (11/24 스크롤 줄이기) 수형 설명은 눌러서 펼침. 표제어·출처·[사전에서 보기]는 늘 보임
+    h("details", { class: "shape-more" }, h("summary", {}, btn("L-12")), h("p", {}, w.handshape)),
     h("p", { class: "source" }, t("C-12", { "사전 표제어": w.headword })),
     dictLink(w));
 }

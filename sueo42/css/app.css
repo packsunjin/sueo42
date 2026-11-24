@@ -375,7 +375,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .rank-switch .chip { width: 100%; height: 46px; }
 .side-by-side { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
 .side-by-side .video-wrap { margin-top: 0; }
-@media (max-width: 340px) { .side-by-side { grid-template-columns: 1fr; } }
+@media (max-width: 340px) { .side-by-side { gap: 6px; } .side-by-side .pane-label { font-size: 12px; } }
 .ask-line { font-weight: 800; margin-top: 16px; font-size: 18px; color: var(--g-900); }
 /* 결과 버튼 3개: 크기·색·모양 완전히 같게 */
 .choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
@@ -599,3 +599,100 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
   background: var(--card); box-shadow: 0 -2px 0 var(--line), 0 -8px 14px -12px rgba(15, 61, 43, .4); }
 .sticky-actions .btn { width: 100%; }
 .lab-practice { padding-bottom: 0; }
+
+/* ── 11/24 스크롤 줄이기(사장: "꼭 필요한 곳 아니면 스크롤 다 없애") ── */
+/* 아래 탭 바가 숨은 화면(문제 풀기·직접 해보기)은 탭 바 자리 여백을 비우지 않음 */
+body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+/* 뜻 맞히기: 답을 고르면 영상을 줄이고(자르지 않고 크기만) 영상 아래 도구·출처는 결과 판으로(판 안에 출처 있음) */
+.quiz-play.answered .video-box { height: 22svh; width: auto; aspect-ratio: 700 / 466; margin: 0 auto; }
+.quiz-play.answered .video-box video { object-fit: contain; }
+.quiz-play.answered .video-wrap > :not(.video-box) { display: none; }
+.quiz-play.answered .options { margin: 10px 0; }
+.quiz-play.answered .option { min-height: 48px; }
+.answer-panel { padding-top: 14px; }
+.answer-panel .evidence { padding: 10px 12px; }
+.answer-panel .evidence h3 { font-size: 15px; }
+.answer-panel .evidence .facts { margin: 4px 0 4px; }
+.answer-panel .evidence .source { margin: 4px 0; font-size: 12px; }
+.answer-panel .bottom-actions { margin-top: 10px; }
+.shape-more { margin: 2px 0 4px; }
+.shape-more summary { cursor: pointer; font-weight: 800; font-size: 14px; color: var(--g-700); padding: 4px 0; }
+.shape-more p { margin: 4px 0 0; font-size: 14px; }
+/* 문제 화면 간격 */
+.quiz-play .question { margin: 2px 0 8px; font-size: 20px; }
+.quiz-play .progress-text { margin: 0; }
+.quiz-play .video-tools { margin: 6px 0 2px; }
+/* 뜻 맞히기 결과: 단어 6개를 두 줄 칸으로, 버튼은 두 칸씩 */
+.quiz-result .result-card { padding: 16px 14px 14px; }
+.quiz-result > .muted { margin: 10px 0 6px; font-size: 14px; }
+.quiz-result .word-list { display: grid; grid-template-columns: 1fr 1fr; }
+.quiz-result .word-list li + li { border-top: 0; }
+.quiz-result .word-list li { border-bottom: 2px solid var(--line); }
+.quiz-result .word-list li:nth-child(odd) { border-right: 2px solid var(--line); }
+.quiz-result .word-list li:nth-last-child(-n+2) { border-bottom: 0; }
+.quiz-result .word-row { min-height: 46px; padding: 6px 12px; }
+.quiz-result .btn-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 0; }
+.quiz-result .btn-col .btn:first-child { grid-column: 1 / -1; }
+.quiz-result .btn-col .btn { min-height: 48px; font-size: 15px; padding-left: 6px; padding-right: 6px; }
+/* 단어 상세: 버튼 두 개를 나란히, 간격 줄임 */
+.detail .stage-tag { margin: 0 0 6px; }
+.detail .video-wrap { margin: 4px 0 6px; }
+.detail .video-tools { margin: 6px 0 2px; }
+.detail .hint { margin: 4px 0 8px; font-size: 13px; }
+.detail .fact { padding: 8px 0; }
+.detail .fact dd { font-size: 15px; }
+.detail .btn-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 0; }
+.detail .btn-col .btn { min-height: 50px; font-size: 15px; padding-left: 6px; padding-right: 6px; }
+/* 직접 해보기 결과·연습: 간격 줄임 */
+.lab-result .rank-line { margin: 0 0 8px; }
+.lab-result .choice-row { margin-top: 8px; }
+.lab-practice .practice-tools { margin-top: 6px; }
+.practice-stage > .cam-box { max-height: 48svh; }
+/* 정보 화면 */
+.info-list li { padding: 10px 0; }
+.lab-result > .source { margin: 4px 0 2px; font-size: 12px; }
+.lab-result > .muted { margin: 2px 0; font-size: 13px; }
+.detail .video-box { height: 30svh; width: auto; margin: 0 auto; }
+.detail .video-box video { object-fit: contain; }
+.detail .shape-more summary { padding: 2px 0; }
+#app { padding-bottom: calc(var(--tabbar-h) + 14px + env(safe-area-inset-bottom)); }
+body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+.quiz-play .video-box { max-height: 34svh; }
+#app { padding-top: 12px; }
+.detail .video-box { height: 25svh; }
+.detail .hint { display: none; }   /* 스크롤 줄이려고 숨김(S-11 "영상은 소리가 없어요…" 안내) */
+.info-list li { padding: 8px 0; font-size: 14px; }
+.lab-practice > .muted.small { margin: 4px 0 0; }
+.quiz-play .video-box { max-height: 32svh; }
+.practice-stage > .cam-box { max-height: 45svh; }
+.sticky-actions { margin-top: 10px; padding-top: 8px; }
+.detail .video-box { height: 22svh; }
+.detail .fact { padding: 6px 0; }
+.detail .facts-card { padding-top: 4px; padding-bottom: 4px; }
+.screen-head { margin-bottom: 10px; }
+.quiz-result .result-card { padding: 12px 12px 10px; }
+.quiz-result .result-card .result-score { margin: 2px 0; }
+.detail .video-box { height: 20svh; }
+.quiz-play .video-box { margin-left: auto; margin-right: auto; }
+.detail .btn-col { margin-top: 6px; }
+.detail .facts-card { margin-bottom: 0; }
+.quiz-result .btn-col .btn:last-child:nth-child(even) { grid-column: 1 / -1; }
+.lab-practice > .muted.small { font-size: 12px; }
+/* 작은 휴대폰(화면 높이 600 이하, iPhone SE 등): 영상·간격을 더 줄여 한 화면에 */
+@media (max-height: 600px) {
+  .practice-stage > .cam-box { max-height: 38svh; }
+  .quiz-play .video-box { max-height: 26svh; }
+  .quiz-play .question { font-size: 18px; margin-bottom: 4px; }
+  .quiz-play .option { min-height: 50px; }
+  .options { gap: 8px; margin: 10px 0; }
+  .detail .video-box { height: 16svh; }
+  .quiz-result .word-row { min-height: 40px; }
+  .quiz-result > .muted { display: none; }
+  .quiz-result .btn-col .btn { min-height: 44px; }
+  .lab-result .side-by-side .video-tools { display: none; }
+  .lab-result .rank-switch .chip { height: 40px; }
+  .lab-result > .muted { display: none; }
+  .screen-head { margin-bottom: 6px; }
+  .screen-head h1 { font-size: 22px; }
+  .info-list li { padding: 6px 0; font-size: 13px; }
+}

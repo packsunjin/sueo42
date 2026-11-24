@@ -447,6 +447,10 @@ function showResult(selected) {
   const clip = c.clipUrl ? h("video", { class: "clip", src: c.clipUrl, muted: true, autoplay: true, loop: true, playsInline: true }) : null;
   const mine = clip ? h("div", { class: "clip-wrap" }, clip, replayCanvas) : replayCanvas;
 
+  // (11/24 스크롤 줄이기) 사전 영상 출처 줄은 좁은 왼쪽 칸 대신 두 영상 아래 넓게(내용 그대로)
+  const selVideo = dictVideo(sel);
+  const selSource = selVideo.lastElementChild;
+  selSource.remove();
   screen("result", [
     header(t("L-01"), { onBack: () => go("/lab") }),
     trialBlock(true),
@@ -456,8 +460,9 @@ function showResult(selected) {
         h("button", { class: `chip ${i === selected ? "on" : ""}`, "aria-pressed": i === selected ? "true" : "false",
           onclick: () => { if (i !== selected) showResult(i); } }, label))),
     h("div", { class: "side-by-side" },
-      h("div", { class: "pane" }, h("h3", { class: "pane-label" }, t("L-25", { "선택한 순위 단어": sel.name })), dictVideo(sel)),
+      h("div", { class: "pane" }, h("h3", { class: "pane-label" }, t("L-25", { "선택한 순위 단어": sel.name })), selVideo),
       h("div", { class: "pane" }, h("h3", { class: "pane-label" }, t("L-26")), mine)),
+    selSource,
     h("p", { class: "muted" }, t("L-27")),
     h("p", { class: "ask-line" }, t("L-28", { "단어1": n1 })),
     h("div", { class: "choice-row" },

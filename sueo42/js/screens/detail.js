@@ -16,8 +16,10 @@ export function renderDetail(el, { no }) {
     h("dl", { class: "facts-card" },
       h("div", { class: "fact" }, h("span", { class: "fact-icon", "aria-hidden": "true" }, icon("book")),
         h("div", {}, h("dt", {}, t("S-06")), h("dd", {}, w.headword))),
+      // (11/24 스크롤 줄이기) 수형 설명은 눌러서 펼침(뜻 맞히기 결과 판과 같은 방식)
       h("div", { class: "fact" }, h("span", { class: "fact-icon", "aria-hidden": "true" }, icon("hand")),
-        h("div", {}, h("dt", {}, t("S-07")), h("dd", {}, w.handshape, h("small", { class: "muted block" }, t("S-08")))))),
+        h("div", {}, h("dt", {}, t("S-07")), h("dd", {},
+          h("details", { class: "shape-more" }, h("summary", {}, btn("L-12")), h("p", {}, w.handshape), h("small", { class: "muted block" }, t("S-08"))))))),
     h("div", { class: "btn-col bottom-actions" },
       button(btn("S-09"), () => go(`/lab/word/${w.no}`), { kind: "primary" }),
       button(btn("S-10"), () => startQuiz(w.stage), { kind: "secondary" }))));
