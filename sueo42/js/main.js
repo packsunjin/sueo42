@@ -125,3 +125,8 @@ function boot() {
 }
 
 boot();
+
+// (11/24) 오프라인 저장(sw.js): 한 번 열어 두면 인터넷이 끊겨도 앱·AI 가 돌아감. 안 되는 브라우저는 그냥 지나감
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch((e) => console.warn("오프라인 저장 등록 실패:", e && e.message)); });
+}
