@@ -11,6 +11,8 @@ import { renderSearch } from "./screens/search.js";
 import { renderDetail } from "./screens/detail.js";
 import { renderQuizHome, renderQuizPlay, renderRanking } from "./screens/quiz.js";
 import { renderLabPick, renderLabWord } from "./screens/lab-pick.js";
+import { handTracker } from "./ai/hands.js";
+import { preload as preloadModel } from "./ai/model.js";
 import { renderRecords } from "./screens/records.js";
 import { renderInfo } from "./screens/info.js";
 
@@ -54,6 +56,21 @@ function flame(filled) {
 }
 
 // 화면이 바뀌면 열려 있던 창(아래에서 올라온 창·확인 창)을 닫는다 — 뒤로 가기로 나가도 창이 남지 않게(11/19 고침)
+// (11/24) 직접 해보기 미리 준비: 손 찾기 AI(일꾼)와 단어 순위 모델을 뒤에서 불러 둔다. 실패해도 조용히(들어갈 때 다시 시도)
+let warmed = false;
+function warmLab() {
+  if (warmed) return;
+  warmed = true;
+  handTracker.loadWorker()
+    .then(() => {   // 처음 온 기기면 빈 그림으로 GPU·CPU 속도를 미리 재 둠(카메라 화면에서 기다리지 않게). 손 없는 그림도 손 찾기 시간은 비슷함
+      const cv = document.createElement("canvas"); cv.width = 640; cv.height = 480;
+      const g = cv.getContext("2d"); g.fillStyle = "#808080"; g.fillRect(0, 0, 640, 480);
+      return handTracker.tuneWorker(cv);
+    })
+    .catch(() => { warmed = false; });
+  preloadModel();
+}
+
 function closeOpenSheets() {
   document.querySelectorAll(".modal-layer").forEach((m) => m.remove());
 }
@@ -98,7 +115,10 @@ function boot() {
   renderStart(app, () => {
     statusEl.hidden = false;
     registerRoutes();
-    setHooks({ before: (pattern) => { closeOpenSheets(); holdCelebrations(false); drawStatus(); drawTabs(pattern); } });
+    setHooks({ before: (pattern) => { closeOpenSheets(); holdCelebrations(false); drawStatus(); drawTabs(pattern); if (pattern.startsWith("/lab")) warmLab(); } });
+    // 데이터 절약·느린 망이 아니면 첫 화면 3초 뒤 미리 불러 둠(직접 해보기를 누르면 바로 시작)
+    const net = navigator.connection;
+    if (!(net && (net.saveData || /(^|-)2g|3g/.test(net.effectiveType || "")))) setTimeout(warmLab, 3000);
     startRouter();
     if (!storageOk) { markStorageWarned(); showStorageWarning(); } // S0 다음 한 번
   });

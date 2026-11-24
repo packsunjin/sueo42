@@ -21,9 +21,12 @@ async function init(msg) {
   cfg = msg;
   vision = await import(msg.bundle);
   fileset = await vision.FilesetResolver.forVisionTasks(msg.wasm);
-  try { landmarker = await makeHands("GPU"); delegate = "GPU"; }
-  catch (e) { landmarker = await makeHands("CPU"); delegate = "CPU"; }
-  try {
+  if (msg.prefer === "CPU") { landmarker = await makeHands("CPU"); delegate = "CPU"; }   // 이 기기는 CPU 가 빠르다고 기억함
+  else {
+    try { landmarker = await makeHands("GPU"); delegate = "GPU"; }
+    catch (e) { landmarker = await makeHands("CPU"); delegate = "CPU"; }
+  }
+  if (msg.poseModel) try {
     poser = await vision.PoseLandmarker.createFromOptions(fileset, {
       baseOptions: { modelAssetPath: msg.poseModel, delegate: "CPU" }, runningMode: "VIDEO", numPoses: 1,
     });

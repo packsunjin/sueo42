@@ -205,13 +205,13 @@ async function initCamera() {
   c.ready = false;
   c.startBtn.disabled = true;
   c.box.replaceChildren(spinner());
+  // (11/24) 손 찾기 AI 불러오기를 카메라 켜기와 동시에 시작(차례로 기다리지 않음)
+  const workerReady = handTracker.loadWorker().then(() => true, (e) => { console.warn("손 찾기 일꾼 실패(화면 스레드로):", e && e.message); return false; });
   const err = await startCamera(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
   if (err) { c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() })); return; }
   // (11/19) 먼저 일꾼(다른 스레드)으로. 안 되는 브라우저면 화면 스레드로
-  let viaWorker = false;
-  try { await handTracker.loadWorker(); viaWorker = true; }
-  catch (e) { console.warn("손 찾기 일꾼 실패(화면 스레드로):", e && e.message); }
+  const viaWorker = await workerReady;
   try { if (!viaWorker) await handTracker.load(); }
   catch (e) {
     console.warn("MediaPipe 불러오기 실패:", e && e.message);
@@ -278,7 +278,7 @@ function startLoop() {
   const c = ctx;
   const g = c.overlay.getContext("2d");
   const rvfc = typeof camVideo.requestVideoFrameCallback === "function";
-  let lastVT = -1, lastStored = -Infinity, lastBodyAt = -Infinity, busy = false, dirty = true;
+  let lastVT = -1, lastStored = -Infinity, lastBodyAt = -Infinity, sending = false, dirty = true, lastApplied = -Infinity;
   c.lastHands = [];
   let shownBody = null;
   let prevR = null, lastR = null;   // 그리기용 최근 결과 두 개 { t, hands }
@@ -286,6 +286,8 @@ function startLoop() {
   // 결과 하나가 왔을 때: 화면 상태 갱신 + 기록 중이면 모으기
   const onHands = (hands, now) => {
     if (ctx !== c) return;
+    if (now <= lastApplied) return;   // 일꾼 둘이 번갈아 하므로 늦게 온 옛 프레임 결과는 버림
+    lastApplied = now;
     c.lastHands = hands; dirty = true;
     prevR = lastR; lastR = { t: now, hands };   // t = 카메라 프레임을 보낸 시각(AI 계산 시간만큼 늦게 도착함)
     c.handState.textContent = hands.length ? t("L-19") : t("L-20");
@@ -312,20 +314,19 @@ function startLoop() {
     if (ctx !== c) return;
     c.vfc = rvfc ? camVideo.requestVideoFrameCallback(pump) : 0;
     if (!rvfc) c.vfcTimer = requestAnimationFrame(pump);
-    if (busy || camVideo.readyState < 2 || (!rvfc && camVideo.currentTime === lastVT)) return;
+    const free = handTracker.usingWorker ? handTracker.idleWorkers > 0 && !sending : true;
+    if (!free || camVideo.readyState < 2 || (!rvfc && camVideo.currentTime === lastVT)) return;
     lastVT = camVideo.currentTime;
     const now = performance.now();
     const recording = c.mode === "recording";
     const wantBody = recording ? (!c.fixedBody && c.frames.length % 6 === 0) : now - lastBodyAt >= BODY_EVERY_MS;
-    if (wantBody && !recording) lastBodyAt = now;
     if (handTracker.usingWorker) {
-      busy = true;
-      handTracker.send(camVideo, now, {
-        body: wantBody,
-        onHands: (hands) => { busy = false; onHands(hands, now); },
-        onBody,
-      }).catch(() => { busy = false; });
+      sending = true;   // ImageBitmap 을 만드는 동안 같은 프레임을 두 번 보내지 않게
+      handTracker.send(camVideo, now, { body: wantBody, onHands: (hands) => onHands(hands, now), onBody })
+        .then((r) => { sending = false; if (r.body && !recording) lastBodyAt = now; })
+        .catch(() => { sending = false; });
     } else {
+      if (wantBody && !recording) lastBodyAt = now;
       let hands = [];
       try { hands = handTracker.detect(camVideo, now); } catch (e) { hands = []; }
       onHands(hands, now);
