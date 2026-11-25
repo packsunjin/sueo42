@@ -57,8 +57,7 @@ export function rank(features, words) {
 }
 
 // (11/19) 후보 여러 개(그대로·좌우 뒤집음)를 각각 모델에 넣고, 1위 값이 더 큰 후보의 순위를 쓴다(값은 고르는 데만 쓰고 버림)
-export async function rankBest(candidates, words) {
-  const size = CONFIG.LAB_RANK_SIZE;
+export async function rankBest(candidates, words, size = CONFIG.LAB_RANK_SIZE) {   // size: 후보 몇 개(문장 만들기는 5)
   if (!CONFIG.MODEL_URL) {
     return { names: sample(words, size).map((w) => w.name), trial: true };
   }

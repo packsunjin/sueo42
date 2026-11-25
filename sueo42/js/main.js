@@ -10,7 +10,7 @@ import { renderHome } from "./screens/home.js";
 import { renderSearch } from "./screens/search.js";
 import { renderDetail } from "./screens/detail.js";
 import { renderQuizHome, renderQuizPlay, renderRanking } from "./screens/quiz.js";
-import { renderLabPick, renderLabWord } from "./screens/lab-pick.js";
+import { renderLabPick, renderLabWord, renderLabSentence, renderSentencePick } from "./screens/lab-pick.js";
 import { handTracker } from "./ai/hands.js";
 import { preload as preloadModel } from "./ai/model.js";
 import { renderRecords } from "./screens/records.js";
@@ -20,7 +20,7 @@ const TABS = [
   { label: "C-02", icon: "home", path: "/home", match: ["/home"] },
   { label: "C-03", icon: "search", path: "/search", match: ["/search", "/word/:no"] },
   { label: "C-04", icon: "quiz", path: "/quiz", match: ["/quiz", "/quiz/play/:stage", "/ranking"] },
-  { label: "C-05", icon: "camera", path: "/lab", match: ["/lab", "/lab/word/:no"] },
+  { label: "C-05", icon: "camera", path: "/lab", match: ["/lab", "/lab/word/:no", "/lab/sentence", "/lab/sentence/:id"] },
   { label: "C-06", icon: "chart", path: "/records", match: ["/records", "/info"] },
 ];
 // 탭 바를 숨기는 화면 — 뜻 맞히기 한 판(S5·S6). 직접 해보기 S11~S13 은 screens/lab.js 가 화면마다 직접 숨긴다
@@ -93,6 +93,8 @@ function registerRoutes() {
   route("/ranking", renderRanking);
   route("/lab", renderLabPick);
   route("/lab/word/:no", renderLabWord);
+  route("/lab/sentence", renderSentencePick);
+  route("/lab/sentence/:id", renderLabSentence);
   route("/records", renderRecords);
   route("/info", renderInfo);
 }

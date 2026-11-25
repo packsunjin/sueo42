@@ -14,6 +14,7 @@ import { handTracker } from "../ai/hands.js";
 import { drawHands, drawBody, replay } from "../ai/draw.js";
 import { prepareFeatures, mirrorFrame, mirrorPlan } from "../ai/normalize.js";
 import { rankBest, preload } from "../ai/model.js";
+import { sentenceById, CHANCE_PER_WORD, SENTENCE_RANK_SIZE } from "../data/sentences.js";
 
 // ── 화면이 바뀌어도 남는 것: 카메라 <video> 하나, 카메라 끄기 예약 ──
 const camVideo = h("video", { class: "cam-video", muted: true, autoplay: true, playsInline: true });
@@ -164,7 +165,7 @@ function screen(mode, children, { tabbar = false } = {}) {
   ctx.mode = mode;
   setLeaveGuard(null);
   setTabbar(!tabbar);
-  ctx.el.replaceChildren(h("section", { class: `lab lab-${mode}` }, children));
+  ctx.el.replaceChildren(h("section", { class: `lab lab-${mode}${ctx.sentence ? " has-sentence" : ""}` }, children));
   window.scrollTo(0, 0);
 }
 
@@ -218,8 +219,174 @@ function poseFigure() {
   return svg;
 }
 
+// ── 문장 만들기 (11/25 사장 지시) #/lab/sentence/:id ──
+// 예시 문장의 단어를 하나씩 동작 → AI 후보 5개(AI 추정) → 사람이 방금 한 단어를 고름. 동작 1번마다 기회 1번(AI 순위와 상관없음 — AI 순위가 점수가 되지 않게, 사장 결정).
+// 후보에 없으면 다시 동작(또 1번). 기회 = 단어 수 × 2. '틀렸어요'·점수·% 는 쓰지 않는다
+export function renderLabSentence(el, { id }) {
+  const sen = sentenceById(id);
+  if (!sen) { go("/lab/sentence"); return; }
+  const words = sen.words.map(wordByName);
+  if (words.some((w) => !w)) { go("/lab/sentence"); return; }
+  clearTimeout(stopTimer);
+  preload();
+  const total = words.length * CHANCE_PER_WORD;
+  ctx = { el, word: words[0], mode: null, frames: [], timers: [], raf: 0, stopReplay: null, retried: false, ranked: null,
+    sentence: { sen, words, idx: 0, left: total, total } };
+  if (getState().cameraIntroSeen) showPractice();
+  else showIntro();
+  const mine = ctx;
+  return () => {
+    teardown(mine);
+    dropClip(mine);
+    if (ctx === mine) ctx = null;
+    clearTimeout(stopTimer);
+    stopTimer = setTimeout(() => { if (!ctx) { stopCamera(); camVideo.srcObject = null; clearFile(mine); } }, 0);
+  };
+}
+
+// 문장(카메라 위에 뜸): 문장 글 + 단어 블록 칸(찾은 칸은 채워짐, 지금 찾을 칸은 강조) + 남은 기회
+function sentenceBar(c, { pop = -1 } = {}) {
+  const S = c.sentence;
+  return h("div", { class: "sentence-over" },
+    h("div", { class: "sentence-over-top" },
+      h("span", { class: "sentence-over-text" }, S.sen.text),
+      h("span", { class: `chance-pill ${S.left <= 1 ? "low" : ""}` }, icon("heart", { stroke: 2.4 }), t("M-10", { k: S.left }))),
+    h("ol", { class: "slot-row" }, S.words.map((w, i) => h("li", {
+      class: `slot ${i < S.idx ? "filled" : i === S.idx ? "now" : ""} ${i === pop ? "pop" : ""}`,
+      "aria-current": i === S.idx ? "step" : false },
+      i < S.idx ? icon("check", { stroke: 3 }) : null, w.name))));
+}
+const sentenceBack = () => go("/lab/sentence");
+const CIRCLED = ["①", "②", "③", "④", "⑤"];
+
+// ── 문장 만들기 놀이 화면: 내 카메라만(사전 영상 없음, 11/25 사장 수정) + 카메라 위 문장 + 아래 단어 블록 ──
+function showSentencePlay() {
+  const c = ctx, S = c.sentence;
+  c.frames = [];
+  const box = h("div", { class: "cam-box" });
+  const overlay = h("canvas", { class: "cam-overlay" });
+  const cue = h("div", { class: "cam-cue", hidden: true });
+  const handState = h("span", { class: "track-pill" }, t("L-20"));
+  const bodyState = h("span", { class: "track-pill" }, t("L-44"));
+  const notice = h("div");
+  const tray = h("div", { class: "block-tray", "aria-live": "polite" });
+  const startBtn = button(btn("M-21"), () => {
+    if (c.ranked) { recordLabRetry(); c.ranked = null; }   // 후보를 고르지 않고 다시 동작 = 다시 하기
+    begin();
+  }, { kind: "primary", cls: "btn-big", disabled: true });
+  const bar = h("div", { class: "sentence-slot" });
+  const stage = h("div", { class: "practice-stage sentence-stage" }, box, bar);
+  // 녹화 길이 = 그 단어 사전 영상 길이(영상은 보여 주지 않고 길이 정보만 읽음)
+  const meta = document.createElement("video");
+  meta.preload = "metadata"; meta.muted = true; meta.src = c.word.video || "";
+  Object.assign(c, { dict: { duration: () => meta.duration, pause() {} }, box, overlay, cue, handState, bodyState, notice, startBtn, stage, tray, bar,
+    ranked: null, ready: false, bodyHist: [], fixedBody: null });
+  screen("practice", [
+    header(t("M-01"), { onBack: sentenceBack }),
+    trialBlock(false),
+    stage,
+    h("div", { class: "track-state" }, handState, bodyState),
+    tray,
+    notice,
+    h("div", { class: "bottom-actions sticky-actions" }, startBtn),
+  ]);
+  bar.replaceChildren(sentenceBar(c));
+  trayHint(c);
+  initCamera();
+}
+
+function trayHint(c) {
+  choosing(c, false);
+  c.tray.replaceChildren(...[h("p", { class: "tray-hint" }, t("M-22", { "단어": c.sentence.words[c.sentence.idx].name })),
+    c.file ? h("p", { class: "muted small" }, t("L-50", { "이름": c.file.name })) : null].filter(Boolean));
+}
+
+// 기록이 끝나면(화면은 그대로) AI 후보 5개를 단어 블록으로
+async function sentenceRank(c, frames) {
+  const S = c.sentence;
+  c.frames = frames;
+  c.cue.hidden = true;
+  choosing(c, false);
+  c.tray.replaceChildren(spinner(t("L-21")));
+  const back = () => { c.mode = "practice"; c.startBtn.disabled = !c.ready || S.left <= 0; };
+  const preps = makePreps(frames);
+  if (!preps.some((p) => !p.error)) {   // 손이 안 잡힘: 기회를 쓰지 않음
+    back();
+    c.tray.replaceChildren(errorBox("E-09", { [btn("L-31")]: () => trayHint(c) }));
+    return;
+  }
+  const r = await rankBest(preps.filter((p) => !p.error).map((p) => (p.windows.length ? p.windows : p.features)), allWords(), SENTENCE_RANK_SIZE);
+  if (ctx !== c) return;
+  back();
+  if (r.error) { c.tray.replaceChildren(errorBox(r.error === "E-08" ? "E-08" : "E-10", { [btn("C-11")]: () => trayHint(c) })); return; }
+  S.left = Math.max(0, S.left - 1);   // 동작 1번 = 기회 1번(AI 순위와 상관없음)
+  c.ranked = r;
+  c.startBtn.disabled = !c.ready || S.left <= 0;
+  c.bar.replaceChildren(sentenceBar(c));
+  showBlocks(c);
+}
+
+// 후보를 고르는 동안: 카메라를 조금 줄이고 손·어깨 칩을 숨겨 블록이 한 화면에 들어오게
+const choosing = (c, on) => { const sec = c.el.querySelector(".lab"); if (sec) sec.classList.toggle("choosing", on); };
+function showBlocks(c) {
+  const S = c.sentence, target = S.words[S.idx], names = c.ranked.names;
+  choosing(c, true);
+  const note = h("p", { class: "info-line", role: "status", hidden: true });
+  const pick = (name, el) => {
+    if (name !== target.name) { note.hidden = false; note.textContent = t("M-08", { "단어": target.name }); el.classList.add("nope"); return; }
+    recordLabChoice(target.no, wordByName(names[0])?.no);
+    c.ranked = null;
+    S.idx += 1;
+    c.bar.replaceChildren(sentenceBar(c, { pop: S.idx - 1 }));
+    if (S.idx >= S.words.length) { c.startBtn.disabled = true; c.timers.push(setTimeout(() => showSentenceEnd(true), 700)); return; }
+    if (S.left <= 0) { c.startBtn.disabled = true; c.timers.push(setTimeout(() => showSentenceEnd(false), 700)); return; }
+    c.word = S.words[S.idx];
+    const meta = document.createElement("video"); meta.preload = "metadata"; meta.muted = true; meta.src = c.word.video || "";
+    c.dict = { duration: () => meta.duration, pause() {} };
+    trayHint(c);
+  };
+  c.tray.replaceChildren(...[
+    h("p", { class: "tray-title" }, t("M-06")),
+    h("ul", { class: "block-list" }, names.map((n, i) => h("li", {},
+      h("button", { class: "word-block", type: "button", onclick: (ev) => pick(n, ev.currentTarget) },
+        h("span", { class: "cand-no", "aria-hidden": "true" }, CIRCLED[i] || String(i + 1)), n)))),
+    note,
+    S.left > 0 ? h("p", { class: "muted small" }, t("M-23"))
+      : h("div", { class: "btn-col" }, button(btn("M-20"), () => showSentenceEnd(false), { kind: "secondary" }))].filter(Boolean));
+}
+
+// 끝: 문장을 다 했거나(done) 기회를 다 씀. 점수·축하 없이 한 일만 알려 줌
+function showSentenceEnd(done) {
+  const c = ctx, S = c.sentence;
+  const id = S.sen.id;
+  const nextSen = sentenceById(id + 1) || sentenceById(1);
+  screen("send", [
+    header(t("M-01"), { onBack: sentenceBack }),
+    h("div", { class: "saved-hero" },
+      h("h2", { class: "saved-title" }, done ? t("M-11") : t("M-13"))),
+    sentenceBar(c),
+    h("p", { class: "muted" }, t("M-12", { c: S.total, u: S.total - S.left })),
+    h("p", { class: "muted small" }, t("M-16")),
+    h("div", { class: "btn-col bottom-actions" },
+      done ? button(btn("M-18", { "문장": nextSen.text }), () => go(`/lab/sentence/${nextSen.id}`), { kind: "primary" }) : null,
+      button(btn("M-14"), () => { Object.assign(S, { idx: 0, left: S.total }); c.word = S.words[0]; showPractice(); }, { kind: done ? "secondary" : "primary" }),
+      button(btn("M-15"), sentenceBack, { kind: "secondary" })),
+  ], { tabbar: true });
+}
+
+// 손 좌표 → 모델 입력 준비(거울처럼 따라 했는지 보고 그대로·뒤집은 것 중 필요한 것만)
+function makePreps(frames) {
+  const opts = { flip: CONFIG.HANDEDNESS_FLIP, minFrames: CONFIG.LAB_MIN_HAND_FRAMES };
+  const plan = mirrorPlan(frames, CONFIG.HANDEDNESS_FLIP);
+  const preps = [];
+  if (plan !== "mirror") preps.push(prepareFeatures(frames, opts));
+  if (plan !== "as-is") preps.push(prepareFeatures(frames.map(mirrorFrame), opts));
+  return preps;
+}
+
 // ── S11 연습 ──
 function showPractice() {
+  if (ctx.sentence) { showSentencePlay(); return; }
   const w = ctx.word;
   ctx.frames = [];
   const dict = dictVideo(w);
@@ -314,7 +481,7 @@ function fitCameraBox(c) {
   const vw = camVideo.videoWidth, vh = camVideo.videoHeight;
   if (!(vw > 0 && vh > 0)) return;
   c.box.style.aspectRatio = `${vw} / ${vh}`;
-  c.box.style.width = `min(100%, calc(52svh * ${(vw / vh).toFixed(4)}))`;
+  c.box.style.width = `min(100%, calc(${c.sentence ? "38svh" : "52svh"}) * ${(vw / vh).toFixed(4)})`;   // 문장 만들기는 아래 단어 블록 자리만큼 낮게
 }
 
 function syncOrientation() {
@@ -432,7 +599,7 @@ function begin() {
   const c = ctx;
   if (!c.ready || landscape()) return;
   c.startBtn.disabled = true;
-  c.dict.pause();
+  if (c.dict) c.dict.pause();
   c.mode = "countdown";
   c.frames = [];
   c.lastBody = null;
@@ -455,7 +622,7 @@ function begin() {
     later(c.recSec * 1000, () => {
       c.mode = "analyzing";
       stopClip(c);
-      analyze(c.frames.slice());
+      if (c.sentence) sentenceRank(c, c.frames.slice()); else analyze(c.frames.slice());
     });
     const bar = h("span", { class: "rec-bar-fill" });
     show(h("strong", {}, t("L-17")), h("small", {}, t("L-18")), h("span", { class: "rec-bar" }, bar));
