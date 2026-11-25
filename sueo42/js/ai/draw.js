@@ -38,7 +38,6 @@ export function replay(canvas, frames, { mirror = true, durationMs = 2000, clock
   // rAF 는 탭이 가려지거나 창이 작으면 멈춰 캔버스가 빈 채로 남는다 → 바로 한 번 그리고 타이머로 돈다
   let stopped = false;
   const t0 = performance.now();
-  const seen = frames.filter((f) => f.hands.length).length;   // 손이 잡힌 프레임 수(한 번만 셈)
   function tick(now = performance.now()) {
     if (stopped) return;
     const n = frames.length;
@@ -54,10 +53,7 @@ export function replay(canvas, frames, { mirror = true, durationMs = 2000, clock
         ctx.textAlign = "center";
         ctx.fillText("이 순간엔 손이 안 잡혔어요", canvas.width / 2, canvas.height / 2);
       }
-      ctx.fillStyle = "#8a93a3";
-      ctx.font = `${Math.round(canvas.width / 24)}px sans-serif`;
-      ctx.textAlign = "left";
-      ctx.fillText(`손 잡힘 ${seen}/${n}`, 8, canvas.height - 8);
+      // (11/25) "손 잡힘 n/n" 글자는 뺌(분수 꼴이라 점수처럼 읽힘)
     }
   }
   tick();

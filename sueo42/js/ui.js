@@ -152,8 +152,26 @@ export function openModal(content, { sheet = false, onClose } = {}) {
   const panel = h("div", { class: "modal-panel", role: "dialog", "aria-modal": "true" }, content);
   layer.append(panel);
   layer.addEventListener("click", (e) => { if (e.target === layer) close(); });
-  function close() { layer.remove(); onClose && onClose(); }
+  // (11/25) Esc 로 닫기, Tab 은 창 안에서만 돌기, 닫으면 창을 연 버튼으로 포커스 돌려주기
+  const opener = document.activeElement;
+  const focusables = () => [...panel.querySelectorAll("button, input, a[href], summary, [tabindex]:not([tabindex='-1'])")].filter((el) => !el.disabled && el.offsetParent !== null);
+  layer.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); close(); return; }
+    if (e.key !== "Tab") return;
+    const f = focusables(); if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
+  let closed = false;
+  function close() {
+    if (closed) return; closed = true;
+    layer.remove(); onClose && onClose();
+    if (opener && opener.isConnected && opener.focus) opener.focus();
+  }
   document.body.append(layer);
+  const title = panel.querySelector("h2, h3, .modal-text");
+  if (title) { title.id = title.id || `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`; panel.setAttribute("aria-labelledby", title.id); }
   const first = panel.querySelector("input, button");
   first && first.focus();
   return { close, layer };
@@ -225,7 +243,9 @@ export function celebrate(events) {
   const m = openModal(h("div", { class: `celebrate kind-${top.type}` },
     confetti,
     h("span", { class: "celebrate-icon", "aria-hidden": "true" }, icon(CELEBRATE_ICON[top.type], { stroke: 2.4 })),
-    big.map((e, i) => h(i === 0 ? "h2" : "p", { class: i === 0 ? "" : "celebrate-more" }, eventToastText(e))),
+    h("h2", {}, eventToastText(big[0])),
+    // (11/25) 한꺼번에 여러 개 받으면 나머지는 따로 목록으로(제목과 섞여 헷갈리지 않게)
+    big.length > 1 ? h("ul", { class: "celebrate-more" }, big.slice(1).map((e) => h("li", {}, eventToastText(e)))) : null,
     h("div", { class: "btn-col" }, button(btn("T-06"), () => m.close(), { kind: "primary" }))));
 }
 

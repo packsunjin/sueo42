@@ -34,6 +34,7 @@ export function emptyState() {
     ranking: [],        // [{ name, score, stage, date, at }]
     lastName: "",
     cameraIntroSeen: false,
+    aiChecks: [],       // (11/25) 직접 해보기에서 사람이 AI 추정을 확인한 기록 [{ ai: AI ①번 단어 번호, me: 사람이 고른 단어 번호 }] 최근 200개
     daily: {},          // (11/19) { YYYY-MM-DD: 그날 레벨 점수 } — 오늘의 목표
   };
 }

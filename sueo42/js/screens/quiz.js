@@ -191,7 +191,8 @@ function evidenceBox(w) {
 function renderResult(el, round) {
   const c = correctCount(round);
   queueMicrotask(() => holdCelebrations(false));   // 결과 화면을 그린 뒤 모아 둔 축하를 보여 줌
-  const uploadBtn = round.review ? null : button(btn("Q-15"), () => openNicknameSheet(round), { kind: "primary", disabled: !!round.uploadedAt });
+  const uploadBtn = round.review || !round.score ? null :   // (11/25) 0점은 랭킹에 올리지 않음
+    button(btn("Q-15"), () => openNicknameSheet(round), { kind: "primary", disabled: !!round.uploadedAt });
   const missed = missedWords(round);
   const reviewBtn = missed.length ? button(btn("Q-35"), () => startReview(round), { kind: round.review ? "primary" : "secondary" }) : null;
   el.append(h("section", { class: "quiz-result" },
@@ -220,13 +221,20 @@ function openNicknameSheet(round) {
     value: getState().lastName || "", autocomplete: "off", "aria-label": t("Q-19") });
   const ok = button(btn("Q-22"), submit, { kind: "primary" });
   const valid = () => { const n = charLen(input.value.trim()); return n >= 1 && n <= CONFIG.NICKNAME_MAX; };
-  const sync = () => { ok.disabled = !valid(); };
+  const counter = h("p", { class: "nick-count muted small", "aria-live": "polite" });
+  const sync = () => {   // (11/25) 몇 자인지 보여 줘서 8자를 넘으면 왜 안 눌리는지 알게
+    ok.disabled = !valid();
+    const n = charLen(input.value.trim());
+    counter.textContent = t("Q-38", { k: n, max: CONFIG.NICKNAME_MAX });
+    counter.classList.toggle("over", n > CONFIG.NICKNAME_MAX);
+  };
   input.addEventListener("input", sync);
   input.addEventListener("keydown", (e) => { if (e.key === "Enter" && valid()) submit(); });
   sync();
   const m = openModal(h("div", { class: "nick-sheet" },
     h("h2", {}, t("Q-19")),
     input,
+    counter,
     h("p", { class: "muted small" }, t("Q-21")),
     h("div", { class: "btn-col" }, ok, button(btn("Q-23"), () => m.close(), { kind: "secondary" }))), { sheet: true });
 

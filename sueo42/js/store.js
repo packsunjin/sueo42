@@ -20,6 +20,7 @@ const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 const count = (v) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0);       // 0 이상 정수만
 const isDay = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
 const isNoKey = (k) => /^[1-9]\d{0,3}$/.test(k);                              // 단어 번호·단계 번호 열쇠("__proto__" 같은 것 막음)
+const AI_CHECK_MAX = 200;   // AI 확인 기록은 최근 200번만
 const BADGE_IDS = new Set(BADGES.map((b) => b.id));
 
 function cleanRankRow(r) {
@@ -55,6 +56,10 @@ export function normalize(raw) {
   s.cameraIntroSeen = raw.cameraIntroSeen === true;
   s.labTries = count(raw.labTries);
   s.quizRounds = count(raw.quizRounds);
+  if (Array.isArray(raw.aiChecks)) {   // (11/25) AI 확인 기록
+    s.aiChecks = raw.aiChecks.filter((r) => isObj(r) && isNoKey(String(r.ai)) && isNoKey(String(r.me)))
+      .map((r) => ({ ai: Number(r.ai), me: Number(r.me) })).slice(-AI_CHECK_MAX);
+  }
   if (isObj(raw.daily)) {   // (11/19) 오늘의 목표
     for (const [k, v] of Object.entries(raw.daily)) if (isDay(k) && Number.isFinite(v) && v > 0) s.daily[k] = Math.floor(v);
   }
@@ -108,7 +113,15 @@ function record(mutate, opts = {}) {
 
 export const recordQuizAnswer = (no) => record(RECORD.quizAnswer(no));
 export const recordQuizRound = (stage, score) => record(RECORD.quizRound(stage, score));
-export const recordLabChoice = (no) => record(RECORD.labChoice(no), { from: "lab" });   // 1-6 에서 씀
+// (11/25) aiNo: AI 가 ①로 본 단어. 사람이 고른 단어(no)와 함께 'AI 확인 기록'에 남긴다(사람이 AI 를 확인한 기록 — 사람 점수 아님)
+export const recordLabChoice = (no, aiNo) => {
+  if (Number.isInteger(aiNo) && Number.isInteger(no)) {
+    if (!Array.isArray(state.aiChecks)) state.aiChecks = [];
+    state.aiChecks.push({ ai: aiNo, me: no });
+    if (state.aiChecks.length > AI_CHECK_MAX) state.aiChecks.splice(0, state.aiChecks.length - AI_CHECK_MAX);
+  }
+  return record(RECORD.labChoice(no), { from: "lab" });   // 1-6 에서 씀
+};
 export const recordLabRetry = () => record(RECORD.labRetry(), { from: "lab" });        // 1-6 에서 씀
 
 // 랭킹에 올리기(학습 기록이 아니므로 학습한 날에 넣지 않음). 돌려주는 값: 올린 줄의 at

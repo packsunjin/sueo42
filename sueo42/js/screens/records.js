@@ -45,6 +45,8 @@ export function renderRecords(el) {
       h("h2", {}, t("R-10", { k: got, n: BADGES.length })),
       h("ul", { class: "badges" }, BADGES.map((b) => badgeCell(b, s, words)))),
 
+    aiCheckCard(s, words),
+
     h("div", { class: "btn-col" },
       button(btn("Q-03"), () => go("/ranking"), { kind: "secondary" })),
 
@@ -85,3 +87,25 @@ function badgeCell(b, s, words) {
 
 // 연속 학습 타일의 불꽃(채운 모양)
 const flameIcon = () => icon("flame", { stroke: 1.6, fill: "currentColor" });
+
+// (11/25) AI 확인 기록: 사람이 AI 추정을 확인한 결과. 사람을 채점하지 않고, AI 가 어디서 헷갈렸는지만 모아 보여 준다
+function aiCheckCard(s, words) {
+  const checks = Array.isArray(s.aiChecks) ? s.aiChecks : [];
+  const name = (no) => (words.find((w) => w.no === no) || {}).name;
+  const same = checks.filter((c) => c.ai === c.me).length;
+  const pairs = new Map();
+  for (const c of checks) {
+    if (c.ai === c.me || !name(c.ai) || !name(c.me)) continue;
+    const k = `${c.ai}>${c.me}`;
+    pairs.set(k, { ai: c.ai, me: c.me, k: (pairs.get(k)?.k || 0) + 1 });
+  }
+  const top = [...pairs.values()].sort((a, b) => b.k - a.k).slice(0, 3);
+  return h("div", { class: "card ai-check" },
+    h("h2", {}, t("R-19")),
+    checks.length
+      ? h("p", { class: "muted small" }, t("R-20", { n: checks.length, a: same, b: checks.length - same }))
+      : h("p", { class: "muted small" }, t("R-24")),
+    top.length ? h("h3", { class: "ai-check-sub" }, t("R-21")) : null,
+    top.length ? h("ul", { class: "ai-pairs" }, top.map((p) => h("li", {}, t("R-22", { ai: name(p.ai), me: name(p.me), k: p.k })))) : null,
+    h("p", { class: "muted small" }, t("R-23")));
+}

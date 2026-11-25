@@ -280,6 +280,8 @@ async function initCamera() {
   if (!c.file) clearFile(c);
   const err = c.file ? await startFile(c) : await startCamera(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
+  const tracks = (on) => { const el = c.stage && c.stage.parentElement && c.stage.parentElement.querySelector(".track-state"); if (el) el.hidden = !on; };
+  tracks(!err);   // (11/25) 오류 안내가 떠 있을 때는 '손·어깨 상태' 칩을 숨겨 서로 다른 말을 하지 않게
   if (err) {   // 카메라가 안 되면 파일로 해 보는 길도 같이 보여 줌
     c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() }),
       c.file ? "" : h("p", { class: "file-line" }, h("button", { class: "link-btn", type: "button", onclick: pickFile }, btn("L-49"))));
@@ -291,6 +293,7 @@ async function initCamera() {
   try { if (!viaWorker) await handTracker.load(); }
   catch (e) {
     console.warn("MediaPipe 불러오기 실패:", e && e.message);
+    if (ctx === c) tracks(false);
     if (ctx === c) c.box.replaceChildren(errorBox("E-07", { [btn("C-11")]: () => initCamera() }));
     return;
   }
@@ -529,7 +532,7 @@ function showResult(selected) {
     h("p", { class: "muted" }, t("L-27")),
     h("p", { class: "ask-line" }, t("L-28", { "단어1": n1 })),
     h("div", { class: "choice-row" },
-      button(btn("L-29"), () => { recordLabChoice(wordByName(n1).no); showSaved(wordByName(n1)); }, { kind: "secondary" }),
+      button(btn("L-29"), () => { recordLabChoice(wordByName(n1).no, wordByName(n1).no); showSaved(wordByName(n1)); }, { kind: "secondary" }),
       button(btn("L-30"), () => openPicker(), { kind: "secondary" }),
       button(btn("L-31"), () => { recordLabRetry(); c.retried = true; showPractice(); }, { kind: "secondary" })),
   ]);
@@ -557,7 +560,7 @@ function openPicker() {
       return h("div", { class: "picker-stage" },
         h("h4", {}, t("C-14", { n })),
         h("ul", { class: "word-list" }, ws.map((w) => h("li", {},
-          h("button", { class: "word-row", onclick: () => { m.close(); recordLabChoice(w.no); showSaved(w); } },
+          h("button", { class: "word-row", onclick: () => { m.close(); recordLabChoice(w.no, ctx.ranked && wordByName(ctx.ranked.names[0])?.no); showSaved(w); } },
             h("span", { class: "word-name" }, w.name))))));
     }).filter(Boolean));
   }

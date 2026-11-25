@@ -769,3 +769,20 @@ body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset
 .file-chip { position: absolute; left: 8px; bottom: 8px; z-index: 3; padding: 4px 10px; border: 0; border-radius: 999px;
   background: rgba(15, 61, 43, .72); color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 .lab-practice.recording .file-chip, .cam-box:has(.cam-cue:not([hidden])) .file-chip { display: none; }
+
+/* (11/25 새 눈 점검) */
+.nick-count { margin: 6px 2px 0; text-align: right; }
+.nick-count.over { color: var(--danger, #c0392b); font-weight: 800; }
+/* 토스트는 맨 위 상태 줄 자리에 띄워 화면 제목·진행 막대를 가리지 않게 */
+.toast { top: calc(4px + env(safe-area-inset-top)); }
+/* 손가락으로 누르기 쉽게(44px) */
+.link-btn { min-height: 44px; padding: 10px 4px; }
+.chip { height: 44px; }
+.lab-result .rank-switch .chip { height: 44px; }
+ul.celebrate-more { list-style: none; padding: 0; }
+ul.celebrate-more li + li { margin-top: 2px; }
+.ai-check-sub { font-size: 15px; margin: 12px 0 6px; }
+.ai-pairs { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 6px; }
+.ai-pairs li { padding: 10px 12px; border-radius: 12px; background: var(--g-100, #eef8f1); font-weight: 700; font-size: 14px; }
+.btn-back { min-width: 44px; min-height: 44px; }
+.dict-link { display: inline-block; padding: 12px 2px; margin: -12px 0; }
