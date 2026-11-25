@@ -187,11 +187,11 @@ function showPractice() {
   const dictSource = dict.lastElementChild;
   const stage = h("div", { class: "practice-stage" });
   // (11/25) 사전 영상은 카메라 위에 떠 있고, 끌어서 옮기고·모서리 손잡이/두 손가락으로 크기를 바꾼다(js/pip.js). 두 번 누르면 크게↔작게
-  const handle = h("button", { class: "pip-handle", type: "button", "aria-label": t("L-47") }, icon("expand", { stroke: 2.4 }));
+  const moveBtn = h("button", { class: "pip-btn pip-move", type: "button", "aria-label": t("L-48") }, icon("move", { stroke: 2.4 }));
+  const sizeBtn = h("button", { class: "pip-btn pip-size", type: "button", "aria-label": t("L-47") }, icon("expand", { stroke: 2.4 }));
   dictBox.classList.add("pip-target", "pip-float");
-  dictBox.append(h("span", { class: "pip-label" }, t("L-10")), handle);
-  stage.append(box, dictBox);
-  makeFloating(stage, dictBox, handle);
+  dictBox.append(h("span", { class: "pip-label" }, t("L-10")), moveBtn, sizeBtn);
+  stage.append(box);
   Object.assign(ctx, { dict, box, overlay, cue, handState, bodyState, notice, startBtn, stage, ready: false, bodyHist: [], fixedBody: null });
 
   screen("practice", [
@@ -209,6 +209,7 @@ function showPractice() {
     h("div", { class: "bottom-actions sticky-actions" }, startBtn),
   ]);
   ctx.retried = false;
+  makeFloating(stage, dictBox, moveBtn, sizeBtn);   // 화면에 놓인 뒤에 띄움(처음 자리를 카메라 칸 기준으로 잡으려고)
   initCamera();
 }
 
