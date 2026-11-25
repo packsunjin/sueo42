@@ -8,8 +8,8 @@ import { setLeaveGuard } from "../router.js";
 import { allWords, wordByNo, wordsOfStage, stageNumbers, matchWord, isLowData } from "../data/words.js";
 import { getState, recordLabChoice, recordLabRetry, setCameraIntroSeen } from "../store.js";
 import { levelInfo } from "../game/progress.js";
-import { startCamera, stopCamera, getStream, isOn as cameraOn } from "../ai/camera.js";
-import { handTracker } from "../ai/hands.js";
+import { startCamera, stopCamera, getStream, isOn as cameraOn, cameraErrorName, openInBrowser } from "../ai/camera.js";
+import { handTracker, checkStuckWorkers } from "../ai/hands.js";
 import { drawHands, drawBody, replay } from "../ai/draw.js";
 import { prepareFeatures, mirrorFrame, mirrorPlan } from "../ai/normalize.js";
 import { rankBest, preload } from "../ai/model.js";
@@ -128,7 +128,7 @@ function showIntro() {
     errSlot.replaceChildren(spinner());
     const err = await startCamera(camVideo);
     onBtn.disabled = false;
-    if (err) { errSlot.replaceChildren(errorBox(err, { [btn("C-11")]: () => onBtn.click() })); return; }
+    if (err) { errSlot.replaceChildren(cameraError(err, () => onBtn.click())); return; }
     setCameraIntroSeen();
     showPractice();
   }, { kind: "primary", cls: "btn-big" });
@@ -140,6 +140,25 @@ function showIntro() {
     errSlot,
     h("div", { class: "bottom-actions" }, onBtn),
   ], { tabbar: true });
+}
+
+// (11/25) 카메라 오류 상자: 다시 시도 + (앱 안 브라우저면) 다른 브라우저로 열기·주소 복사 + 작은 글씨로 브라우저 오류 이름(문제 찾기용)
+function cameraError(code, retry) {
+  const copied = h("p", { class: "muted small", role: "status" });
+  const box = errorBox(code, {
+    [btn("C-11")]: retry,
+    "다른 브라우저로 열기": () => { if (!openInBrowser()) copyLink(copied); },
+    "주소 복사": () => copyLink(copied),
+  });
+  const name = cameraErrorName();
+  box.append(copied, name ? h("p", { class: "muted small" }, `(브라우저 오류: ${name})`) : "");
+  return box;
+}
+function copyLink(out) {
+  const url = location.href;
+  const done = () => { out.textContent = "주소를 복사했어요. 크롬이나 사파리 주소창에 붙여 넣어 주세요."; };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => { out.textContent = url; });
+  else out.textContent = url;
 }
 
 // 손이 화면 안에 들어온 자세 예시(사람 사진 대신 단순한 그림, 수어 동작 아님)
@@ -226,7 +245,7 @@ async function initCamera() {
   const workerReady = handTracker.loadWorker().then(() => true, (e) => { console.warn("손 찾기 일꾼 실패(화면 스레드로):", e && e.message); return false; });
   const err = await startCamera(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
-  if (err) { c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() })); return; }
+  if (err) { c.box.replaceChildren(cameraError(err, () => initCamera())); return; }
   fitCameraBox(c);
   // (11/19) 먼저 일꾼(다른 스레드)으로. 안 되는 브라우저면 화면 스레드로
   const viaWorker = await workerReady;
@@ -240,7 +259,14 @@ async function initCamera() {
   c.box.replaceChildren(camVideo, c.overlay, c.cue);
   camVideo.play().catch(() => {});
   // 이 기기에서 손 찾기가 빠른 방식(GPU/CPU)을 한 번 고른다(처음 한 번만 1~2초, 그동안 [동작 시작]은 잠김)
-  if (viaWorker) await handTracker.tuneWorker(camVideo); else await handTracker.tune(camVideo);
+  try {
+    if (viaWorker) await handTracker.tuneWorker(camVideo); else await handTracker.tune(camVideo);
+    if (viaWorker && !handTracker.usingWorker) await handTracker.load();   // (11/25) 일꾼이 멈춰 버렸으면 화면 스레드로
+  } catch (e) {
+    console.warn("손 찾기 준비 실패:", e && e.message);
+    if (ctx === c) c.box.replaceChildren(errorBox("E-07", { [btn("C-11")]: () => initCamera() }));
+    return;
+  }
   if (ctx !== c || c.mode !== "practice") return;
   c.ready = true;
   syncOrientation();
@@ -325,6 +351,7 @@ function startLoop() {
     c.vfc = rvfc ? camVideo.requestVideoFrameCallback(pump) : 0;
     if (!rvfc) c.vfcTimer = requestAnimationFrame(pump);
     const free = handTracker.usingWorker ? handTracker.idleWorkers > 0 && !sending : true;
+    if (!free && handTracker.usingWorker) checkStuckWorkers();   // (11/25) 일꾼이 멈춘 휴대폰: 4초 넘게 답이 없으면 CPU 일꾼으로
     if (!free || camVideo.readyState < 2 || (!rvfc && camVideo.currentTime === lastVT)) return;
     lastVT = camVideo.currentTime;
     const now = performance.now();
