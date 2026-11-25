@@ -21,15 +21,6 @@ export function openInBrowser() {
   return false;
 }
 const withInApp = (code) => (code && inAppBrowser() ? "E-13" : code);
-// (11/25) 거절(E-03)일 때 어디서 막혔는지: 사이트 권한이 'denied' 면 사이트 차단(E-03), 아니면 기기 설정에서 브라우저 권한이 꺼진 것(E-14)
-async function refineDenied(code) {
-  if (code !== "E-03") return code;
-  try {
-    const st = await navigator.permissions.query({ name: "camera" });
-    if (st.state !== "denied") return "E-14";
-  } catch (e) { /* 이 브라우저는 확인 못 함 → 그대로 */ }
-  return code;
-}
 
 export const isOn = () => !!(stream && stream.getVideoTracks().some((t) => t.readyState === "live"));
 
@@ -65,8 +56,8 @@ export async function startCamera(video) {
       if (err && (err.name === "OverconstrainedError" || busy)) {      // 해상도 조건 없이 한 번 더
         if (busy) await new Promise((r) => setTimeout(r, 900));
         try { stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true }); }
-        catch (err2) { console.warn("카메라 실패:", err2.name); lastErrorName = err2.name || "?"; return withInApp(await refineDenied(errorCode(err2))); }
-      } else { console.warn("카메라 실패:", err && err.name); lastErrorName = (err && err.name) || "?"; return withInApp(await refineDenied(errorCode(err))); }
+        catch (err2) { console.warn("카메라 실패:", err2.name); lastErrorName = err2.name || "?"; return withInApp(errorCode(err2)); }
+      } else { console.warn("카메라 실패:", err && err.name); lastErrorName = (err && err.name) || "?"; return withInApp(errorCode(err)); }
     }
   }
   video.muted = true;
