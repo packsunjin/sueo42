@@ -843,3 +843,11 @@ ul.celebrate-more li + li { margin-top: 2px; }
 .lab-practice.has-sentence.choosing .practice-stage > .cam-box .cam-video { object-fit: cover; }
 /* 문장 만들기: 카메라 칸과 문장 띠를 같은 너비로(넓은 화면, 11/25 사장 화면) */
 .sentence-stage { margin: 0 auto; max-width: 100%; }
+
+/* (11/25) 내 문장 만들기 */
+.tray-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.btn-chip.chip-strong { background: var(--g-600, #17804f); color: #fff; border-color: var(--g-700); }
+.free-entry { background: var(--g-100); }
+.lab-big .big-blocks { display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; min-height: 40svh; padding: 20px 4px; }
+.big-block { display: inline-flex; align-items: center; min-height: 72px; padding: 0 22px; border-radius: 18px; font-size: clamp(30px, 9vw, 56px); font-weight: 900;
+  background: var(--g-700); color: #fff; border-bottom: 6px solid var(--g-900, #0f3d2b); }

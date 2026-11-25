@@ -223,15 +223,21 @@ function poseFigure() {
 // 예시 문장의 단어를 하나씩 동작 → AI 후보 5개(AI 추정) → 사람이 방금 한 단어를 고름. 동작 1번마다 기회 1번(AI 순위와 상관없음 — AI 순위가 점수가 되지 않게, 사장 결정).
 // 후보에 없으면 다시 동작(또 1번). 기회 = 단어 수 × 2. '틀렸어요'·점수·% 는 쓰지 않는다
 export function renderLabSentence(el, { id }) {
-  const sen = sentenceById(id);
-  if (!sen) { go("/lab/sentence"); return; }
-  const words = sen.words.map(wordByName);
-  if (words.some((w) => !w)) { go("/lab/sentence"); return; }
   clearTimeout(stopTimer);
-  preload();
-  const total = words.length * CHANCE_PER_WORD;
-  ctx = { el, word: words[0], mode: null, frames: [], timers: [], raf: 0, stopReplay: null, retried: false, ranked: null,
-    sentence: { sen, words, idx: 0, left: total, total } };
+  if (id === "free") {   // (11/25) 내 문장 만들기: 정해진 문장 없이 동작한 단어를 사람이 골라 쌓음. 기회 없음
+    preload();
+    ctx = { el, word: null, mode: null, frames: [], timers: [], raf: 0, stopReplay: null, retried: false, ranked: null,
+      sentence: { free: true, picked: [], sen: { text: "" } } };
+  } else {
+    const sen = sentenceById(id);
+    if (!sen) { go("/lab/sentence"); return; }
+    const words = sen.words.map(wordByName);
+    if (words.some((w) => !w)) { go("/lab/sentence"); return; }
+    preload();
+    const total = words.length * CHANCE_PER_WORD;
+    ctx = { el, word: words[0], mode: null, frames: [], timers: [], raf: 0, stopReplay: null, retried: false, ranked: null,
+      sentence: { sen, words, idx: 0, left: total, total } };
+  }
   if (getState().cameraIntroSeen) showPractice();
   else showIntro();
   const mine = ctx;
@@ -248,6 +254,12 @@ export function renderLabSentence(el, { id }) {
 //   단어 블록(찾은 것은 채워짐, 지금 찾을 것 강조) + 이어 주는 말 + 오른쪽에 남은 기회
 function sentenceBar(c, { pop = -1 } = {}) {
   const S = c.sentence;
+  if (S.free) {   // 내 문장: 고른 단어 블록 + 다음 자리(물음표)
+    return h("div", { class: "sentence-over" },
+      h("ol", { class: "slot-row", "aria-label": S.picked.map((w) => w.name).join(" ") || t("M-25") }, S.picked.map((w, i) =>
+        h("li", { class: `slot filled ${i === pop ? "pop" : ""}` }, w.name)),
+        S.picked.length < FREE_MAX ? h("li", { class: "slot now", "aria-current": "step" }, "?") : null));
+  }
   let wi = 0;
   return h("div", { class: "sentence-over" },
     h("ol", { class: "slot-row", "aria-label": S.sen.text }, S.sen.parts.map((p) => {
@@ -260,6 +272,8 @@ function sentenceBar(c, { pop = -1 } = {}) {
     h("span", { class: `chance-pill ${S.left <= 1 ? "low" : ""}` }, icon("heart", { stroke: 2.4 }), t("M-10", { k: S.left })));
 }
 const sentenceBack = () => go("/lab/sentence");
+const FREE_MAX = 8;          // 내 문장은 단어 8개까지
+const FREE_RECORD_SEC = 4;   // 내 문장: 무슨 단어를 할지 모르므로 기록 길이를 정해 둠
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
 // ── 문장 만들기 놀이 화면: 내 카메라만(사전 영상 없음, 11/25 사장 수정) + 카메라 위 문장 + 아래 단어 블록 ──
@@ -281,11 +295,11 @@ function showSentencePlay() {
   const stage = h("div", { class: "practice-stage sentence-stage" }, box, bar);
   // 녹화 길이 = 그 단어 사전 영상 길이(영상은 보여 주지 않고 길이 정보만 읽음)
   const meta = document.createElement("video");
-  meta.preload = "metadata"; meta.muted = true; meta.src = c.word.video || "";
-  Object.assign(c, { dict: { duration: () => meta.duration, pause() {} }, box, overlay, cue, handState, bodyState, notice, startBtn, stage, tray, bar,
+  meta.preload = "metadata"; meta.muted = true; meta.src = (c.word && c.word.video) || "";
+  Object.assign(c, { dict: { duration: () => (S.free ? FREE_RECORD_SEC : meta.duration), pause() {} }, box, overlay, cue, handState, bodyState, notice, startBtn, stage, tray, bar,
     ranked: null, ready: false, bodyHist: [], fixedBody: null });
   screen("practice", [
-    header(t("M-01"), { onBack: sentenceBack }),
+    header(S.free ? t("M-24") : t("M-01"), { onBack: sentenceBack }),
     trialBlock(false),
     stage,
     h("div", { class: "track-state" }, handState, bodyState),
@@ -300,6 +314,17 @@ function showSentencePlay() {
 
 function trayHint(c) {
   choosing(c, false);
+  const S = c.sentence;
+  if (S.free) {
+    const full = S.picked.length >= FREE_MAX;
+    c.startBtn.disabled = !c.ready || full;
+    c.tray.replaceChildren(...[h("p", { class: "tray-hint" }, full ? t("M-30", { k: FREE_MAX }) : t("M-26")),
+      c.file ? h("p", { class: "muted small" }, t("L-50", { "이름": c.file.name })) : null,
+      S.picked.length ? h("div", { class: "tray-actions" },
+        button(btn("M-27"), () => { S.picked.pop(); c.bar.replaceChildren(sentenceBar(c)); trayHint(c); }, { kind: "chip" }),
+        button(btn("M-28"), () => showFreeBig(c), { kind: "chip", cls: "chip-strong" })) : null].filter(Boolean));
+    return;
+  }
   c.tray.replaceChildren(...[h("p", { class: "tray-hint" }, t("M-22", { "단어": c.sentence.words[c.sentence.idx].name })),
     c.file ? h("p", { class: "muted small" }, t("L-50", { "이름": c.file.name })) : null].filter(Boolean));
 }
@@ -311,7 +336,7 @@ async function sentenceRank(c, frames) {
   c.cue.hidden = true;
   choosing(c, false);
   c.tray.replaceChildren(spinner(t("L-21")));
-  const back = () => { c.mode = "practice"; c.startBtn.disabled = !c.ready || S.left <= 0; };
+  const back = () => { c.mode = "practice"; c.startBtn.disabled = !c.ready || (!S.free && S.left <= 0); };
   const preps = makePreps(frames);
   if (!preps.some((p) => !p.error)) {   // 손이 안 잡힘: 기회를 쓰지 않음
     back();
@@ -322,9 +347,9 @@ async function sentenceRank(c, frames) {
   if (ctx !== c) return;
   back();
   if (r.error) { c.tray.replaceChildren(errorBox(r.error === "E-08" ? "E-08" : "E-10", { [btn("C-11")]: () => trayHint(c) })); return; }
-  S.left = Math.max(0, S.left - 1);   // 동작 1번 = 기회 1번(AI 순위와 상관없음)
+  if (!S.free) S.left = Math.max(0, S.left - 1);   // 동작 1번 = 기회 1번(AI 순위와 상관없음). 내 문장은 기회 없음
   c.ranked = r;
-  c.startBtn.disabled = !c.ready || S.left <= 0;
+  c.startBtn.disabled = !c.ready || (!S.free && S.left <= 0);
   c.bar.replaceChildren(sentenceBar(c));
   showBlocks(c);
 }
@@ -339,6 +364,7 @@ function sizeSentenceStage(c) {
   c.stage.style.width = `min(100%, calc(${hv}svh * ${c.camRatio.toFixed(4)}))`;
 }
 function showBlocks(c) {
+  if (c.sentence.free) { showFreeBlocks(c); return; }
   const S = c.sentence, target = S.words[S.idx], names = c.ranked.names;
   choosing(c, true);
   const note = h("p", { class: "info-line", role: "status", hidden: true });
@@ -363,6 +389,41 @@ function showBlocks(c) {
     note,
     S.left > 0 ? h("p", { class: "muted small" }, t("M-23"))
       : h("div", { class: "btn-col" }, button(btn("M-20"), () => showSentenceEnd(false), { kind: "secondary" }))].filter(Boolean));
+}
+
+// 내 문장: 후보 5개 중 하려던 단어를 고르면 문장 끝에 붙음. 없으면 42개 목록에서 직접 고름(사람이 최종 결정)
+function showFreeBlocks(c) {
+  const S = c.sentence, names = c.ranked.names;
+  choosing(c, true);
+  const add = (w) => {
+    recordLabChoice(w.no, wordByName(names[0])?.no);
+    c.ranked = null;
+    S.picked.push(w);
+    c.bar.replaceChildren(sentenceBar(c, { pop: S.picked.length - 1 }));
+    trayHint(c);
+  };
+  c.tray.replaceChildren(
+    h("p", { class: "tray-title" }, t("M-06")),
+    h("ul", { class: "block-list" }, names.map((n, i) => h("li", {},
+      h("button", { class: "word-block", type: "button", onclick: () => add(wordByName(n)) },
+        h("span", { class: "cand-no", "aria-hidden": "true" }, CIRCLED[i] || String(i + 1)), n)))),
+    h("p", { class: "muted small" }, t("M-29"), " ",
+      h("button", { class: "link-btn", type: "button", onclick: () => openPicker((w) => add(w)) }, btn("M-31"))));
+}
+
+// 내 문장 크게 보여 주기(상대에게 화면을 보여 줄 때). 번역이 아니라 단어를 이어 놓은 것이라고 함께 알림
+function showFreeBig(c) {
+  const S = c.sentence;
+  screen("big", [
+    header(t("M-24"), { onBack: () => showPractice() }),
+    h("p", { class: "muted small" }, t("M-32")),
+    h("div", { class: "big-blocks", role: "group", "aria-label": S.picked.map((w) => w.name).join(" ") },
+      S.picked.map((w) => h("span", { class: "big-block" }, w.name))),
+    h("p", { class: "muted small" }, t("M-33")),
+    h("div", { class: "btn-col bottom-actions" },
+      button(btn("M-34"), () => showPractice(), { kind: "primary" }),
+      button(btn("M-35"), () => { S.picked = []; showPractice(); }, { kind: "secondary" })),
+  ]);
 }
 
 // 끝: 문장을 다 했거나(done) 기회를 다 씀. 점수·축하 없이 한 일만 알려 줌
@@ -730,7 +791,7 @@ function showResult(selected) {
 }
 
 // ── S14 42개 목록에서 고르기(순서 그대로, AI 순위·따라 할 단어를 위로 올리지 않음) ──
-function openPicker() {
+function openPicker(onPick) {
   const list = h("div", { class: "picker-list" });
   const input = h("input", { type: "search", class: "search-input", placeholder: t("L-34"), "aria-label": t("L-34"),
     oninput: () => draw() });
@@ -742,7 +803,7 @@ function openPicker() {
       return h("div", { class: "picker-stage" },
         h("h4", {}, t("C-14", { n })),
         h("ul", { class: "word-list" }, ws.map((w) => h("li", {},
-          h("button", { class: "word-row", onclick: () => { m.close(); recordLabChoice(w.no, ctx.ranked && wordByName(ctx.ranked.names[0])?.no); showSaved(w); } },
+          h("button", { class: "word-row", onclick: () => { m.close(); if (onPick) { onPick(w); return; } recordLabChoice(w.no, ctx.ranked && wordByName(ctx.ranked.names[0])?.no); showSaved(w); } },
             h("span", { class: "word-name" }, w.name))))));
     }).filter(Boolean));
   }
