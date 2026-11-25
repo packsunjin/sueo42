@@ -8,6 +8,7 @@ import { setLeaveGuard } from "../router.js";
 import { allWords, wordByNo, wordsOfStage, stageNumbers, matchWord, isLowData } from "../data/words.js";
 import { getState, recordLabChoice, recordLabRetry, setCameraIntroSeen } from "../store.js";
 import { levelInfo } from "../game/progress.js";
+import { makeFloating } from "../pip.js";
 import { startCamera, stopCamera, getStream, isOn as cameraOn } from "../ai/camera.js";
 import { handTracker } from "../ai/hands.js";
 import { drawHands, drawBody, replay } from "../ai/draw.js";
@@ -180,23 +181,17 @@ function showPractice() {
   const startBtn = button(btn("L-15"), () => begin(), { kind: "primary", cls: "btn-big", disabled: true });
 
   // (11/24) 한 화면 연습: 휴대폰에서 사전 영상·내 카메라·[동작 시작]이 스크롤 없이 함께 보이게.
-  // 내 카메라를 크게, 사전 영상은 옆에 작게(11/25 사장: 겹치면 카메라가 가려짐 → 나란히). 버튼으로 둘의 크기를 바꿈. 사전 영상은 편집하지 않고 크기만 바꿔 보여 줌
+  // 내 카메라를 크게, 사전 영상은 그 위에 떠 있고 사용자가 옮기고 크기를 바꿈(11/25 사장 지시). 사전 영상은 편집하지 않고 크기만 바꿔 보여 줌
   const dictBox = dict.querySelector(".video-box");
   const dictTools = dict.querySelector(".video-tools");
   const dictSource = dict.lastElementChild;
   const stage = h("div", { class: "practice-stage" });
-  const swapBtn = h("button", { class: "pip-swap", type: "button" });
-  const syncSwap = () => {
-    const big = stage.classList.contains("swap");
-    swapBtn.setAttribute("aria-label", big ? t("L-46") : t("L-45"));
-    swapBtn.replaceChildren(icon("expand", { stroke: 2.4 }));
-  };
-  swapBtn.onclick = () => { if (ctx.mode === "practice") { stage.classList.toggle("swap"); syncSwap(); } };
-  dictBox.classList.add("pip-target");
-  dictBox.append(h("span", { class: "pip-label" }, t("L-10")));
-  dictBox.append(swapBtn);   // (11/25) 사전 영상이 카메라를 가리지 않게 나란히 놓음(겹치지 않음). 버튼은 사전 영상 칸 안에
+  // (11/25) 사전 영상은 카메라 위에 떠 있고, 끌어서 옮기고·모서리 손잡이/두 손가락으로 크기를 바꾼다(js/pip.js). 두 번 누르면 크게↔작게
+  const handle = h("button", { class: "pip-handle", type: "button", "aria-label": t("L-47") }, icon("expand", { stroke: 2.4 }));
+  dictBox.classList.add("pip-target", "pip-float");
+  dictBox.append(h("span", { class: "pip-label" }, t("L-10")), handle);
   stage.append(box, dictBox);
-  syncSwap();
+  makeFloating(stage, dictBox, handle);
   Object.assign(ctx, { dict, box, overlay, cue, handState, bodyState, notice, startBtn, stage, ready: false, bodyHist: [], fixedBody: null });
 
   screen("practice", [
