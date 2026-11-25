@@ -244,17 +244,20 @@ export function renderLabSentence(el, { id }) {
   };
 }
 
-// 문장(카메라 위에 뜸): 문장 글 + 단어 블록 칸(찾은 칸은 채워짐, 지금 찾을 칸은 강조) + 남은 기회
+// 문장 = 블록(11/25 사장: "문장에 블록 합치고 화면 안 가리게 블록 형태로만"). 띠 없이 작은 블록만 카메라 위에 뜸
+//   단어 블록(찾은 것은 채워짐, 지금 찾을 것 강조) + 이어 주는 말 + 오른쪽에 남은 기회
 function sentenceBar(c, { pop = -1 } = {}) {
   const S = c.sentence;
+  let wi = 0;
   return h("div", { class: "sentence-over" },
-    h("div", { class: "sentence-over-top" },
-      h("span", { class: "sentence-over-text" }, S.sen.text),
-      h("span", { class: `chance-pill ${S.left <= 1 ? "low" : ""}` }, icon("heart", { stroke: 2.4 }), t("M-10", { k: S.left }))),
-    h("ol", { class: "slot-row" }, S.words.map((w, i) => h("li", {
-      class: `slot ${i < S.idx ? "filled" : i === S.idx ? "now" : ""} ${i === pop ? "pop" : ""}`,
-      "aria-current": i === S.idx ? "step" : false },
-      i < S.idx ? icon("check", { stroke: 3 }) : null, w.name))));
+    h("ol", { class: "slot-row", "aria-label": S.sen.text }, S.sen.parts.map((p) => {
+      if (p.glue) return h("li", { class: "glue" }, p.glue);
+      const i = wi++;
+      return h("li", { class: `slot ${i < S.idx ? "filled" : i === S.idx ? "now" : ""} ${i === pop ? "pop" : ""}`,
+        "aria-current": i === S.idx ? "step" : false },
+        i < S.idx ? icon("check", { stroke: 3 }) : null, p.word);
+    })),
+    h("span", { class: `chance-pill ${S.left <= 1 ? "low" : ""}` }, icon("heart", { stroke: 2.4 }), t("M-10", { k: S.left })));
 }
 const sentenceBack = () => go("/lab/sentence");
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -370,7 +373,8 @@ function showSentenceEnd(done) {
   screen("send", [
     header(t("M-01"), { onBack: sentenceBack }),
     h("div", { class: "saved-hero" },
-      h("h2", { class: "saved-title" }, done ? t("M-11") : t("M-13"))),
+      h("h2", { class: "saved-title" }, done ? t("M-11") : t("M-13")),
+      done ? h("p", { class: "sentence-text" }, `“${S.sen.text}”`) : null),
     sentenceBar(c),
     h("p", { class: "muted" }, t("M-12", { c: S.total, u: S.total - S.left })),
     h("p", { class: "muted small" }, t("M-16")),

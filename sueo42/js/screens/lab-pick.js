@@ -44,7 +44,7 @@ export function renderSentencePick(el) {
     h("ul", { class: "sentence-list" }, SENTENCES.map((s) => h("li", {},
       h("button", { class: "card sentence-card", type: "button", onclick: () => go(`/lab/sentence/${s.id}`) },
         h("strong", { class: "sentence-text" }, s.text),
-        h("span", { class: "sentence-words" }, s.words.map((w) => h("span", {}, w))),
+        h("span", { class: "sentence-words" }, s.parts.map((p) => h("span", { class: p.word ? "w" : "glue" }, p.word || p.glue))),
         h("small", { class: "muted" }, t("M-03", { k: s.words.length, c: s.words.length * CHANCE_PER_WORD })))))),
     h("p", { class: "muted small" }, t("M-16")),
     h("p", { class: "source" }, t("C-19"))));
