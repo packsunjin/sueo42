@@ -327,7 +327,14 @@ async function sentenceRank(c, frames) {
 }
 
 // 후보를 고르는 동안: 카메라를 조금 줄이고 손·어깨 칩을 숨겨 블록이 한 화면에 들어오게
-const choosing = (c, on) => { const sec = c.el.querySelector(".lab"); if (sec) sec.classList.toggle("choosing", on); };
+const choosing = (c, on) => { const sec = c.el.querySelector(".lab"); if (sec) sec.classList.toggle("choosing", on); sizeSentenceStage(c); };
+// 카메라 높이: 평소 38svh, 후보 고를 때 30svh(키 작은 화면은 30·24). CSS max-height 와 같은 값
+function sizeSentenceStage(c) {
+  if (!c.stage || !c.camRatio) return;
+  const short = innerHeight <= 600, on = c.el.querySelector(".lab.choosing");
+  const hv = on ? (short ? 24 : 30) : (short ? 30 : 38);
+  c.stage.style.width = `min(100%, calc(${hv}svh * ${c.camRatio.toFixed(4)}))`;
+}
 function showBlocks(c) {
   const S = c.sentence, target = S.words[S.idx], names = c.ranked.names;
   choosing(c, true);
@@ -481,7 +488,11 @@ function fitCameraBox(c) {
   const vw = camVideo.videoWidth, vh = camVideo.videoHeight;
   if (!(vw > 0 && vh > 0)) return;
   c.box.style.aspectRatio = `${vw} / ${vh}`;
-  c.box.style.width = `min(100%, calc(${c.sentence ? "38svh" : "52svh"}) * ${(vw / vh).toFixed(4)})`;   // 문장 만들기는 아래 단어 블록 자리만큼 낮게
+  if (c.sentence) {   // 문장 만들기: 카메라를 감싼 칸(위에 뜬 문장 포함)의 너비를 카메라에 맞춤 → 넓은 화면에서도 문장이 카메라 밖으로 안 나감
+    c.camRatio = vw / vh;
+    sizeSentenceStage(c);
+    c.box.style.width = "100%";
+  } else c.box.style.width = `min(100%, calc(52svh * ${(vw / vh).toFixed(4)}))`;
 }
 
 function syncOrientation() {

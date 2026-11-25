@@ -841,3 +841,5 @@ ul.celebrate-more li + li { margin-top: 2px; }
 .lab-practice.has-sentence.choosing .practice-stage > .cam-box { max-height: 30svh; }
 @media (max-height: 600px) { .lab-practice.has-sentence.choosing .practice-stage > .cam-box { max-height: 24svh; } }
 .lab-practice.has-sentence.choosing .practice-stage > .cam-box .cam-video { object-fit: cover; }
+/* 문장 만들기: 카메라 칸과 문장 띠를 같은 너비로(넓은 화면, 11/25 사장 화면) */
+.sentence-stage { margin: 0 auto; max-width: 100%; }
