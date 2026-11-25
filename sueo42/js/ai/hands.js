@@ -40,8 +40,7 @@ async function createPose(vision, delegate) {
 let workers = [];            // [{ w, busy }]
 let workerLoading = null, workerHasBody = false, nextId = 1, workerTuned = false, tuneWaiter = null;
 const pending = new Map();   // id → { onHands, onBody, body, slot }
-const WORKER_TIMEOUT_MS = 15000;
-const TUNE_TIMEOUT_MS = 6000;   // (11/25) 일부 휴대폰은 일꾼 안의 GPU 가 멈춘다 → 이 시간 안에 답이 없으면 CPU 일꾼으로 바꿈
+const WORKER_TIMEOUT_MS = 30000;
 let worker = null;           // 첫 일꾼(몸·속도 재기 담당)
 
 function spawnWorker({ prefer = null, pose = true } = {}) {
@@ -100,7 +99,7 @@ export const handTracker = {
     const slot = (body && first) || workers.find((x) => !x.busy && x !== workers[0]) || first;
     if (!slot) return { sent: false, body: false };
     const withBody = body && slot === workers[0];
-    slot.busy = true; slot.since = performance.now();
+    slot.busy = true;
     let bitmap;
     try { bitmap = await createImageBitmap(source); } catch (e) { slot.busy = false; throw e; }
     const id = nextId++;
@@ -195,17 +194,11 @@ export const handTracker = {
 // 처음 한 번만: 이 기기에서 빠른 방식을 재고(기억해 두면 건너뜀), CPU 면 일꾼을 더 띄움
 async function tuneOnce(video) {
   if (!savedDelegate()) {   // 이 기기에서 처음 한 번만 재고 기억한다(다음부터는 바로)
-    let ok = false;
-    try {
-      const bitmap = await createImageBitmap(video);
-      ok = await new Promise((resolve) => {
-        const timer = setTimeout(() => { tuneWaiter = null; resolve(false); }, TUNE_TIMEOUT_MS);
-        tuneWaiter = (m) => { clearTimeout(timer); console.info(m.message); delegateNow = m.delegate; resolve(true); };
-        worker.postMessage({ type: "tune", bitmap }, [bitmap]);
-      });
-    } catch (e) { console.warn("손 찾기 속도 재기 실패:", e && e.message); }
-    if (!ok) await replaceWithCpuWorker();   // 멈춘 일꾼을 버리고 CPU 일꾼으로
-    if (!worker) return delegateNow;          // CPU 일꾼도 안 되면 화면 스레드 길(lab.js 가 처리)
+    const bitmap = await createImageBitmap(video);
+    await new Promise((resolve) => {
+      tuneWaiter = (m) => { console.info(m.message); delegateNow = m.delegate; resolve(); };
+      worker.postMessage({ type: "tune", bitmap }, [bitmap]);
+    });
     saveDelegate(delegateNow);
   }
   // CPU 면 코어 수에 맞춰 일꾼(몸 모델 없음)을 더 띄워 프레임을 번갈아 맡긴다(extraWorkers). 실패해도 있는 만큼 계속
@@ -232,29 +225,6 @@ function onWorkerMessage(ev, slot) {
     if (p.onBody) p.onBody(m.body);
   }
 }
-
-// (11/25) 일꾼이 멈췄을 때: 모두 끝내고 CPU 일꾼 하나로 다시. 그것도 안 되면 worker=null(→ 화면 스레드 길)
-async function replaceWithCpuWorker() {
-  console.warn("손 찾기 일꾼이 답이 없어 CPU 로 다시 띄움");
-  for (const x of workers) { try { x.w.terminate(); } catch (e) { /* 무시 */ } }
-  workers = []; worker = null; workerLoading = null; pending.clear();
-  try {
-    const { w, ready } = await spawnWorker({ prefer: "CPU" });
-    worker = w; delegateNow = ready.delegate; workerHasBody = ready.hasBody; addSlot(w);
-  } catch (e) {
-    console.warn("CPU 일꾼도 실패(화면 스레드로):", e && e.message); delegateNow = "CPU";
-    await handTracker.load().catch(() => {});
-  }
-}
-
-// 프레임을 맡긴 일꾼이 너무 오래 답이 없으면(멈춤) CPU 일꾼으로 바꾼다. lab.js 가 주기적으로 부름
-export function checkStuckWorkers(maxMs = 4000) {
-  const now = performance.now();
-  if (!workers.some((x) => x.busy && x.since && now - x.since > maxMs)) return false;
-  if (!replacing) replacing = replaceWithCpuWorker().finally(() => { replacing = null; });
-  return true;
-}
-let replacing = null;
 
 // 더 띄울 일꾼 수: CPU 일 때만. 코어 4~7개면 1개(모두 2개), 8개 이상이면 2개(모두 3개). 화면 스레드 몫으로 코어 하나는 남김
 function extraWorkers() {

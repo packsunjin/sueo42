@@ -4,7 +4,7 @@
 // - model/(단어 순위 모델): 다시 학습하면 같은 이름으로 바뀌므로 앱 파일처럼 인터넷 먼저
 // - 사전 그림(국립국어원 썸네일): 저장본 먼저. 사전 영상(mp4)은 부분 요청(Range)이라 저장하지 않음 → 인터넷이 없으면 사전 영상은 안 나옴
 // - 이 기기 안에만 저장. 다른 곳으로 보내는 것 없음. 카메라 영상은 여기를 지나지 않음
-const VERSION = "sueo42-2026-11-25b";
+const VERSION = "sueo42-2026-11-25";
 const APP = `${VERSION}-app`, ASSET = `${VERSION}-asset`, THUMB = `${VERSION}-thumb`;
 const NET_TIMEOUT_MS = 4000;
 
