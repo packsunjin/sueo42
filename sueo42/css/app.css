@@ -761,3 +761,11 @@ body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset
   #app:has(.lab-practice) { max-width: 980px; }
   .lab-practice .practice-stage > .cam-box { max-height: 62svh; }
 }
+
+/* (11/25) 내 영상 파일로 해보기: 작은 글자 버튼 한 줄 */
+.file-line { margin: 6px 0 0; font-size: 13px; color: var(--muted, #5d6b64); }
+.link-btn { background: none; border: 0; padding: 4px 0; font: inherit; font-weight: 800; color: var(--g-700); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.cam-box .file-line { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; }
+.file-chip { position: absolute; left: 8px; bottom: 8px; z-index: 3; padding: 4px 10px; border: 0; border-radius: 999px;
+  background: rgba(15, 61, 43, .72); color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.lab-practice.recording .file-chip, .cam-box:has(.cam-cue:not([hidden])) .file-chip { display: none; }

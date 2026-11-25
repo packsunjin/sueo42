@@ -49,6 +49,7 @@ document.addEventListener("visibilitychange", () => {
 const CLIP_TYPES = ["video/webm;codecs=vp8", "video/webm", "video/mp4"];   // vp9 는 인코딩이 무거워 녹화 중 렉 → vp8 먼저
 function startClip(c) {
   dropClip(c);
+  if (c.file) { c.clipUrl = URL.createObjectURL(c.file); c.clipDone = Promise.resolve(); return; }   // 파일로 할 때 '내 동작' = 그 파일
   const stream = getStream();
   if (!stream || typeof MediaRecorder === "undefined") return;
   const type = CLIP_TYPES.find((t) => MediaRecorder.isTypeSupported?.(t));
@@ -84,6 +85,55 @@ function dropClip(c) {
   c.clipDone = null;
 }
 
+// 카메라 칸 왼쪽 아래 작은 버튼(화면 높이를 늘리지 않게): 카메라면 [내 영상 파일로 해보기], 파일이면 [카메라로 돌아가기]
+function fileChip() {
+  const f = !!ctx.file;
+  return h("button", { class: "file-chip", type: "button", onclick: f ? useCamera : pickFile }, btn(f ? "L-51" : "L-49"));
+}
+
+// ── (11/25) 내 영상 파일로 해보기: 카메라 대신 이 기기에 있는 동영상 파일(미리 찍어 둔 동작)을 같은 방식으로 분석한다.
+// 결선장에서 카메라가 말썽일 때·카메라가 없는 기기에서도 한 바퀴를 돌 수 있게. 파일은 이 기기 안에서만 읽고 어디로도 보내지 않는다
+function clearFile(c) {
+  if (c && c.fileUrl) { URL.revokeObjectURL(c.fileUrl); c.fileUrl = null; }
+  if (camVideo.getAttribute("src")) { camVideo.pause(); camVideo.removeAttribute("src"); camVideo.load(); }
+  camVideo.loop = false;
+}
+async function startFile(c) {
+  stopCamera();
+  camVideo.srcObject = null;
+  if (c.fileUrl) URL.revokeObjectURL(c.fileUrl);
+  c.fileUrl = URL.createObjectURL(c.file);
+  camVideo.muted = true; camVideo.loop = true;
+  camVideo.src = c.fileUrl;
+  const ok = await new Promise((res) => {
+    camVideo.addEventListener("loadeddata", () => res(true), { once: true });
+    camVideo.addEventListener("error", () => res(false), { once: true });
+    setTimeout(() => res(camVideo.readyState >= 2), 8000);
+  });
+  if (!ok) return "E-15";
+  try { await camVideo.play(); } catch { /* 눌러서 재생 */ }
+  return null;
+}
+function pickFile() {
+  const input = h("input", { type: "file", accept: "video/*", hidden: true });
+  input.onchange = () => {
+    const f = input.files && input.files[0];
+    input.remove();
+    if (!f || !ctx || (ctx.mode !== "practice" && ctx.mode !== "intro")) return;
+    if (ctx.mode === "intro") setCameraIntroSeen();
+    ctx.file = f;
+    showPractice();
+  };
+  document.body.append(input);
+  input.click();
+}
+function useCamera() {
+  if (!ctx) return;
+  clearFile(ctx);
+  ctx.file = null;
+  showPractice();
+}
+
 // #/lab/word/:no
 export function renderLabWord(el, { no }) {
   const word = wordByNo(no);
@@ -99,7 +149,7 @@ export function renderLabWord(el, { no }) {
     dropClip(mine);
     if (ctx === mine) ctx = null;
     clearTimeout(stopTimer);
-    stopTimer = setTimeout(() => { if (!ctx) { stopCamera(); camVideo.srcObject = null; } }, 0); // 다음 화면도 연습이면 안 끔
+    stopTimer = setTimeout(() => { if (!ctx) { stopCamera(); camVideo.srcObject = null; clearFile(mine); } }, 0); // 다음 화면도 연습이면 안 끔
   };
 }
 
@@ -130,7 +180,11 @@ function showIntro() {
     errSlot.replaceChildren(spinner());
     const err = await startCamera(camVideo);
     onBtn.disabled = false;
-    if (err) { errSlot.replaceChildren(errorBox(err, { [btn("C-11")]: () => onBtn.click() })); return; }
+    if (err) {
+      errSlot.replaceChildren(errorBox(err, { [btn("C-11")]: () => onBtn.click() }),
+        h("p", { class: "file-line" }, h("button", { class: "link-btn", type: "button", onclick: pickFile }, btn("L-49"))));
+      return;
+    }
     setCameraIntroSeen();
     showPractice();
   }, { kind: "primary", cls: "btn-big" });
@@ -205,7 +259,7 @@ function showPractice() {
     dictSource,
     isLowData(w) ? h("p", { class: "info-line" }, t("L-13")) : null,
     notice,
-    h("p", { class: "muted small" }, t("L-14")),
+    h("p", { class: "muted small" }, ctx.file ? t("L-50", { "이름": ctx.file.name }) : t("L-14")),
     h("div", { class: "bottom-actions sticky-actions" }, startBtn),
   ]);
   ctx.retried = false;
@@ -222,9 +276,15 @@ async function initCamera() {
   c.box.replaceChildren(spinner());
   // (11/24) 손 찾기 AI 불러오기를 카메라 켜기와 동시에 시작(차례로 기다리지 않음)
   const workerReady = handTracker.loadWorker().then(() => true, (e) => { console.warn("손 찾기 일꾼 실패(화면 스레드로):", e && e.message); return false; });
-  const err = await startCamera(camVideo);
+  stopLoop(c);
+  if (!c.file) clearFile(c);
+  const err = c.file ? await startFile(c) : await startCamera(camVideo);
   if (ctx !== c || c.mode !== "practice") return;
-  if (err) { c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() })); return; }
+  if (err) {   // 카메라가 안 되면 파일로 해 보는 길도 같이 보여 줌
+    c.box.replaceChildren(errorBox(err, { [btn("C-11")]: () => initCamera() }),
+      c.file ? "" : h("p", { class: "file-line" }, h("button", { class: "link-btn", type: "button", onclick: pickFile }, btn("L-49"))));
+    return;
+  }
   fitCameraBox(c);
   // (11/19) 먼저 일꾼(다른 스레드)으로. 안 되는 브라우저면 화면 스레드로
   const viaWorker = await workerReady;
@@ -235,7 +295,7 @@ async function initCamera() {
     return;
   }
   if (ctx !== c || c.mode !== "practice") return;
-  c.box.replaceChildren(camVideo, c.overlay, c.cue);
+  c.box.replaceChildren(camVideo, c.overlay, c.cue, fileChip());
   camVideo.play().catch(() => {});
   // 이 기기에서 손 찾기가 빠른 방식(GPU/CPU)을 한 번 고른다(처음 한 번만 1~2초, 그동안 [동작 시작]은 잠김)
   if (viaWorker) await handTracker.tuneWorker(camVideo); else await handTracker.tune(camVideo);
@@ -381,6 +441,11 @@ function begin() {
   [3, 2, 1].forEach((n, i) => later(i * 1000, () => show(h("span", { class: "count" }, t("L-16", { "3/2/1": n })))));
   later(3000, () => {
     c.recSec = recordSeconds(c);
+    if (c.file) {   // 파일: 처음부터 파일 길이만큼(최대 LAB_RECORD_MAX)
+      const d = camVideo.duration;
+      if (d > 0 && isFinite(d)) c.recSec = Math.min(CONFIG.LAB_RECORD_MAX, Math.round(d * 10) / 10);
+      try { camVideo.currentTime = 0; } catch { /* 무시 */ }
+    }
     c.fixedBody = medianBody(c.bodyHist);   // 기록 직전 얼굴·어깨 위치 하나로 고정
     c.mode = "recording";
     startClip(c);
