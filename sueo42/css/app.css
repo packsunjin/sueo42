@@ -586,8 +586,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 /* 바꾼 상태: 사전 영상이 크게, 내 카메라가 작게 */
 .practice-stage.swap > .video-box { position: relative; top: auto; right: auto; width: 100%; border: 0; box-shadow: none; border-radius: 18px; z-index: 1; }
 .practice-stage.swap > .video-box .pip-label { display: none; }
-.practice-stage.swap > .cam-box { position: absolute; top: 10px; right: 10px; width: 38% !important; aspect-ratio: 4 / 3 !important; z-index: 3;
-  border: 3px solid #fff; border-radius: 14px; box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .55); }
+
 .practice-stage.swap > .cam-box .cam-cue .count { font-size: 32px; }
 .lab-practice .track-state { margin-top: 8px; }
 .practice-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
@@ -736,4 +735,18 @@ body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset
   .detail .video-box { height: 19svh; }
   .detail .btn-col { margin-top: 8px; }
   .detail .fact { padding: 5px 0; }
+}
+
+/* (11/25) 사장: "수어 영상이 카메라 가려서 안 보여" → 겹치지 않고 나란히(카메라 크게 | 사전 영상 작게). 크기 바꾸기 버튼은 사전 영상 칸 안 */
+.practice-stage { display: flex; gap: 8px; align-items: flex-start; justify-content: center; }
+.practice-stage > .cam-box { flex: 1 1 0; min-width: 0; margin: 0; }
+.practice-stage > .video-box { position: relative; top: auto; right: auto; flex: 0 0 36%; width: auto; border: 2px solid var(--line); box-shadow: none; z-index: 1; }
+.practice-stage > .video-box .pip-swap { top: 6px; right: 6px; width: 30px; height: 30px; }
+.practice-stage.swap > .video-box { flex: 1 1 0; width: auto; border: 2px solid var(--line); border-radius: 14px; }
+.practice-stage.swap > .video-box .pip-label { display: block; }
+.practice-stage.swap > .cam-box { position: relative; top: auto; right: auto; flex: 0 0 36%; border: 0; box-shadow: none; }
+/* (11/25) 태블릿·가로 넓은 화면: 직접 해보기 연습 화면만 넓게 써서 카메라·사전 영상을 크게 */
+@media (min-width: 800px) {
+  #app:has(.lab-practice) { max-width: 980px; }
+  .lab-practice .practice-stage > .cam-box { max-height: 62svh; }
 }

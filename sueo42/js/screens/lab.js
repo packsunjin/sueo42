@@ -21,7 +21,8 @@ let stopTimer = null;
 let ctx = null;            // 지금 연습 중인 화면의 상태
 const MIN_FRAME_MS = 33;   // structure.md 4-5: 약 33 ms 간격 이상일 때만 기록(30 fps 가깝게)
 
-const landscape = () => matchMedia("(orientation: landscape) and (pointer: coarse)").matches;
+// (11/25) 가로 막기는 휴대폰만(높이 500 이하). 태블릿은 가로로 세워 두고 써도 됨
+const landscape = () => matchMedia("(orientation: landscape) and (pointer: coarse) and (max-height: 500px)").matches;
 const setTabbar = (hidden) => { const tb = document.getElementById("tabbar"); if (tb) tb.hidden = hidden; };
 const wordByName = (name) => allWords().find((w) => w.name === name);
 
@@ -179,7 +180,7 @@ function showPractice() {
   const startBtn = button(btn("L-15"), () => begin(), { kind: "primary", cls: "btn-big", disabled: true });
 
   // (11/24) 한 화면 연습: 휴대폰에서 사전 영상·내 카메라·[동작 시작]이 스크롤 없이 함께 보이게.
-  // 내 카메라를 크게, 사전 영상은 카메라 모서리에 작게. 작은 쪽을 누르면 둘의 크기를 바꿈. 사전 영상은 편집하지 않고 크기만 바꿔 보여 줌
+  // 내 카메라를 크게, 사전 영상은 옆에 작게(11/25 사장: 겹치면 카메라가 가려짐 → 나란히). 버튼으로 둘의 크기를 바꿈. 사전 영상은 편집하지 않고 크기만 바꿔 보여 줌
   const dictBox = dict.querySelector(".video-box");
   const dictTools = dict.querySelector(".video-tools");
   const dictSource = dict.lastElementChild;
@@ -193,7 +194,8 @@ function showPractice() {
   swapBtn.onclick = () => { if (ctx.mode === "practice") { stage.classList.toggle("swap"); syncSwap(); } };
   dictBox.classList.add("pip-target");
   dictBox.append(h("span", { class: "pip-label" }, t("L-10")));
-  stage.append(box, dictBox, swapBtn);
+  dictBox.append(swapBtn);   // (11/25) 사전 영상이 카메라를 가리지 않게 나란히 놓음(겹치지 않음). 버튼은 사전 영상 칸 안에
+  stage.append(box, dictBox);
   syncSwap();
   Object.assign(ctx, { dict, box, overlay, cue, handState, bodyState, notice, startBtn, stage, ready: false, bodyHist: [], fixedBody: null });
 
