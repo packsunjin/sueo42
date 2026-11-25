@@ -1,6 +1,6 @@
-// [떠 있는 사전 영상] (11/25 사장: "사전 영상 움직일 수 있고 확대 가능하게", "자유롭게, 버튼은 작게 왼쪽 위·아래")
+// [떠 있는 사전 영상] (11/25 사장: "사전 영상 움직일 수 있고 확대 가능하게", "자유롭게, 버튼은 작게 오른쪽 위·아래 — 11/25 사장 수정")
 // 직접 해보기 연습 화면에서 사전 영상 칸을 화면 전체 위에 띄운다(카메라 칸에 갇히지 않음).
-//   왼쪽 위 작은 버튼 = 끌어서 옮기기, 왼쪽 아래 작은 버튼 = 끌어서 크기 바꾸기(오른쪽 위 모서리 고정)
+//   오른쪽 위 작은 버튼 = 끌어서 옮기기, 오른쪽 아래 작은 버튼 = 끌어서 크기 바꾸기(왼쪽 위 모서리 고정)
 //   영상 몸통도 끌면 옮겨지고, 두 손가락으로 벌리면 크기, 두 번 톡 = 크게↔작게
 // 영상 자체는 편집하지 않고 보여 주는 크기·위치만 바꾼다(국립국어원 변경금지). 위치·크기는 이 기기에만 기억(sueo42-pip2).
 const KEY = "sueo42-pip2";
@@ -63,9 +63,9 @@ export function makeFloating(stage, box, moveBtn, sizeBtn) {
     const dx = p.x - start.px.x, dy = p.y - start.px.y;
     if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
     if (mode === "move") set(start.left + dx, start.top + dy, start.w);
-    else if (mode === "size") {   // 왼쪽 아래 손잡이: 오른쪽 위 모서리를 고정하고 왼쪽·아래로 끌면 커짐
-      const w = Math.max(MIN_W, Math.min(vw(), start.w + Math.max(-dx, dy / RATIO)));
-      set(Math.max(0, start.left + start.w - w), start.top, w);   // 왼쪽이 화면 끝에 닿으면 오른쪽으로 커짐
+    else if (mode === "size") {   // 오른쪽 아래 손잡이: 왼쪽 위 모서리를 고정하고 오른쪽·아래로 끌면 커짐
+      const w = Math.max(MIN_W, Math.min(vw(), start.w + Math.max(dx, dy / RATIO)));
+      set(Math.min(start.left, vw() - w), start.top, w);   // 오른쪽이 화면 끝에 닿으면 왼쪽으로 커짐
     } else if (mode === "pinch" && start.d) {
       const w = Math.max(MIN_W, start.w * (dist() / start.d));
       set(start.left - (w - start.w) / 2, start.top - (w - start.w) * RATIO / 2, w);
@@ -93,8 +93,8 @@ export function makeFloating(stage, box, moveBtn, sizeBtn) {
   // 키보드: 옮기기 버튼에서 화살표, 크기 버튼에서 + − (또는 화살표 위·아래)
   const key = (ev, which) => {
     const r = rect(), step = 16, k = ev.key;
-    if (which === "size" && (k === "+" || k === "=" || k === "ArrowDown")) set(r.left - r.w * 0.15, r.top, r.w * 1.15);
-    else if (which === "size" && (k === "-" || k === "ArrowUp")) set(r.left + r.w * 0.13, r.top, r.w / 1.15);
+    if (which === "size" && (k === "+" || k === "=" || k === "ArrowDown")) set(r.left, r.top, r.w * 1.15);
+    else if (which === "size" && (k === "-" || k === "ArrowUp")) set(r.left, r.top, r.w / 1.15);
     else if (which === "move" && k === "ArrowLeft") set(r.left - step, r.top, r.w);
     else if (which === "move" && k === "ArrowRight") set(r.left + step, r.top, r.w);
     else if (which === "move" && k === "ArrowUp") set(r.left, r.top - step, r.w);
