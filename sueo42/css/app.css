@@ -41,7 +41,7 @@
   font-family: var(--font); color: var(--text); background: var(--bg); -webkit-text-size-adjust: 100%;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; overflow-x: hidden; }
+html, body { margin: 0; overflow-x: clip; }
 body { line-height: 1.55; font-size: 16px; background: var(--bg); color: var(--text); word-break: keep-all; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -851,3 +851,69 @@ ul.celebrate-more li + li { margin-top: 2px; }
 .lab-big .big-blocks { display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; min-height: 40svh; padding: 20px 4px; }
 .big-block { display: inline-flex; align-items: center; min-height: 72px; padding: 0 22px; border-radius: 18px; font-size: clamp(30px, 9vw, 56px); font-weight: 900;
   background: var(--g-700); color: #fff; border-bottom: 6px solid var(--g-900, #0f3d2b); }
+
+/* ===== 11/26 새 눈 디자인 평가 반영 (docs/spec/design-review-1126.md) ===== */
+/* 2. 직접 해보기 결과: ① 칩·순위 글자에 '정답 초록'을 쓰지 않음(판정처럼 보이지 않게) */
+.lab-result .rank-switch .chip.on { background: var(--card); color: var(--g-900); border-color: var(--g-900); border-bottom-color: var(--g-900); }
+.lab-result .rank-line strong { color: inherit; }
+.lab-practice .info-line, .lab-result .info-line { background: var(--surface); color: var(--text); padding: 8px 12px; font-size: 14px; border-radius: 12px; }
+/* 3. 기록 중 안내를 카메라 아래쪽으로(위 오른쪽 사전 영상 칸과 안 겹치게) */
+.lab-practice .cam-cue { justify-content: flex-end; padding-bottom: 12px; background: linear-gradient(to top, rgba(0,0,0,.6), rgba(0,0,0,.08) 70%); }
+/* 4. 상태 줄 불꽃 칩: 채움 대신 연한 바탕 */
+.chip-stat.streak.lit { background: var(--fire-pale); border-color: var(--fire-line); color: var(--fire-ink); }
+.chip-stat.streak.lit svg { color: var(--fire); }
+/* 5. 넓은 화면: 상태 줄·탭 바를 내용 폭에 맞춤 */
+@media (min-width: 800px) {
+  .status-bar { padding-inline: max(16px, calc((100vw - 520px) / 2 + 16px)); }
+  body:has(.lab-practice) .status-bar, body:has(.has-sentence) .status-bar { padding-inline: max(16px, calc((100vw - 980px) / 2 + 16px)); }
+  .tab-bar { left: 50%; right: auto; width: 520px; transform: translateX(-50%); border-radius: 20px 20px 0 0; }
+}
+/* 6. 초점 고리: 흰 바탕에서도 보이게 */
+:focus-visible { outline: 3px solid var(--g-900); outline-offset: 2px; box-shadow: 0 0 0 6px rgba(166, 227, 90, .55); }
+.pip-btn:focus-visible, .file-chip:focus-visible { outline-color: #fff; }
+/* 7. 고르기 창 검색칸을 입력칸 모양으로 */
+.picker > .search-input { flex: none; width: 100%; height: 48px; margin-top: 10px; padding: 0 14px; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 14px; background: var(--card); font: inherit; color: var(--text); }
+.picker > .search-input:focus { border-color: var(--g-600); outline: none; }
+/* 8. 홈 단어 길 촘촘하게 */
+.word-path { gap: 4px; }
+.wp-node { width: 64px; height: 64px; border-width: 3px; }
+.wp-label { margin-top: 2px; }
+.wp-stars svg { width: 12px; height: 12px; }
+/* 9. 내 기록 배지 3칸, 못 받은 배지 더 잘 보이게 */
+.badge-grid, .badges { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 8px; }
+.badge .medal { width: 52px; height: 52px; }
+.badge strong { font-size: 15px; }
+.badge.off .medal { color: #869690; border-color: #869690; }
+/* 10. 문장 만들기 기회 표시: 빨강·하트 없이 중립 */
+.chance-pill, .chance-pill.low { background: rgba(255,255,255,.94); color: var(--g-900); }
+.chance-pill.low { box-shadow: inset 0 0 0 2px var(--g-900); }
+/* 11. 후보 블록 같은 폭 3칸 */
+.block-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.word-block { width: 100%; justify-content: center; min-height: 48px; padding: 0 8px; }
+/* 12. 작은 화면: 카메라 위 문장 블록 작게 */
+@media (max-width: 360px) {
+  .slot { height: 28px; padding: 0 8px; font-size: 14px; border-radius: 8px; }
+  .slot-row { gap: 3px; } .slot-row .glue { font-size: 13px; }
+  .sentence-over .chance-pill { height: 26px; padding: 0 8px; }
+}
+/* 13. 단어 상세: 도구는 영상 바로 아래 가운데 (영상 크기는 스크롤 0 유지 위해 그대로) */
+.detail .video-tools { justify-content: center; margin-top: 6px; }
+.video-box video { background: var(--surface); }
+/* 14. 연습 화면 안내 글 13px */
+.lab-practice > .muted.small { font-size: 13px; }
+/* 15. 작은 글자 키우기 */
+.tab { font-size: 13px; }
+.pip-label, .file-chip { font-size: 12.5px; font-weight: 800; }
+/* 16. 제목 자간 */
+h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
+/* 17. 토스트는 상태 줄 전체를 덮게 */
+.toast { left: 8px; right: 8px; width: auto; max-width: none; transform: translateY(-12px); justify-content: center; }
+.toast.show { transform: none; }
+/* 18. 넘길 수 있는 단계 칩 표시 */
+.chips { -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); padding-right: 24px; }
+/* 19. 랭킹 빈 상태 아래 안내 간격 */
+.ranking .empty-state + p, .ranking .empty-state + .muted { margin-top: 10px; font-size: 13px; }
+/* 20. 내 문장 만들기 카드 정렬 */
+.sentence-entry { align-items: flex-start; } .sentence-entry-icon { margin-top: 2px; }
+.sentence-entry-text small { font-size: 14px; line-height: 1.45; } .sentence-entry-go { align-self: center; }
+@media (max-width: 360px) { .lab-practice .cam-cue strong { font-size: 18px; } .lab-practice .cam-cue .count { font-size: 44px; } }

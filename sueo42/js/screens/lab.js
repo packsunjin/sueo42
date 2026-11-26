@@ -269,7 +269,7 @@ function sentenceBar(c, { pop = -1 } = {}) {
         "aria-current": i === S.idx ? "step" : false },
         i < S.idx ? icon("check", { stroke: 3 }) : null, p.word);
     })),
-    h("span", { class: `chance-pill ${S.left <= 1 ? "low" : ""}` }, icon("heart", { stroke: 2.4 }), t("M-10", { k: S.left })));
+    h("span", { class: `chance-pill ${S.left <= 1 ? "low" : ""}` }, icon("hand", { stroke: 2.2 }), t("M-10", { k: S.left })));
 }
 const sentenceBack = () => go("/lab/sentence");
 const FREE_MAX = 8;          // 내 문장은 단어 8개까지
