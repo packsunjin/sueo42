@@ -13,6 +13,14 @@ const RAW = [
   { id: 8, text: "지금 택시가 필요해요", tpl: "{지금} {택시}가 {필요}" },
   { id: 9, text: "학교에 천천히 가요", tpl: "{학교}에 {천천히} {가다}" },
   { id: 10, text: "추워서 힘들어요", tpl: "{춥다} 그래서 {힘들다}" },
+  // (11/27 사장 제안) 단계 마무리 문장: 그 단계에서 배운 단어(+ 앞 단계 단어)로만 지은 문장. 홈 단어 길 끝에 놓임
+  { id: 11, stage: 1, text: "힘들어도 괜찮아요", tpl: "{힘들다} 그래도 {괜찮다}" },
+  { id: 12, stage: 2, text: "지하철 타는 법을 몰라요", tpl: "{지하철} 타는 법 {모르다}" },
+  { id: 13, stage: 3, text: "잃어버린 게 맞아요", tpl: "{잃어버리다} 것 {맞다}" },
+  { id: 14, stage: 4, text: "돈이 없어요", tpl: "{돈}이 {없다}" },
+  { id: 15, stage: 5, text: "지금 시간 있어요?", tpl: "{지금} {시간} {있다}" },
+  { id: 16, stage: 6, text: "추워서 택시를 기다려요", tpl: "{춥다} 그래서 {택시}를 {기다리다}" },
+  { id: 17, stage: 7, text: "병원이 급해요", tpl: "{병원}이 {급하다}" },
 ];
 // parts: [{ word: "지하철" } | { glue: "타러" }, ...]
 const parse = (tpl) => tpl.split(/(\{[^}]+\})/).map((x) => x.trim()).filter(Boolean)
@@ -21,3 +29,4 @@ export const SENTENCES = RAW.map((r) => { const parts = parse(r.tpl); return { .
 export const CHANCE_PER_WORD = 2;          // 기회 = 단어 수 × 2 (11/25 사장 결정)
 export const SENTENCE_RANK_SIZE = 5;       // AI 후보 5개
 export const sentenceById = (id) => SENTENCES.find((s) => s.id === Number(id));
+export const stageSentence = (n) => SENTENCES.find((s) => s.stage === Number(n));

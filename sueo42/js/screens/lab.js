@@ -6,7 +6,7 @@ import { CONFIG, isTrialModel } from "../../config.js";
 import { header, button, dictVideo, errorBox, spinner, trialTag, levelBar, openModal, confirmModal, go, icon } from "../ui.js";
 import { setLeaveGuard } from "../router.js";
 import { allWords, wordByNo, wordsOfStage, stageNumbers, matchWord, isLowData } from "../data/words.js";
-import { getState, recordLabChoice, recordLabRetry, setCameraIntroSeen } from "../store.js";
+import { getState, recordLabChoice, recordLabRetry, recordSentenceDone, setCameraIntroSeen } from "../store.js";
 import { levelInfo } from "../game/progress.js";
 import { makeFloating } from "../pip.js";
 import { startCamera, stopCamera, getStream, isOn as cameraOn } from "../ai/camera.js";
@@ -374,7 +374,7 @@ function showBlocks(c) {
     c.ranked = null;
     S.idx += 1;
     c.bar.replaceChildren(sentenceBar(c, { pop: S.idx - 1 }));
-    if (S.idx >= S.words.length) { c.startBtn.disabled = true; c.timers.push(setTimeout(() => showSentenceEnd(true), 700)); return; }
+    if (S.idx >= S.words.length) { recordSentenceDone(S.sen.id); c.startBtn.disabled = true; c.timers.push(setTimeout(() => showSentenceEnd(true), 700)); return; }
     if (S.left <= 0) { c.startBtn.disabled = true; c.timers.push(setTimeout(() => showSentenceEnd(false), 700)); return; }
     c.word = S.words[S.idx];
     const meta = document.createElement("video"); meta.preload = "metadata"; meta.muted = true; meta.src = c.word.video || "";

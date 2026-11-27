@@ -60,6 +60,9 @@ export function normalize(raw) {
     s.aiChecks = raw.aiChecks.filter((r) => isObj(r) && isNoKey(String(r.ai)) && isNoKey(String(r.me)))
       .map((r) => ({ ai: Number(r.ai), me: Number(r.me) })).slice(-AI_CHECK_MAX);
   }
+  if (isObj(raw.sentences)) {   // (11/27) 끝까지 만든 문장
+    for (const [k, d] of Object.entries(raw.sentences)) if (/^\d{1,3}$/.test(k) && isDay(d)) s.sentences[k] = d;
+  }
   if (isObj(raw.daily)) {   // (11/19) 오늘의 목표
     for (const [k, v] of Object.entries(raw.daily)) if (isDay(k) && Number.isFinite(v) && v > 0) s.daily[k] = Math.floor(v);
   }
@@ -121,6 +124,11 @@ export const recordLabChoice = (no, aiNo) => {
     if (state.aiChecks.length > AI_CHECK_MAX) state.aiChecks.splice(0, state.aiChecks.length - AI_CHECK_MAX);
   }
   return record(RECORD.labChoice(no), { from: "lab" });   // 1-6 에서 씀
+};
+// (11/27) 문장을 끝까지 만든 날(처음 한 번만). 점수 아님
+export const recordSentenceDone = (id) => {
+  if (!isObj(state.sentences)) state.sentences = {};
+  if (!state.sentences[id]) { state.sentences[id] = localDate(); save(); }
 };
 export const recordLabRetry = () => record(RECORD.labRetry(), { from: "lab" });        // 1-6 에서 씀
 
