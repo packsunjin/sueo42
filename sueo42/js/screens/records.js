@@ -4,7 +4,7 @@ import { t, btn, BADGE_COPY, fill } from "../copy.js";
 import { header, button, go, levelBar, confirmModal, toast, icon } from "../ui.js";
 import { getState, clearAll } from "../store.js";
 import { allWords, stageNumbers } from "../data/words.js";
-import { levelInfo, streak, last7, triedCount, totals, stageTried, stageDone, BADGES, badgeProgress, goalDays } from "../game/progress.js";
+import { levelInfo, streak, last7, triedCount, totals, stageTried, stageDone, BADGES, badgeProgress, goalDays, sentencesDone, finalsDone } from "../game/progress.js";
 
 export function renderRecords(el) {
   const s = getState(), words = allWords(), today = localDate();
@@ -31,6 +31,7 @@ export function renderRecords(el) {
     h("div", { class: "card" },
       h("h2", {}, t("R-08", { k: triedCount(s, words) })),
       h("p", { class: "muted small" }, t("R-09", { a: lab, b: s.labTries, r: s.quizRounds })),
+      h("p", { class: "muted small" }, t("R-25", { k: sentencesDone(s), m: finalsDone(s), n: stageNumbers().length })),
       h("ul", { class: "stage-progress" }, stageNumbers().map((n) => {
         const k = stageTried(s, words, n);
         return h("li", { "data-stage": n },

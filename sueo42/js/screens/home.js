@@ -19,7 +19,14 @@ const OFFSETS = [0, 46, 70, 46, 0, -46];
 export function renderHome(el) {
   const s = getState(), words = allWords(), today = localDate();
   const lit = learnedToday(s, today), d = streak(s, today);
-  const nextWord = words.find((w) => !isTried(s, w.no)) || null;
+  // '여기서부터' 말풍선: 앞 단계부터 보며 안 해 본 단어, 단계 단어를 다 했으면 그 단계 마무리 문장(11/27)
+  let nextWord = null, nextFinal = null;
+  for (const n of stageNumbers()) {
+    const w = wordsOfStage(n).find((x) => !isTried(s, x.no));
+    if (w) { nextWord = w; break; }
+    const sen = stageSentence(n);
+    if (sen && !(s.sentences && s.sentences[sen.id])) { nextFinal = n; break; }
+  }
 
   el.append(h("section", { class: "home" },
     goalCard(dailyPoints(s, today), lit, d),
@@ -53,7 +60,7 @@ export function renderHome(el) {
               tried ? h("span", { class: "wp-check", "aria-hidden": "true" }, icon("check", { stroke: 3.2 })) : null),
             h("span", { class: "wp-label", "aria-hidden": "true" }, w.name),
             starRow(wordStars(s, w.no)));
-        }), finalStep(s, n, ws.length)),
+        }), finalStep(s, n, ws.length, nextFinal === n)),
         // 길 옆 빈자리 그림(단계마다 반대쪽)
         h("img", { class: `path-art ${si % 2 ? "left" : "right"}`, src: "img/bubbles.svg", alt: "", "aria-hidden": "true" }));
     }),
@@ -86,12 +93,13 @@ function goalCard(pts, lit, d) {
 }
 
 // (11/27 사장 제안) 단계 끝 '마무리 문장' 동그라미: 그 단계 단어로 만든 문장 → 문장 만들기. 잠금 없음, 끝까지 만들면 체크(참여 기록)
-function finalStep(s, n, i) {
+function finalStep(s, n, i, isNext) {
   const sen = stageSentence(n);
   if (!sen) return null;
   const done = !!(s.sentences && s.sentences[sen.id]);
-  return h("li", { class: "wp-step wp-final-step", style: { "--x": `${OFFSETS[i % OFFSETS.length]}px` } },
-    h("button", { class: `wp-node wp-final ${done ? "done" : ""}`, onclick: () => go(`/lab/sentence/${sen.id}`),
+  return h("li", { class: `wp-step wp-final-step ${isNext ? "has-bubble" : ""}`, style: { "--x": `${OFFSETS[i % OFFSETS.length]}px` } },
+    isNext ? h("span", { class: "bubble" }, t("H-23")) : null,
+    h("button", { class: `wp-node wp-final ${done ? "done" : ""} ${isNext ? "next" : ""}`, onclick: () => go(`/lab/sentence/${sen.id}`),
       "aria-label": t("H-22", { n, "문장": sen.text }) + (done ? `, ${t("C-16")}` : "") },
       h("span", { class: "wp-final-icon", "aria-hidden": "true" }, icon("chat", { stroke: 2.2 })),
       done ? h("span", { class: "wp-check", "aria-hidden": "true" }, icon("check", { stroke: 3.2 })) : null),

@@ -2,6 +2,7 @@
 // (11/19 게임 요소 늘림) 오늘의 목표(하루 레벨 점수 10)·단어 별(해 본 횟수 1·3·5번)·배지 5개 더. 모두 참여 기준.
 import { CONFIG } from "../../config.js";
 import { addDays } from "../util.js";
+import { SENTENCES } from "../data/sentences.js";
 
 // 배지 8개(순서 = copy.md B-01~B-08)
 export const BADGES = [
@@ -19,7 +20,13 @@ export const BADGES = [
   { id: "star3",   copy: "B-13" },                    // 한 단어를 5번 해서 별 3개
   { id: "goal7",   copy: "B-11", goal: 7 },           // 오늘의 목표를 채운 날 7일(이어지지 않아도 됨)
   { id: "streak14", copy: "B-14" },                   // 14일 연속
+  // (11/27) 문장 만들기 참여 배지(끝까지 만든 것만 봄, AI 순위·기회 쓴 수는 안 봄)
+  { id: "sent1",   copy: "B-15" },                    // 문장 하나 끝까지 만들기
+  { id: "final7",  copy: "B-16", goal: 7 },           // 단계 마무리 문장 7개 모두
 ];
+const FINAL_IDS = SENTENCES.filter((x) => x.stage).map((x) => String(x.id));
+export const sentencesDone = (state) => Object.keys(state.sentences || {}).length;
+export const finalsDone = (state) => FINAL_IDS.filter((id) => state.sentences && state.sentences[id]).length;
 
 export function emptyState() {
   return {
@@ -128,6 +135,7 @@ export function badgeProgress(id, state, words) {
     }
     case "all42": return { k: triedCount(state, words), n: words.length };
     case "quiz10": return { k: Math.min(state.quizRounds, 10), n: 10 };
+    case "final7": return { k: finalsDone(state), n: FINAL_IDS.length };
     case "goal7": return { k: Math.min(goalDays(state), 7), n: 7 };
     case "star3": { const top = CONFIG.STAR_STEPS[CONFIG.STAR_STEPS.length - 1]; return { k: Math.min(maxTries(state), top), n: top }; }
     default: return null;
@@ -153,6 +161,8 @@ export function earnedBadgeIds(state, words, today) {
     star3: maxTries(state) >= CONFIG.STAR_STEPS[CONFIG.STAR_STEPS.length - 1],
     goal7: goalDays(state) >= 7,
     streak14: st >= 14,
+    sent1: sentencesDone(state) >= 1,
+    final7: FINAL_IDS.length > 0 && finalsDone(state) >= FINAL_IDS.length,
   };
   return BADGES.map((b) => b.id).filter((id) => ok[id]);
 }

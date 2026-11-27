@@ -125,11 +125,11 @@ export const recordLabChoice = (no, aiNo) => {
   }
   return record(RECORD.labChoice(no), { from: "lab" });   // 1-6 에서 씀
 };
-// (11/27) 문장을 끝까지 만든 날(처음 한 번만). 점수 아님
-export const recordSentenceDone = (id) => {
-  if (!isObj(state.sentences)) state.sentences = {};
-  if (!state.sentences[id]) { state.sentences[id] = localDate(); save(); }
-};
+// (11/27) 문장을 끝까지 만든 날(처음 한 번만). 점수 아님. 배지(B-15·B-16)를 위해 record 로 적용
+export const recordSentenceDone = (id) => record((st) => {
+  if (!isObj(st.sentences)) st.sentences = {};
+  if (!st.sentences[id]) st.sentences[id] = localDate();
+}, { from: "lab" });
 export const recordLabRetry = () => record(RECORD.labRetry(), { from: "lab" });        // 1-6 에서 씀
 
 // 랭킹에 올리기(학습 기록이 아니므로 학습한 날에 넣지 않음). 돌려주는 값: 올린 줄의 at
