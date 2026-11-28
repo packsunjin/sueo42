@@ -945,9 +945,27 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 .quiz-play.challenge .options { margin-top: 12px; }
 .challenge .bar span { transition: none; }
 
+/* 11/28 '더': 오늘의 목표·레벨은 카드 없이 장면 위에 바로(구도가 카드 반복으로 안 보이게), 연속 학습은 노랑 덩어리 */
+.goal-card, .goal-card.done { background: transparent; border: 0; box-shadow: none; padding: 4px 2px; margin-bottom: 18px; }
+.goal-ring .ring-bg { stroke: rgba(255, 255, 255, .22); } .goal-ring .ring-fg { stroke: var(--lime); }
+.goal-card.done .ring-fg { stroke: #ffd84d; }
+.goal-ring-icon, .goal-card.done .goal-ring-icon { color: var(--lime); }
+.goal-card.done .goal-ring-icon { color: #ffd84d; }
+.goal-num, .goal-card.done .goal-num { color: var(--lime); }
+.goal-streak.lit { color: #ffd84d; } .goal-streak.lit svg { color: #ffd84d; }
+.level-card { background: transparent; border: 0; box-shadow: none; padding: 4px 2px 10px; }
+.level-card .level-num { color: #fff; font-size: 56px; letter-spacing: -.05em; line-height: 1; margin-bottom: 14px; }
+.level-card .bar { background: rgba(255, 255, 255, .25); box-shadow: none; height: 18px; } .level-card .bar > span { background: var(--lime); }
+.level-card .bar-label, .level-card .muted { color: rgba(255, 255, 255, .9); }
+.streak-tile { background: #ffd84d; border: 0; box-shadow: var(--block); }
+.streak-tile h2 { color: var(--g-900); } .streak-tile .muted { color: #5a4a00; }
+.streak-tile .week .day-dot { background: #fff; border-color: #fff; }
+.streak-tile .week li.on .day-dot { background: var(--g-900); border-color: var(--g-900); color: var(--lime); }
+.streak-tile .streak-flame { background: var(--g-900); color: #ffd84d; box-shadow: none; }
+
 /* ── 면: 초록 장면 위에 놓인 흰 덩어리. 안의 제목·글자는 어둡게 되돌린다(토큰 다시 정함) ── */
-.card, .facts-card, .word-list, .empty-state, .evidence, .rank-list, .search-field, .error-box, .goal-card, .modal-panel, .answer-panel, .info-line,
-.video-box, .lab-banner, .streak-tile, .level-card, .challenge-card, .celebrate-panel, .stage-card, .badge, .word-card, .chip, .btn-secondary, .btn-chip, .btn-back,
+.card, .facts-card, .word-list, .empty-state, .evidence, .rank-list, .search-field, .error-box, .modal-panel, .answer-panel, .info-line,
+.video-box, .lab-banner, .streak-tile, .challenge-card, .celebrate-panel, .stage-card, .badge, .word-card, .chip, .btn-secondary, .btn-chip, .btn-back,
 .saved-hero, .free-entry, .stage-sheet, .word-sheet {
   --c-head: var(--g-900); --c-text: var(--text); --c-muted: var(--muted); --c-link: var(--g-600); color: var(--c-text); }
 

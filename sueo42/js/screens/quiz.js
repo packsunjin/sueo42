@@ -12,6 +12,9 @@ import { back } from "../router.js";
 // 지금 하는 한 판(새로고침하면 사라짐 — 점수는 남지 않고 푼 문제 기록만 남는다)
 let current = null;
 
+// (11/28) 답을 고르면 짧게 진동(지원하는 폰만). 맞으면 한 번, 아니면 부드럽게 두 번 — 소리·색 판정과 같은 수준의 알림일 뿐 점수는 아님
+const haptic = (right) => { try { navigator.vibrate && navigator.vibrate(right ? 18 : [10, 40, 10]); } catch { /* 무시 */ } };
+
 // 문제 하나: 그 단어 + 나머지에서 무작위 3개, 보기 순서도 무작위
 export function makeQuestion(word, all, rnd = Math.random) {
   const others = sample(all.filter((w) => w.no !== word.no), CONFIG.QUIZ_OPTIONS - 1, rnd);
@@ -138,6 +141,7 @@ function renderQuestion(el, round) {
       round.score += gained;
     } else round.combo = 0;
     recordQuizAnswer(q.word.no);            // 정답이든 아니든 그 문제 단어 quiz +1
+    haptic(right);
     scoreEl.textContent = t("Q-06", { s: round.score });
     comboEl.hidden = round.combo < 2;
     comboEl.lastChild.textContent = t("Q-32", { c: round.combo });
@@ -237,6 +241,7 @@ function renderChallenge(el, round) {
       round.score += answerPoints(round.combo);
     } else round.combo = 0;
     recordQuizAnswer(q.word.no);
+    haptic(right);
     scoreEl.textContent = t("Q-06", { s: round.score });
     comboEl.hidden = round.combo < 2; comboEl.lastChild.textContent = t("Q-32", { c: round.combo });
     optionBtns.forEach((b, i) => { b.disabled = true; const o = q.options[i]; if (o.no === q.word.no) b.classList.add("is-answer"); else if (o.no === w.no) b.classList.add("is-chosen"); });
