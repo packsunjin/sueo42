@@ -963,6 +963,20 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 .streak-tile .week li.on .day-dot { background: var(--g-900); border-color: var(--g-900); color: var(--lime); }
 .streak-tile .streak-flame { background: var(--g-900); color: #ffd84d; box-shadow: none; }
 
+/* 11/28 문장 만들기 디자인: 후보 블록·문장 단어 칩을 4색 알약으로(위치색, 맞고 틀림과 무관), 문장 입구는 노랑 덩어리, 문장 카드는 글자 크게 */
+.word-block { color: var(--g-900); border: 0; border-radius: 999px; min-height: 50px; font-size: 18px; background: var(--lime); box-shadow: 0 5px 0 rgba(0, 0, 0, .22); }
+.block-list li:nth-child(4n+2) .word-block { background: #ffd84d; } .block-list li:nth-child(4n+3) .word-block { background: #9ad8ff; } .block-list li:nth-child(4n) .word-block { background: #ffb5a3; }
+.word-block:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, .22); }
+.word-block .cand-no { width: 22px; height: 22px; border-radius: 50%; background: rgba(15, 61, 43, .14); display: grid; place-items: center; font-size: 13px; }
+.sentence-entry, .sentence-entry.free-entry { background: #ffd84d; border: 0; box-shadow: var(--block); align-items: center; }
+.sentence-entry-icon { background: var(--g-900); color: #ffd84d; }
+.sentence-entry-text strong { font-size: 19px; } .sentence-entry-go { color: var(--g-900); }
+.sentence-card { gap: 8px; }
+.sentence-card .sentence-text { font-size: 21px; letter-spacing: -.02em; }
+.sentence-card .sentence-words span:not(.glue) { background: var(--lime); color: var(--g-900); border-radius: 999px; padding: 3px 12px; }
+.sentence-card .sentence-words span:nth-child(4n+3):not(.glue) { background: #ffd84d; } .sentence-card .sentence-words span:nth-child(4n+5):not(.glue) { background: #9ad8ff; }
+.sentence-card .stage-tag { background: var(--g-900); color: var(--lime); }
+
 /* ── 면: 초록 장면 위에 놓인 흰 덩어리. 안의 제목·글자는 어둡게 되돌린다(토큰 다시 정함) ── */
 .card, .facts-card, .word-list, .empty-state, .evidence, .rank-list, .search-field, .error-box, .modal-panel, .answer-panel, .info-line,
 .video-box, .lab-banner, .streak-tile, .challenge-card, .celebrate-panel, .stage-card, .badge, .word-card, .chip, .btn-secondary, .btn-chip, .btn-back,

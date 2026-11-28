@@ -387,7 +387,7 @@ function showBlocks(c) {
       h("button", { class: "word-block", type: "button", onclick: (ev) => pick(n, ev.currentTarget) },
         h("span", { class: "cand-no", "aria-hidden": "true" }, CIRCLED[i] || String(i + 1)), n)))),
     note,
-    S.left > 0 ? h("p", { class: "muted small" }, t("M-23"))
+    S.left > 0 ? null
       : h("div", { class: "btn-col" }, button(btn("M-20"), () => showSentenceEnd(false), { kind: "secondary" }))].filter(Boolean));
 }
 

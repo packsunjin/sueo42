@@ -20,7 +20,7 @@ export function renderLabPick(el, { query = {} } = {}) {
     // (11/25) 문장 만들기로 가는 카드
     h("button", { class: "card sentence-entry", type: "button", onclick: () => go("/lab/sentence") },
       h("span", { class: "sentence-entry-icon", "aria-hidden": "true" }, icon("chat", { stroke: 2.2 })),
-      h("span", { class: "sentence-entry-text" }, h("strong", {}, btn("M-04")), h("small", {}, t("M-05"))),
+      h("span", { class: "sentence-entry-text" }, h("strong", {}, btn("M-04"))),
       h("span", { class: "sentence-entry-go", "aria-hidden": "true" }, "›")),
     stageNumbers().map((n) => h("details", { class: "card stage-fold", "data-stage": n, open: n === open },
       h("summary", { class: "row-between" },
@@ -40,11 +40,10 @@ export function renderSentencePick(el) {
   el.append(h("section", { class: "lab-pick sentence-pick" },
     header(t("M-01"), { onBack: () => go("/lab") }),
     h("p", {}, t("M-02")),
-    h("p", { class: "muted small" }, t("M-19")),
     // (11/25) 내 문장 만들기(자유)
     h("button", { class: "card sentence-entry free-entry", type: "button", onclick: () => go("/lab/sentence/free") },
       h("span", { class: "sentence-entry-icon", "aria-hidden": "true" }, icon("chat", { stroke: 2.2 })),
-      h("span", { class: "sentence-entry-text" }, h("strong", {}, t("M-24")), h("small", {}, t("M-36"))),
+      h("span", { class: "sentence-entry-text" }, h("strong", {}, t("M-24"))),
       h("span", { class: "sentence-entry-go", "aria-hidden": "true" }, "›")),
     h("ul", { class: "sentence-list" }, SENTENCES.map((s) => h("li", {},
       h("button", { class: "card sentence-card", type: "button", onclick: () => go(`/lab/sentence/${s.id}`) },

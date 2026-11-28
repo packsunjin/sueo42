@@ -17,8 +17,7 @@ export function renderRecords(el) {
 
     h("div", { class: "card level-card" },
       h("h2", { class: "level-num" }, t("R-02", { n: lv.level })),
-      levelBar(lv),
-      h("p", { class: "muted small" }, t("R-05"))),
+      levelBar(lv)),
 
     h("div", { class: "card streak-tile" },
       h("h2", {}, h("span", { class: "streak-flame", "aria-hidden": "true" }, flameIcon()), t("R-06", { d: streak(s, today) })),

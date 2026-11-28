@@ -66,12 +66,10 @@ export function renderQuizHome(el) {
   const s = getState(), words = allWords();
   el.append(h("section", { class: "quiz-home" },
     header(t("Q-01")),
-    h("p", { class: "muted" }, t("Q-02")),
     h("button", { class: "card challenge-card", onclick: () => startQuiz(CONFIG.CHALLENGE_STAGE) },
       h("span", { class: "challenge-icon", "aria-hidden": "true" }, icon("flame", { stroke: 1.8, fill: "currentColor" })),
       h("span", { class: "stage-body" },
         h("strong", {}, t("Q-39")),
-        h("span", { class: "muted small" }, t("Q-40")),
         s.best[CONFIG.CHALLENGE_STAGE] !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: s.best[CONFIG.CHALLENGE_STAGE] })) : null),
       h("span", { class: "btn btn-primary challenge-go", "aria-hidden": "true" }, btn("Q-45"))),
     h("div", { class: "stage-list" }, stageNumbers().map((n) => {

@@ -88,7 +88,6 @@ function goalCard(pts, lit, d) {
     ringEl,
     h("div", { class: "goal-text" },
       h("p", { class: "goal-title" }, h("strong", {}, t("H-16")), h("span", { class: "goal-num" }, done ? t("H-18") : t("H-17", { k, n }))),
-      h("p", { class: "muted small" }, t("H-19")),
       h("p", { class: `goal-streak ${lit ? "lit" : ""}` }, icon("flame", { stroke: 1.8, fill: lit ? "currentColor" : "none" }), lit ? t("H-11", { d }) : t("H-10"))));
 }
 
