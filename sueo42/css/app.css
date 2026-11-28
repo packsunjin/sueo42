@@ -929,3 +929,13 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 .lab-practice .info-line { padding: 6px 10px; font-size: 13px; line-height: 1.4; margin: 4px 0; }
 .lab-practice .source { margin: 4px 0; }
 @media (max-height: 760px) { .lab-practice:not(.has-sentence) > .muted.small { display: none; } }
+
+/* 11/28 60초 챌린지 */
+.challenge-card { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; margin-bottom: 12px; background: var(--g-100); border: 2px solid var(--g-500); }
+.challenge-card .stage-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; align-items: flex-start; }
+.challenge-card strong { font-size: 18px; font-weight: 800; color: var(--g-900); }
+.challenge-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--g-500); color: #fff; display: grid; place-items: center; flex: none; }
+.challenge-icon svg { width: 24px; height: 24px; }
+.challenge-go { flex: none; pointer-events: none; padding: 8px 14px; min-height: 0; }
+.quiz-play.challenge .options { margin-top: 12px; }
+.challenge .bar span { transition: none; }

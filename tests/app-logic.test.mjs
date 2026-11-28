@@ -150,6 +150,21 @@ await check("문제 출제: 단계마다 6문제, 보기 4개·정답 1개·중�
   }
 });
 
+await check("60초 챌린지: 42개를 한 바퀴 돌 때까지 같은 단어가 안 나오고, 보기 4개·정답 1개", () => {
+  const r = Q.newChallenge(words);
+  const seen = new Set();
+  for (let i = 0; i < words.length; i++) {
+    const q = Q.nextChallengeQuestion(r);
+    assert.ok(!seen.has(q.word.no), "한 바퀴 안에 같은 단어");
+    seen.add(q.word.no);
+    assert.equal(q.options.length, CONFIG.QUIZ_OPTIONS);
+    assert.equal(q.options.filter((o) => o.no === q.word.no).length, 1);
+  }
+  assert.equal(seen.size, words.length);
+  Q.nextChallengeQuestion(r);   // 다 쓰면 다시 채움
+  assert.equal(r.items.length, words.length + 1);
+});
+
 await check("한 판: 채점 → 점수 → 별명 랭킹 → 기록·레벨·배지·연속 학습 반영, 다시 읽어도 같음", () => {
   globalThis.localStorage = new FakeStorage();
   S.initStore();

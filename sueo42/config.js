@@ -31,6 +31,8 @@ export const CONFIG = {
   LEVEL_QUIZ_POINTS: 1,                   // 뜻 맞히기 1문제 = 1
   LEVEL_LAB_POINTS: 2,                    // 직접 해보기 기록 1개 = 2
   QUIZ_QUESTIONS: 6,
+  CHALLENGE_STAGE: 99,                    // (11/28) 60초 챌린지의 '단계 번호'(최고 점수·랭킹 열쇠로만 씀, 실제 단계는 1~7)
+  CHALLENGE_SECONDS: 60,
   QUIZ_OPTIONS: 4,
   QUIZ_POINTS_PER_ANSWER: 10,
   QUIZ_COMBO_FROM: 3,                     // (11/19) 뜻 맞히기에서만: 이 개수째 연속 정답부터

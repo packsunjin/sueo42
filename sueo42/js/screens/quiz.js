@@ -24,6 +24,19 @@ export function newRound(stage, all = allWords(), rnd = Math.random) {
     combo: 0, bestCombo: 0, done: false, isBest: false, uploadedAt: null };
 }
 
+// (11/28) 60초 챌린지: 42개 전체에서 무작위로 끝없이 내고, 시간이 다 되면 끝. 정답·점수·랭킹은 뜻 맞히기에만 있다는 규칙 안
+export function newChallenge(all = allWords(), rnd = Math.random) {
+  return { stage: CONFIG.CHALLENGE_STAGE, challenge: true, items: [], bag: [], all, rnd, index: 0, score: 0, timeLeft: CONFIG.CHALLENGE_SECONDS,
+    combo: 0, bestCombo: 0, done: false, isBest: false, uploadedAt: null };
+}
+// 가방에서 하나씩 뽑고(42개를 한 바퀴 돌 때까지 같은 단어가 안 나옴), 다 쓰면 다시 섞어 채움
+export function nextChallengeQuestion(round) {
+  if (!round.bag.length) round.bag = shuffle(round.all, round.rnd);
+  const q = makeQuestion(round.bag.pop(), round.all, round.rnd);
+  round.items.push(q);
+  return q;
+}
+
 export const correctCount = (round) => round.items.filter((q) => q.chosen === q.word.no).length;
 
 // (11/24) 틀린 문제만 다시: 결과 화면에서 틀린 단어로 짧은 판. 랭킹·최고 점수·판 수에는 넣지 않음(일부 단어만이라).
@@ -41,7 +54,7 @@ export function startReview(round, all = allWords(), rnd = Math.random) {
 
 // 단계 카드·단어 상세의 [이 단계 뜻 맞히기]·[한 판 더] 에서 부름: 새 판을 만들고 문제 화면으로
 export function startQuiz(stage) {
-  current = newRound(stage);
+  current = Number(stage) === CONFIG.CHALLENGE_STAGE ? newChallenge() : newRound(stage);
   go(`/quiz/play/${stage}`);
 }
 
@@ -51,6 +64,13 @@ export function renderQuizHome(el) {
   el.append(h("section", { class: "quiz-home" },
     header(t("Q-01")),
     h("p", { class: "muted" }, t("Q-02")),
+    h("button", { class: "card challenge-card", onclick: () => startQuiz(CONFIG.CHALLENGE_STAGE) },
+      h("span", { class: "challenge-icon", "aria-hidden": "true" }, icon("flame", { stroke: 1.8, fill: "currentColor" })),
+      h("span", { class: "stage-body" },
+        h("strong", {}, t("Q-39")),
+        h("span", { class: "muted small" }, t("Q-40")),
+        s.best[CONFIG.CHALLENGE_STAGE] !== undefined ? h("span", { class: "pill pill-gold" }, t("S4-최고", { s: s.best[CONFIG.CHALLENGE_STAGE] })) : null),
+      h("span", { class: "btn btn-primary challenge-go", "aria-hidden": "true" }, btn("Q-45"))),
     h("div", { class: "stage-list" }, stageNumbers().map((n) => {
       const ws = wordsOfStage(n);
       const best = s.best[n];
@@ -74,7 +94,8 @@ export function renderQuizHome(el) {
 
 // ── S5·S6 한 판 ──
 export function renderQuizPlay(el, { stage }) {
-  if (!current || current.stage !== Number(stage)) current = newRound(stage);
+  if (!current || current.stage !== Number(stage)) current = Number(stage) === CONFIG.CHALLENGE_STAGE ? newChallenge() : newRound(stage);
+  if (current.challenge && !current.done) { renderChallenge(el, current); return; }
   if (!current.items.length) { go("/quiz"); return; }
   if (current.done) renderResult(el, current);
   else renderQuestion(el, current);
@@ -176,6 +197,73 @@ function renderQuestion(el, round) {
   el.append(section);
 }
 
+// (11/28) 60초 챌린지 화면: 영상 → 2×2 보기 → 고르면 바로 다음 문제. 시간은 영상이 나오는 동안만 흐른다(느린 인터넷에 불리하지 않게)
+function renderChallenge(el, round) {
+  holdCelebrations(true);
+  const q = round.items[round.index] || nextChallengeQuestion(round);
+  const section = h("section", { class: "quiz-play challenge" });
+  const timeEl = h("span", { class: "pill score" }, t("Q-41", { s: Math.ceil(round.timeLeft) }));
+  const scoreEl = h("span", { class: "pill score" }, t("Q-06", { s: round.score }));
+  const comboEl = h("span", { class: "pill combo", hidden: round.combo < 2 },
+    icon("flame", { stroke: 1.8, fill: "currentColor" }), t("Q-32", { c: round.combo }));
+  const barFill = h("span", { style: { width: `${(round.timeLeft / CONFIG.CHALLENGE_SECONDS) * 100}%` } });
+  let live = false, locked = false, timer = null, last = 0;
+  const optionBtns = q.options.map((w) => h("button", { class: "option", disabled: true, onclick: () => choose(w) }, w.name));
+  const optionsBox = h("div", { class: "options loading-dim" }, optionBtns);
+  const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+
+  const video = dictVideo(q.word, {
+    source: sourceLine(q.word, { hideHeadword: true }),
+    onReady: () => { live = true; last = performance.now(); optionsBox.classList.remove("loading-dim"); optionBtns.forEach((b) => (b.disabled = false)); },
+    extraError: button(btn("Q-30"), () => { stop(); round.items.pop(); round.index = round.items.length; rerender(el); }, { kind: "secondary" }),
+  });
+
+  function tick() {
+    if (!document.body.contains(section)) { stop(); return; }   // 다른 화면으로 나갔으면 멈춤
+    const now = performance.now();
+    if (live && !locked) round.timeLeft -= (now - last) / 1000;
+    last = now;
+    if (round.timeLeft <= 0) { round.timeLeft = 0; stop(); finish(); return; }
+    timeEl.textContent = t("Q-41", { s: Math.ceil(round.timeLeft) });
+    barFill.style.width = `${(round.timeLeft / CONFIG.CHALLENGE_SECONDS) * 100}%`;
+  }
+
+  function choose(w) {
+    if (q.chosen !== null || round.timeLeft <= 0) return;
+    q.chosen = w.no; locked = true;
+    const right = w.no === q.word.no;
+    if (right) {
+      round.combo += 1; round.bestCombo = Math.max(round.bestCombo, round.combo);
+      round.score += answerPoints(round.combo);
+    } else round.combo = 0;
+    recordQuizAnswer(q.word.no);
+    scoreEl.textContent = t("Q-06", { s: round.score });
+    comboEl.hidden = round.combo < 2; comboEl.lastChild.textContent = t("Q-32", { c: round.combo });
+    optionBtns.forEach((b, i) => { b.disabled = true; const o = q.options[i]; if (o.no === q.word.no) b.classList.add("is-answer"); else if (o.no === w.no) b.classList.add("is-chosen"); });
+    // 맞으면 짧게, 아니면 정답을 조금 더 보여 준 뒤 다음 문제(그동안 시간은 멈춤)
+    setTimeout(() => { if (!document.body.contains(section)) return; stop(); round.index += 1; rerender(el); }, right ? 500 : 1100);
+  }
+
+  function finish() {
+    round.done = true;
+    const prevBest = getState().best[round.stage];
+    round.items = round.items.filter((x) => x.chosen !== null);   // 안 푼 마지막 문제는 뺌
+    round.isBest = round.score > 0 && (prevBest === undefined || round.score > prevBest);
+    recordQuizRound(round.stage, round.score);
+    rerender(el);
+  }
+
+  const onBack = () => { locked = true; confirmModal(t("Q-27"), btn("Q-28"), btn("Q-29"), () => { stop(); current = null; go("/quiz"); }); };
+  section.append(
+    h("div", { class: "quiz-top" },
+      h("button", { class: "btn-back", onclick: onBack, "aria-label": btn("C-09") }, icon("back", { stroke: 2.4 }), h("span", { class: "sr-only" }, btn("C-09"))),
+      h("div", { class: "bar bar-thick", role: "timer" }, barFill),
+      comboEl, timeEl, scoreEl),
+    video, optionsBox);
+  el.append(section);
+  timer = setInterval(tick, 100);
+}
+
 // 정답 옆 근거 상자 Q-09: 사전 표제어·수형 설명·출처·[사전에서 보기]
 function evidenceBox(w) {
   return h("div", { class: "evidence" },
@@ -198,8 +286,8 @@ function renderResult(el, round) {
   el.append(h("section", { class: "quiz-result" },
     header(t("Q-01"), { onBack: () => go("/quiz") }),
     h("div", { class: `card result-card ${round.isBest ? "is-best" : ""}` },
-      h("h2", {}, round.review ? t("Q-36") : t("Q-12")),
-      h("p", { class: "result-score" }, round.review ? t("Q-37", { n: round.items.length, c }) : t("Q-13", { c, s: round.score })),
+      h("h2", {}, round.review ? t("Q-36") : round.challenge ? t("Q-42") : t("Q-12")),
+      h("p", { class: "result-score" }, round.review ? t("Q-37", { n: round.items.length, c }) : round.challenge ? t("Q-43", { n: round.items.length, c, s: round.score }) : t("Q-13", { c, s: round.score })),
       round.bestCombo >= 2 ? h("p", { class: "result-combo" }, icon("flame", { stroke: 1.8, fill: "currentColor" }), t("Q-34", { c: round.bestCombo })) : null,
       round.isBest ? h("p", { class: "best" }, h("span", { class: "pill pill-gold" }, t("Q-14"))) : null),
     h("p", { class: "muted" }, t("Q-18")),
@@ -211,7 +299,7 @@ function renderResult(el, round) {
     h("div", { class: "btn-col bottom-actions" },
       uploadBtn,
       reviewBtn,
-      button(btn("Q-16"), () => startQuiz(round.stage), { kind: "secondary" }),
+      button(btn(round.challenge ? "Q-46" : "Q-16"), () => startQuiz(round.stage), { kind: "secondary" }),
       button(btn("Q-17"), () => { current = null; go("/quiz"); }, { kind: "secondary" }))));
 }
 
@@ -255,7 +343,8 @@ export function renderRanking(el, { query }) {
     header(t("Q-24"), { onBack: () => back("/quiz") }),
     list.length
       ? h("ol", { class: "rank-list" }, list.map((r, i) => h("li", { class: r.at === hl ? "hl" : "" },
-          t("Q-25", { "순위": i + 1, "별명": r.name, s: r.score, n: r.stage, "날짜": r.date }))))
+          r.stage === CONFIG.CHALLENGE_STAGE ? t("Q-44", { "순위": i + 1, "별명": r.name, s: r.score, "날짜": r.date })
+            : t("Q-25", { "순위": i + 1, "별명": r.name, s: r.score, n: r.stage, "날짜": r.date }))))
       : h("div", { class: "empty-state" }, h("span", { class: "empty-icon", "aria-hidden": "true" }, icon("medal", { stroke: 1.8 })), h("p", {}, t("Q-26"))),
     h("p", { class: "muted small" }, deviceOnly)));
 }
