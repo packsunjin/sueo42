@@ -1,9 +1,9 @@
-/* 수어42 화면 스타일(모바일 세로 우선, 320~520px) — 11/19 처음부터 다시 씀.
-   사장 지시: "앱 안 색을 한 테마로 고정(초록이면 초록·연두), 그라데이션 날먹 말고 디자인을 해라, 듀오링고 같은 느낌"
-   - 색: 초록 한 계열(진초록 · 초록 · 연두 · 연한 초록) + 무채색. 그라데이션·점 무늬·흐림 효과 없음
-   - 모양: 누르면 내려가는 입체 버튼(아래 두꺼운 테두리), 아래 테두리가 두꺼운 카드, 단계 배너, 단어 동그라미 길
-   - 글자 대비: 본문 14.7:1, 흐린 글자 5.4:1, 초록 버튼 흰 글자 5.0:1(docs/spec/design.md 14절)
-   - 직접 해보기 결과는 흰 카드·회색 위주, 버튼 3개 같은 모양(판정처럼 보이지 않게)
+/* 수어42 화면 스타일(모바일 세로 우선, 320~520px)
+   (11/28 사장 선택: 디자인 A "풀컬러 초록 장면", 캐릭터 없음) 화면 바탕이 초록(--scene)이고 그 위 글자는 밝게(--c-head·--c-text·--c-muted),
+   장면 위에 놓인 흰 덩어리(카드·창·답 판 등, 맨 아래 '면' 규칙)는 안의 글자 토큰을 어둡게 되돌린다.
+   - 모양: 알약 버튼(주 버튼 연두, 아래 납작한 그림자), 떠 있는 흰 알약 탭 바, 뜻 맞히기 보기 4색 알약, 단계 길(흰 동그라미)
+   - 직접 해보기 결과는 판정처럼 보이지 않게 버튼 3개 같은 모양, 정답/오답 색 없음. 뜻 맞히기도 틀린 보기를 빨갛게 하지 않음(정답은 흰 알약+체크, 나머지 흐리게)
+   - html/body 에 overflow:hidden 금지(고정 버튼이 깨짐). 장면 도형은 body::before/::after 고정 층
    글꼴: Pretendard(한글, OFL) + Outfit(숫자·영문, OFL) — vendor/SOURCES.md */
 @font-face { font-family: "Outfit"; font-weight: 100 900; font-display: swap; src: url("../vendor/outfit@5.3.0/outfit-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+2010-2027, U+2030-205E, U+20AC, U+2122, U+2190-21FF, U+2212; }
@@ -372,7 +372,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .cam-cue .count { font-size: 64px; font-weight: 800; margin: 0; } .cam-cue strong { font-size: 22px; }
 .rec-bar { width: 60%; height: 8px; background: rgba(255, 255, 255, .3); border-radius: 999px; overflow: hidden; }
 .rec-bar-fill { display: block; width: 100%; height: 100%; background: #fff; transition: width linear; }
-.hand-state { margin-top: 8px; font-weight: 700; } .hand-state.on { color: var(--g-600); }
+.hand-state { margin-top: 8px; font-weight: 700; } .hand-state.on { color: var(--c-link); }
 .replay { display: block; width: 100%; aspect-ratio: 4 / 3; background: #10221a; border-radius: 18px; }
 .replay.mini { max-width: 220px; margin: 8px auto 16px; }
 .clip-wrap { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden; background: #10221a; }
@@ -507,7 +507,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 /* 숫자가 올라가는 칸은 글자 대비 4.5 이상: 진한 불색·진한 파랑 */
 
 
-.chip-stat.streak:not(.lit) { color: #d4361a; }
+.chip-stat.streak:not(.lit) { color: #fff; }
 
 /* (11/19) 카메라 아래 상태 두 개: 손 / 얼굴·어깨. 잡히면 초록, 아니면 회색(판정이 아니라 카메라 상태) */
 .track-state { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -600,7 +600,7 @@ button.card:active { transform: translateY(3px); border-bottom-width: 2px; }
 .lab-practice > .source { margin-top: 6px; }
 /* [동작 시작]은 화면 아래에 늘 보이게 */
 .sticky-actions { position: sticky; bottom: 0; z-index: 5; margin: 14px -16px 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-  background: var(--card); box-shadow: 0 -2px 0 var(--line), 0 -8px 14px -12px rgba(15, 61, 43, .4); }
+  background: var(--scene); box-shadow: 0 -10px 12px -8px var(--scene); }
 .sticky-actions .btn { width: 100%; }
 .lab-practice { padding-bottom: 0; }
 
@@ -768,8 +768,8 @@ body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset
 }
 
 /* (11/25) 내 영상 파일로 해보기: 작은 글자 버튼 한 줄 */
-.file-line { margin: 6px 0 0; font-size: 13px; color: var(--muted, #5d6b64); }
-.link-btn { background: none; border: 0; padding: 4px 0; font: inherit; font-weight: 800; color: var(--g-700); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.file-line { margin: 6px 0 0; font-size: 13px; color: var(--c-muted); }
+.link-btn { background: none; border: 0; padding: 4px 0; font: inherit; font-weight: 800; color: var(--c-link); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .cam-box .file-line { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; }
 .file-chip { position: absolute; left: 8px; bottom: 8px; z-index: 3; padding: 4px 10px; border: 0; border-radius: 999px;
   background: rgba(15, 61, 43, .72); color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
@@ -947,7 +947,13 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 
 /* ── 면: 초록 장면 위에 놓인 흰 덩어리. 안의 제목·글자는 어둡게 되돌린다(토큰 다시 정함) ── */
 .card, .facts-card, .word-list, .empty-state, .evidence, .rank-list, .search-field, .error-box, .goal-card, .modal-panel, .answer-panel, .info-line,
-.lab-banner, .streak-tile, .level-card, .challenge-card, .celebrate-panel, .stage-card, .badge, .word-card, .chip, .btn-secondary, .btn-chip, .btn-back,
+.video-box, .lab-banner, .streak-tile, .level-card, .challenge-card, .celebrate-panel, .stage-card, .badge, .word-card, .chip, .btn-secondary, .btn-chip, .btn-back,
 .saved-hero, .free-entry, .stage-sheet, .word-sheet {
   --c-head: var(--g-900); --c-text: var(--text); --c-muted: var(--muted); --c-link: var(--g-600); color: var(--c-text); }
 
+/* 꼬리표는 자기 바탕이 있으므로 어디서나 같은 글자색 */
+.tag-trial, .tag-done, .pill, .stage-tag, .stage-badge { color: var(--g-700); }
+.pill-gold { color: var(--g-900); }
+.stage-badge.big { color: #fff; }
+p.stage-tag { color: var(--g-700); }
+.chip-stat.streak:not(.lit) svg { color: #fff; stroke: #fff; }
