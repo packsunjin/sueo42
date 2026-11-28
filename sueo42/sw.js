@@ -4,12 +4,12 @@
 // - model/(단어 순위 모델): 다시 학습하면 같은 이름으로 바뀌므로 앱 파일처럼 인터넷 먼저
 // - 사전 그림(국립국어원 썸네일): 저장본 먼저. 사전 영상(mp4)은 부분 요청(Range)이라 저장하지 않음 → 인터넷이 없으면 사전 영상은 안 나옴
 // - 이 기기 안에만 저장. 다른 곳으로 보내는 것 없음. 카메라 영상은 여기를 지나지 않음
-const VERSION = "sueo42-2026-11-27b";
+const VERSION = "sueo42-2026-11-28a";
 const APP = `${VERSION}-app`, ASSET = `${VERSION}-asset`, THUMB = `${VERSION}-thumb`;
 const NET_TIMEOUT_MS = 4000;
 
 // 설치할 때: index.html 이 미리 받는 파일(모듈·CSS·글꼴·로고) 전부 + 단어 목록. 첫 방문에 이미 받은 파일도 오프라인에서 쓰이게
-const BASE = ["./", "index.html", "data/words.csv", "img/bubbles.svg", "model/model.json", "model/group1-shard1of1.bin", "model/labels.json"];
+const BASE = ["./", "index.html", "data/words.csv", "img/bubbles.svg", "manifest.webmanifest", "img/icon-192.png", "img/icon-512.png", "img/apple-touch-icon.png", "model/model.json", "model/group1-shard1of1.bin", "model/labels.json"];
 // 직접 해보기 AI(config.js 의 주소와 같아야 함). 첫 방문에는 이 파일들을 받기 시작할 때 아직 서비스 워커가 화면을 맡지 않아서
 // 저장이 안 될 수 있으므로 설치할 때 직접 받아 둔다(앱이 미리 준비하며 받는 파일이라 브라우저 캐시에서 와서 두 번 받지 않음). 데이터 절약이면 건너뜀
 const AI = [
