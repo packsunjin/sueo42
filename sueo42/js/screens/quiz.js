@@ -96,7 +96,7 @@ export function renderQuizHome(el) {
 export function renderQuizPlay(el, { stage }) {
   if (!current || current.stage !== Number(stage)) current = Number(stage) === CONFIG.CHALLENGE_STAGE ? newChallenge() : newRound(stage);
   if (current.challenge && !current.done) { renderChallenge(el, current); return; }
-  if (!current.items.length) { go("/quiz"); return; }
+  if (!current.items.length && !current.challenge) { go("/quiz"); return; }
   if (current.done) renderResult(el, current);
   else renderQuestion(el, current);
 }
@@ -253,7 +253,7 @@ function renderChallenge(el, round) {
     rerender(el);
   }
 
-  const onBack = () => { locked = true; confirmModal(t("Q-27"), btn("Q-28"), btn("Q-29"), () => { stop(); current = null; go("/quiz"); }); };
+  const onBack = () => { confirmModal(t("Q-27"), btn("Q-28"), btn("Q-29"), () => { stop(); current = null; go("/quiz"); }); };
   section.append(
     h("div", { class: "quiz-top" },
       h("button", { class: "btn-back", onclick: onBack, "aria-label": btn("C-09") }, icon("back", { stroke: 2.4 }), h("span", { class: "sr-only" }, btn("C-09"))),
