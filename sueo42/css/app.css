@@ -694,7 +694,6 @@ body:has(#tabbar[hidden]) #app { padding-bottom: calc(12px + env(safe-area-inset
   .quiz-result > .muted { display: none; }
   .quiz-result .btn-col .btn { min-height: 44px; }
   .lab-result .side-by-side .video-tools { display: none; }
-  .lab-result .rank-switch .chip { height: 40px; }
   .lab-result > .muted { display: none; }
   .screen-head { margin-bottom: 6px; }
   .screen-head h1 { font-size: 22px; }
@@ -976,6 +975,16 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 .sentence-card .sentence-words span:not(.glue) { background: var(--lime); color: var(--g-900); border-radius: 999px; padding: 3px 12px; }
 .sentence-card .sentence-words span:nth-child(4n+3):not(.glue) { background: #ffd84d; } .sentence-card .sentence-words span:nth-child(4n+5):not(.glue) { background: #9ad8ff; }
 .sentence-card .stage-tag { background: var(--g-900); color: var(--lime); }
+
+/* 11/28 직접 해보기 결과: AI 가 본 동작을 크게(점수·% 없이 이름만), 사전 영상과 내 영상 칸을 같은 4:3 크기로 */
+.lab-result .rank-line { font-size: 17px; font-weight: 700; line-height: 1.5; margin: 4px 0 10px; color: #fff; }
+.lab-result .rank-line strong { font-size: 22px; font-weight: 900; letter-spacing: -.03em; display: inline-block; line-height: 1.25; }
+.lab-result .rank-switch { gap: 10px; margin: 6px 0 14px; }
+.lab-result .rank-switch .chip { height: 64px; font-size: 24px; font-weight: 900; border-radius: 999px; }
+.lab-result .rank-switch .chip.on { box-shadow: inset 0 0 0 4px var(--g-900), 0 5px 0 rgba(0, 0, 0, .22); border-color: transparent; }
+.lab-result .side-by-side .video-box, .lab-result .side-by-side .clip-wrap { aspect-ratio: 4 / 3; width: 100%; height: auto; max-height: none; border-radius: 18px; }
+.lab-result .side-by-side .video-box video { object-fit: contain; background: #10221a; }
+.lab-result .side-by-side canvas.replay { width: 100%; aspect-ratio: 4 / 3; height: auto; border-radius: 18px; }
 
 /* ── 면: 초록 장면 위에 놓인 흰 덩어리. 안의 제목·글자는 어둡게 되돌린다(토큰 다시 정함) ── */
 .card, .facts-card, .word-list, .empty-state, .evidence, .rank-list, .search-field, .error-box, .modal-panel, .answer-panel, .info-line,
