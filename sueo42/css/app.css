@@ -939,3 +939,18 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 .challenge-go { flex: none; pointer-events: none; padding: 8px 14px; min-height: 0; }
 .quiz-play.challenge .options { margin-top: 12px; }
 .challenge .bar span { transition: none; }
+
+/* 11/28 보기 버튼 다시 디자인: 번호 칩(색 다르게) + 왼쪽 정렬 + 큰 글자. 정답은 초록 꽉 찬 면, 고른 오답은 회색 */
+.options { counter-reset: opt; grid-template-columns: 1fr 1fr; gap: 10px; }
+.option { counter-increment: opt; display: flex; align-items: center; min-height: 64px; padding: 8px 10px 8px 8px; text-align: left; font-size: 18px; gap: 10px; letter-spacing: -.01em;
+  border-radius: 20px; border-color: var(--line); border-bottom-color: var(--line-edge); box-shadow: var(--raise-sm); }
+.option::before { content: counter(opt); flex: none; width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font: 800 16px/1 var(--font);
+  background: var(--pale-green); color: var(--g-700); box-shadow: inset 0 -3px 0 var(--pale-green-edge); }
+.option:nth-child(2)::before { background: var(--sky-pale); color: var(--sky-ink); box-shadow: inset 0 -3px 0 var(--sky-line); }
+.option:nth-child(3)::before { background: var(--gold-pale); color: var(--gold-ink); box-shadow: inset 0 -3px 0 #f6dd9a; }
+.option:nth-child(4)::before { background: var(--fire-pale); color: var(--fire-ink); box-shadow: inset 0 -3px 0 var(--fire-line); }
+.option:hover:not(:disabled) { border-color: var(--g-500); }
+.option.is-answer { background: var(--g-600); border-color: var(--g-600); border-bottom-color: var(--g-700); color: #fff; }
+.option.is-answer::before { content: "✓"; background: #fff; color: var(--g-700); box-shadow: none; }
+.option.is-chosen { background: var(--surface); border-color: var(--line); color: var(--muted); }
+.option.is-chosen::before { background: #fff; color: var(--muted); box-shadow: none; }
