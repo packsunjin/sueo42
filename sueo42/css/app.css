@@ -936,12 +936,12 @@ h1 { letter-spacing: -.02em; } h2, h3 { letter-spacing: -.01em; }
 @media (max-height: 760px) { .lab-practice:not(.has-sentence) > .muted.small { display: none; } }
 
 /* 11/28 60초 챌린지 */
-.challenge-card { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; margin-bottom: 12px; background: var(--g-100); border: 2px solid var(--g-500); }
+.challenge-card { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; margin-bottom: 14px; background: #ffd84d; border: 0; box-shadow: var(--block); }
 .challenge-card .stage-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; align-items: flex-start; }
 .challenge-card strong { font-size: 18px; font-weight: 800; color: var(--c-head); }
-.challenge-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--g-500); color: #fff; display: grid; place-items: center; flex: none; }
+.challenge-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--g-900); color: #ffd84d; display: grid; place-items: center; flex: none; }
 .challenge-icon svg { width: 24px; height: 24px; }
-.challenge-go { flex: none; pointer-events: none; padding: 8px 14px; min-height: 0; }
+.challenge-go { flex: none; pointer-events: none; padding: 8px 16px; min-height: 0; background: var(--g-900); color: #fff; border-color: var(--g-900); border-bottom-color: #06241a; }
 .quiz-play.challenge .options { margin-top: 12px; }
 .challenge .bar span { transition: none; }
 
